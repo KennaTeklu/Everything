@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Everything – 3D Knowledge Map + Tabs</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #e2e8f0;
+            font-family: system-ui, 'Segoe UI', sans-serif;
+            padding: 1.5rem;
+            min-height: 100vh;
+        }
+
+        .monolith {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 35px -10px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .tab-bar {
+            display: flex;
+            background: #f1f5f9;
+            border-bottom: 1px solid #cbd5e1;
+            gap: 0.25rem;
+            padding: 0.75rem 1.5rem 0 1.5rem;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 0.7rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 0.8rem 0.8rem 0 0;
+            color: #475569;
+            transition: 0.2s;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: #0f172a;
+            border-bottom: 2px solid #3b82f6;
+        }
+
+        .iframe-container {
+            height: 75vh;
+            min-height: 550px;
+            background: #fff;
+            position: relative;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+
+        .info-panel {
+            padding: 0.8rem 1.5rem;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            font-size: 0.8rem;
+            text-align: center;
+            color: #334155;
+        }
+    </style>
+</head>
+<body>
+<div class="monolith">
+    <div class="tab-bar">
+        <button class="tab-btn active" data-tab="article">📄 Article</button>
+        <button class="tab-btn" data-tab="dashboard">📊 Dashboard</button>
+        <button class="tab-btn" data-tab="map">🧩 3D Knowledge Map</button>
+    </div>
+    <div class="iframe-container">
+        <iframe id="frame-article" class="tab-frame" style="display: block;" src="article.html"></iframe>
+        <iframe id="frame-dashboard" class="tab-frame" style="display: none;" src="dashboard.html"></iframe>
+        <iframe id="frame-map" class="tab-frame" style="display: none;" src="map.html" allow="fullscreen"></iframe>
+    </div>
+    <div class="info-panel">
+        ✅ The 3D map loads from <code>map.html</code> with a real origin → IndexedDB, localStorage, and all APIs work.
+    </div>
+</div>
+
+<script>
+    const btns = document.querySelectorAll('.tab-btn');
+    const frames = {
+        article: document.getElementById('frame-article'),
+        dashboard: document.getElementById('frame-dashboard'),
+        map: document.getElementById('frame-map')
+    };
+
+    function activateTab(tabId) {
+        Object.values(frames).forEach(f => {
+            if (f) f.style.display = 'none';
+        });
+        const selected = frames[tabId];
+        if (selected) selected.style.display = 'block';
+        btns.forEach(btn => {
+            if (btn.dataset.tab === tabId) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+    }
+
+    btns.forEach(btn => {
+        btn.addEventListener('click', () => activateTab(btn.dataset.tab));
+    });
+</script>
+</body>
+</html>

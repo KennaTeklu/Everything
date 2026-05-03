@@ -1,0 +1,3572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Knowledge Map 3D</title>
+    
+    <!-- Three.js core library (for 3D rendering) -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/"
+            }
+        }
+    </script>
+    
+    <!-- Font Awesome for Icons (UI support) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <!-- SweetAlert2 for modals/alerts (kept from original) -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Dexie – better IndexedDB wrapper -->
+    <script src="https://unpkg.com/dexie@3.2.4/dist/dexie.js"></script>
+  	<script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+/* ========== 3D KNOWLEDGE MAP – COMPLETE CSS STYLESHEET ========== */
+/* Matches original UI design, adapted for Three.js canvas integration */
+
+:root {
+    --bg: #030408;
+    --surface: rgba(15, 18, 28, 0.85);
+    --surface-hover: rgba(30, 35, 50, 0.95);
+    --border: rgba(45, 212, 191, 0.25);
+    --text: #f8fafc;
+    --text-dim: #94a3b8;
+    --accent: #2dd4bf;
+    --accent-hover: #14b8a6;
+    --danger: #f43f5e;
+    --danger-hover: #e11d48;
+    --success: #4ade80;
+
+    /* Dynamic Mastery Colors (overridden by JS / colorblind mode) */
+    --m-0: #e11d48;
+    --m-30: #f97316;
+    --m-70: #eab308;
+    --m-100: #2dd4bf;
+
+    --font-ui: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+    --font-mono: "Fira Code", monospace;
+}
+
+body.colorblind-mode {
+    --m-0: #d95f02;
+    --m-30: #e6a122;
+    --m-70: #7570b3;
+    --m-100: #1b9e77;
+    --accent: #1b9e77;
+    --danger: #d95f02;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    user-select: none;
+}
+
+body {
+    background: var(--bg);
+    background-image: radial-gradient(circle at 50% 50%, #0a0f1c 0%, var(--bg) 100%);
+    color: var(--text);
+    font-family: var(--font-ui);
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+}
+
+.pointer-events-none {
+    pointer-events: none;
+}
+.pointer-events-auto {
+    pointer-events: auto;
+}
+
+/* --- 3D Canvas container --- */
+#map-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    bottom: 0;
+    z-index: 1 !important;
+    background: radial-gradient(circle at 20% 30%, #0c0c14, #030306);
+    overflow: hidden;
+    transform: none !important; /* prevents creating a new stacking context */
+    will-change: auto !important;
+    
+    /* NEW: Flexbox centering for the entire DOM block (canvas + labels) */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* --- UI Overlay Layer --- */
+#ui-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+}
+
+/* --- Breadcrumbs (centered top) --- */
+#breadcrumbs {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    padding: 8px 16px;
+    border-radius: 40px;
+    font-weight: 600;
+    font-size: 13px;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    z-index: 20;
+    white-space: nowrap;
+    max-width: 90vw;
+    overflow-x: auto;
+    scrollbar-width: none; /* hide scrollbar */
+}
+#breadcrumbs::-webkit-scrollbar {
+    display: none;
+}
+.crumb {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    color: var(--text-dim);
+    transition: 0.2s;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.crumb-active {
+    color: var(--accent);
+    pointer-events: none;
+}
+.crumb i {
+    flex-shrink: 0;
+}
+.crumb:hover {
+    color: var(--text);
+}
+
+/* --- Bottom Dock --- */
+#dock {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    background: var(--surface);
+    backdrop-filter: blur(20px);
+    padding: 8px;
+    border-radius: 60px;
+    border: 1px solid var(--border);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    z-index: 20;
+    transition: all 0.2s ease;
+}
+#dock.collapsed {
+    width: auto;
+    padding: 8px;
+}
+#dock.collapsed button:not(#dock-toggle-right) {
+    display: none !important;
+}
+#dock button {
+    border-radius: 40px;
+    padding: 10px 20px;
+}
+
+/* --- Control Card (Left/TL snap) --- */
+#control-card {
+    position: absolute;
+    width: 380px;
+    max-height: 85vh;
+    background: var(--surface);
+    backdrop-filter: blur(24px);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+    overflow: hidden;
+    z-index: 25;
+}
+.pos-tl { top: 20px; left: 20px; }
+.pos-tr { top: 20px; right: 20px; }
+.pos-bl { bottom: 90px; left: 20px; }
+.pos-br { bottom: 90px; right: 20px; }
+
+#control-card.collapsed {
+    width: 56px !important;
+    height: 56px !important;
+    border-radius: 28px !important;
+    overflow: hidden;
+    cursor: pointer;
+    justify-content: center;
+    align-items: center;
+}
+#control-card.collapsed > *:not(.card-header) {
+    display: none !important;
+}
+#control-card.collapsed .card-header {
+    padding: 0;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    width: 100%;
+    height: 100%;
+}
+#control-card.collapsed .card-title,
+#control-card.collapsed .snap-grid {
+    display: none;
+}
+
+.card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0,0,0,0.2);
+}
+.card-title {
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    font-size: 14px;
+}
+.card-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    scrollbar-width: none;
+}
+.snap-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3px;
+    width: 24px;
+    height: 24px;
+}
+.snap-btn {
+    width: 10px;
+    height: 10px;
+    border: 1px solid var(--text-dim);
+    border-radius: 3px;
+    background: transparent;
+    cursor: pointer;
+    padding: 0;
+}
+.snap-btn.active,
+.snap-btn:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+/* --- Search & Filters --- */
+.search-container {
+    position: relative;
+}
+.filter-controls {
+    display: flex;
+    gap: 8px;
+}
+input, select, textarea {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 14px;
+    border-radius: 12px;
+    transition: 0.2s;
+    width: 100%;
+}
+input:focus, select:focus, textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(45,212,191,0.1);
+}
+
+/* --- Folder View Container (list views) --- */
+#folder-view-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 40vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+.folder-item {
+    padding: 14px;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.05);
+    background: rgba(255,255,255,0.02);
+    cursor: pointer;
+    transition: 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.folder-item:hover {
+    background: var(--surface-hover);
+    border-color: var(--border);
+    transform: translateY(-1px);
+}
+.folder-item.active {
+    border-color: var(--accent);
+    background: rgba(45,212,191,0.05);
+}
+.folder-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 600;
+}
+.folder-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.folder-meta {
+    font-size: 10px;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+}
+.progress-track {
+    width: 100%;
+    height: 4px;
+    background: rgba(0,0,0,0.5);
+    border-radius: 2px;
+    overflow: hidden;
+}
+.progress-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.4s, background 0.4s;
+}
+.nav-parent-link {
+    cursor: pointer;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    border-left: 3px solid var(--accent);
+}
+
+/* --- Action Panel --- */
+#action-panel {
+    background: rgba(0,0,0,0.2);
+    padding: 16px;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+#selected-folder-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 12px;
+    word-break: break-all;
+}
+.action-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+.action-grid button {
+    padding: 8px;
+    font-size: 12px;
+    margin: 0;
+}
+.action-grid #btn-adjust-understanding {
+    grid-column: span 2;
+}
+
+/* --- Buttons & Inputs (consistent) --- */
+button {
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+    cursor: pointer;
+    transition: 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-weight: 600;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.03);
+    color: var(--text);
+    padding: 10px 16px;
+}
+button:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.3);
+}
+.btn-primary {
+    background: rgba(45,212,191,0.15);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+.btn-primary:hover {
+    background: rgba(45,212,191,0.25);
+    box-shadow: 0 0 15px rgba(45,212,191,0.2);
+}
+.btn-danger {
+    background: rgba(244,63,94,0.1);
+    border-color: var(--danger);
+    color: var(--danger);
+}
+.btn-danger:hover {
+    background: rgba(244,63,94,0.2);
+}
+.btn-secondary {
+    background: transparent;
+    border-color: var(--border);
+    color: var(--text-dim);
+}
+.icon-btn {
+    padding: 6px;
+    border-radius: 8px;
+    background: transparent;
+    border: none;
+    font-size: 16px;
+    color: var(--text-dim);
+}
+.icon-btn:hover {
+    color: var(--text);
+    background: rgba(255,255,255,0.1);
+}
+
+/* --- Modals --- */
+.modal-bg {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+.modal-large {
+    width: 900px;
+    max-width: 90vw;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 32px;
+    overflow: hidden;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+}
+
+@media (max-width: 640px) {
+    .modal-large {
+        width: 95vw;
+        max-width: 95vw;
+        margin: 20px;
+    }
+    .upload-zones-container {
+        flex-direction: column;
+        padding: 16px;
+    }
+}
+.modal-medium {
+    width: 600px;
+    max-width: 90vw;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 24px;
+}
+.modal-small {
+    width: 400px;
+    max-width: 90vw;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 24px;
+}
+.modal-header {
+    padding: 24px 32px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.modal-header h2 {
+    font-size: 18px;
+}
+.close-modal-btn {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    color: var(--text-dim);
+    padding: 0;
+}
+.close-modal-btn:hover {
+    color: var(--text);
+}
+
+/* Dual‑Zone Upload */
+.upload-zones-container {
+    display: flex;
+    gap: 24px;
+    padding: 32px;
+}
+.upload-zone {
+    flex: 1;
+    background: rgba(0,0,0,0.3);
+    border-radius: 20px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+.upload-zone h3 {
+    font-size: 15px;
+    color: var(--accent);
+}
+.drop-area {
+    border: 2px dashed var(--border);
+    border-radius: 16px;
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.2s;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-dim);
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.drop-area:hover,
+.drop-area.dragover {
+    background: rgba(45,212,191,0.05);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+/* Text editor inside modal */
+#content-textarea {
+    height: 400px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+}
+.slider-container {
+    margin: 24px 0;
+}
+input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 3px;
+    outline: none;
+    border: none;
+    padding: 0;
+}
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    transition: 0.2s;
+    box-shadow: 0 0 10px rgba(45,212,191,0.5);
+}
+#understanding-value-display {
+    text-align: center;
+    font-size: 32px;
+    font-weight: 900;
+    margin-top: 16px;
+    font-family: var(--font-mono);
+    color: var(--accent);
+}
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+}
+.toggle-setting {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    font-size: 14px;
+}
+.toggle-setting input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent);
+    cursor: pointer;
+}
+
+/* Fluid Loader */
+.loader-container {
+    width: 450px;
+    text-align: center;
+}
+#loader-status-text {
+    font-size: 16px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+}
+.fluid-bar-track {
+    height: 6px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+#fluid-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--accent);
+    box-shadow: 0 0 15px var(--accent);
+    transition: width 0.1s linear;
+}
+#loader-sub-text {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+/* Toast Notifications */
+#toast-container {
+    position: fixed;
+    bottom: 90px;
+    right: 24px;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: none;
+}
+.toast {
+    background: var(--surface);
+    backdrop-filter: blur(20px);
+    border-left: 4px solid var(--accent);
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes slideIn {
+    from { transform: translateX(120%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* Guided Workflow Styles */
+.guide-modal .modal-medium {
+    max-width: 700px;
+}
+.guide-step {
+    margin-bottom: 1.5rem;
+}
+.guide-step h4 {
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+}
+.guide-prompt {
+    background: #1e293b;
+    padding: 0.75rem;
+    border-radius: 12px;
+    font-family: monospace;
+    font-size: 0.8rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+    border-left: 3px solid var(--accent);
+    margin: 0.5rem 0;
+}
+.copy-btn {
+    background: var(--accent);
+    border: none;
+    padding: 4px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.7rem;
+    margin-left: 8px;
+}
+.copy-btn:hover {
+    opacity: 0.8;
+}
+.resource-list {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px;
+    margin: 8px 0;
+}
+.resource-item {
+    padding: 6px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+}
+.resource-item:hover {
+    background: rgba(255,255,255,0.05);
+}
+.resource-item.selected {
+    background: var(--accent);
+    color: black;
+}
+.guide-note {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-top: 0.5rem;
+}
+.step-badge {
+    background: #2d3748;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: bold;
+}
+.step-badge.active {
+    background: var(--accent);
+    color: black;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    #control-card {
+        width: calc(100vw - 40px);
+    }
+    .upload-zones-container {
+        flex-direction: column;
+        padding: 20px;
+    }
+    #dock {
+        width: calc(100vw - 40px);
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    .modal-large, .modal-medium, .modal-small {
+        max-width: 95vw;
+    }
+    .loader-container {
+        width: 85vw;
+    }
+}
+#ui-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    pointer-events: none;
+    /* ensure pointer-events: auto on child elements as needed */
+}
+/* --- Interactive Labels --- */
+.label-interactive {
+    transition: none !important;
+    opacity: 0.3 !important;
+    font-size: 9px !important;
+    transform: scale(0.8) !important;
+    transform-origin: center center !important;
+    pointer-events: auto !important;
+    user-select: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-touch-callout: none !important;
+}
+.label-interactive:hover,
+.label-interactive.long-pressed {
+    opacity: 1 !important;
+    font-size: 18px !important;
+    transform: scale(1.2) !important;
+    z-index: 100 !important;
+    background-color: rgba(0,0,0,0.8) !important;
+    border-color: #2dd4bf !important;
+    box-shadow: 0 0 20px rgba(45,212,191,0.3) !important;
+}
+  </style>
+</head>
+<body>
+
+    <!-- 3D Viewport Container – Three.js will attach a canvas here -->
+    <div id="map-container"></div>
+
+    <!-- UI overlay layer (same structure as original, all pointer events control) -->
+    <div id="ui-layer" class="pointer-events-none">
+        
+        <!-- Breadcrumb Navigation -->
+        <div id="breadcrumbs" class="pointer-events-auto"></div>
+        
+        <!-- Floating Text Display (hidden by default) -->
+        <div id="node-text-display" style="display: none; position: absolute; top: 70px; left: 50%; transform: translateX(-50%); background: var(--surface); backdrop-filter: blur(20px); border: 1px solid var(--border); padding: 12px 24px; border-radius: 40px; font-weight: 600; font-size: 16px; color: var(--text); box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 30; pointer-events: none; max-width: 80vw; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
+
+        <!-- Quadrant Snapping Control Card (same IDs for CSS/JS later) -->
+        <div id="control-card" class="pointer-events-auto pos-tl">
+            <div class="card-header">
+                <button id="collapse-toggle-btn" class="icon-btn" aria-label="Collapse Menu">☰</button>
+                <div class="card-title">Knowledge Folders</div>
+                <div class="snap-grid">
+                    <button class="snap-btn" data-pos="tl" aria-label="Top Left"></button>
+                    <button class="snap-btn" data-pos="tr" aria-label="Top Right"></button>
+                    <button class="snap-btn" data-pos="bl" aria-label="Bottom Left"></button>
+                    <button class="snap-btn" data-pos="br" aria-label="Bottom Right"></button>
+                </div>
+            </div>
+            
+            <div class="card-body">
+                <!-- Search & Filters -->
+                <div class="search-container">
+                    <input type="text" id="search-input" placeholder="🔍 Search folders and topics...">
+                </div>
+                
+                <div class="filter-controls">
+                    <select id="sort-select">
+                        <option value="az">A → Z</option>
+                        <option value="za">Z → A</option>
+                        <option value="prog-desc">Understanding (High-Low)</option>
+                        <option value="prog-asc">Understanding (Low-High)</option>
+                        <option value="size-desc">Size (Largest First)</option>
+                        <option value="size-asc">Size (Smallest First)</option>
+                        <option value="date-desc">Newest First</option>
+                        <option value="date-asc">Oldest First</option>
+                        <option value="dens-desc">Most Sub-folders</option>
+                        <option value="dens-asc">Fewest Sub-folders</option>
+                    </select>
+                    
+                    <select id="view-select">
+                        <option value="list">List View</option>
+                        <option value="grid">Grid View</option>
+                        <option value="details">Details View</option>
+                        <option value="tiles">Tiles View</option>
+                        <option value="prog">Progress Focus</option>
+                        <option value="size">Size Focus</option>
+                        <option value="clean">Clean Text</option>
+                        <option value="compact">Compact List</option>
+                        <option value="huge">Huge Icons</option>
+                        <option value="text">Read Only</option>
+                    </select>
+                </div>
+
+                <!-- Folder Tree / List (displays hierarchical items) -->
+                <div id="folder-view-container"></div>
+                
+                <!-- Context Action Panel (visible when folder selected) -->
+                <div id="action-panel" style="display: none;">
+                    <div id="selected-folder-title"></div>
+                    <div class="action-grid">
+                        <button id="btn-adjust-understanding" class="btn-primary">📊 Set Understanding</button>
+                        <button id="btn-edit-content" class="btn-secondary">📝 Read / Edit Content</button>
+                        <button id="btn-resource-discovery" class="btn-secondary">🔍 Find Free Resources (AI)</button>
+                        <button id="btn-quiz-guide" class="btn-secondary">📄 Quiz Wizard (AI guided)</button>
+                        <button id="btn-scores" class="btn-secondary">📊 View/Add Test Scores</button>
+                        <button id="btn-rename" class="btn-secondary">✏️ Rename</button>
+                        <button id="btn-delete" class="btn-danger">🗑 Delete Folder</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Dock (same buttons as original) -->
+        <div id="dock" class="pointer-events-auto">
+            <button id="dock-toggle-left" class="btn-secondary" style="padding: 8px 12px;"><i class="fas fa-chevron-down"></i></button>
+            <button id="dock-home"><i class="fas fa-home"></i> Home</button>
+            <button id="dock-add" class="btn-primary"><i class="fas fa-plus"></i> Add File</button>
+            <button id="dock-settings"><i class="fas fa-cog"></i> Settings</button>
+            <button id="dock-backup"><i class="fas fa-download"></i> Backup</button>
+            <button id="library-categories-btn" class="btn-primary"><i class="fas fa-book"></i> Try Kenna's setup</button>
+            <button id="remove-library-categories-btn" class="btn-danger"><i class="fas fa-trash-alt"></i> Remove Kenna's Categories</button>
+            <button id="fit-graph-btn" class="btn-secondary"><i class="fas fa-expand-alt"></i> Reset View</button>
+            <button id="dock-delete-all" class="btn-danger"><i class="fas fa-skull-crossbones"></i> Delete All</button>
+            <button id="dock-toggle-right" class="btn-secondary" style="padding: 8px 12px;"><i class="fas fa-chevron-down"></i></button>
+        </div>
+    </div>
+
+    <!-- ========== MODALS (all identical to original, for 3D version) ========== -->
+    
+    <!-- Dual‑Zone Upload Modal -->
+    <div id="upload-hub-modal" class="modal-bg">
+        <div class="modal-large">
+            <div class="modal-header">
+                <h2>Add Knowledge Files</h2>
+                <button class="close-modal-btn">✕</button>
+            </div>
+            <div class="upload-zones-container">
+                <div class="upload-zone" id="zone-categories">
+                    <h3>1. Master Categories</h3>
+                    <p>Establish your educational subjects. (Filters applied automatically via prompt).</p>
+                    <button id="copy-cat-prompt" class="btn-secondary">📋 Copy Category AI Prompt</button>
+                    <div class="drop-area" id="drop-categories">
+                        <span>Drag & Drop Category JSON Here</span>
+                        <input type="file" id="file-categories" accept=".json" hidden>
+                    </div>
+                    <button class="paste-json-btn btn-secondary" data-zone="categories" style="margin-top: 8px;">📋 Paste JSON Text</button>
+                </div>
+                <div class="upload-zone" id="zone-books">
+                    <h3>2. Books & Documents</h3>
+                    <p>Add content to your categories. Preserves deep hierarchy to the bold word.</p>
+                    <button id="copy-book-prompt" class="btn-secondary">📋 Copy Book AI Prompt</button>
+                    <div class="drop-area" id="drop-books">
+                        <span>Drag & Drop Book JSON Here</span>
+                        <input type="file" id="file-books" accept=".json" hidden>
+                    </div>
+                    <button class="paste-json-btn btn-secondary" data-zone="books" style="margin-top: 8px;">📋 Paste JSON Text</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Editor Modal -->
+    <div id="content-modal" class="modal-bg">
+        <div class="modal-medium">
+            <h3 id="content-modal-title">Folder Content</h3>
+            <textarea id="content-textarea" placeholder="Text, notes, or definitions..."></textarea>
+            <div class="modal-footer">
+                <button id="save-content-btn" class="btn-primary">💾 Save Content</button>
+                <button class="close-modal-btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Understanding Slider Modal -->
+    <div id="understanding-modal" class="modal-bg">
+        <div class="modal-small">
+            <h3>Set Understanding Level</h3>
+            <div class="slider-container">
+                <input type="range" id="understanding-slider" min="0" max="100" step="1" value="0">
+                <div id="understanding-value-display">0%</div>
+            </div>
+            <div class="modal-footer">
+                <button id="save-understanding-btn" class="btn-primary">Apply</button>
+                <button class="close-modal-btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+<!-- Settings Modal -->
+<div id="settings-modal" class="modal-bg">
+    <div class="modal-small">
+        <h3>Settings</h3>
+        <div style="margin: 20px 0; display: flex; flex-direction: column; gap: 12px;">
+            <label class="toggle-setting">
+                <input type="checkbox" id="colorblind-toggle">
+                <span>Enable Colorblind Mode (Blue/Orange Scale)</span>
+            </label>
+            <label class="toggle-setting">
+                <input type="checkbox" id="show-all-labels-toggle">
+                <span>Always show node labels (performance heavy)</span>
+            </label>
+            <div style="margin-top: 8px;">
+                <label style="display: block; margin-bottom: 8px;">Graph Zoom Level: <span id="zoom-value-display">2.0</span></label>
+                <input type="range" id="graph-zoom-slider" min="1.0" max="4.0" step="0.1" value="2.0">
+            </div>
+        </div>
+        <button class="close-modal-btn btn-secondary" style="width: 100%;">Close</button>
+    </div>
+</div></div>
+
+    <!-- Fluid Loader Overlay -->
+    <div id="loader-overlay" class="modal-bg">
+        <div class="loader-container">
+            <h3 id="loader-status-text">Processing File...</h3>
+            <div class="fluid-bar-track">
+                <div id="fluid-bar-fill"></div>
+            </div>
+            <div id="loader-sub-text">Please wait</div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Paste JSON Modal -->
+    <div id="paste-json-modal" class="modal-bg">
+        <div class="modal-medium">
+            <h3>Paste JSON</h3>
+            <textarea id="paste-json-textarea" rows="12" placeholder='Paste your JSON here...'></textarea>
+            <div class="modal-footer">
+                <button id="paste-submit-btn" class="btn-primary">Process</button>
+                <button id="paste-cancel-btn" class="btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Scores Modal -->
+    <div id="scores-modal" class="modal-bg">
+        <div class="modal-medium">
+            <h3 id="scores-modal-title">Test Scores</h3>
+            <div id="scores-list" style="max-height: 300px; overflow-y: auto; margin-bottom: 16px;"></div>
+            <div style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 12px;">
+                <p style="font-size: 12px; margin-bottom: 8px;">Add new score:</p>
+                <div style="display: flex; gap: 8px;">
+                    <input type="number" id="score-earned" placeholder="Points earned" step="any" style="flex:1;">
+                    <span style="align-self: center;">/</span>
+                    <input type="number" id="score-possible" placeholder="Points possible" step="any" style="flex:1;">
+                    <button id="add-score-btn" class="btn-primary">+ Add</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="close-scores-modal" class="btn-secondary">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Guided Quiz Wizard Modal -->
+    <div id="quizWizardModal" class="modal-bg guide-modal">
+        <div class="modal-medium">
+            <h3>📝 Quiz Preparation Wizard</h3>
+            <div id="quizWizardSteps">
+                <div class="guide-step">
+                    <h4>Step 1: Extract questions from your content</h4>
+                    <p>Copy the prompt below and paste it into an AI together with your node's content.</p>
+                    <div class="guide-prompt" id="quizExtractPrompt">Loading...</div>
+                    <button class="copy-btn" data-clipboard="quizExtractPrompt">📋 Copy Prompt</button>
+                </div>
+                <div class="guide-step">
+                    <h4>Step 2: Paste the AI‑generated quiz JSON</h4>
+                    <textarea id="quizJsonInput" rows="6" placeholder='[{"question": "...", "choices": ["...", "..."], "correct": 0, "explanation": "..."}]' style="width:100%; background:#0f172a; border:1px solid var(--border); border-radius:8px; padding:8px; font-family:monospace;"></textarea>
+                    <button id="previewQuizBtn" class="btn-secondary" style="margin-top:8px;">Preview & Export</button>
+                </div>
+                <div class="guide-step">
+                    <h4>Step 3: Take the quiz in the external app</h4>
+                    <p>Save the exported JSON, then go to <a href="https://smileybrooms.blogspot.com/2026/03/mcat-quiz.html" target="_blank">MCQ Quiz App</a> and upload it. Then copy your score.</p>
+                </div>
+                <div class="guide-step">
+                    <h4>Step 4: Record your score</h4>
+                    <div style="display:flex; gap:8px;">
+                        <input type="number" id="quizScoreEarned" placeholder="Points earned" style="flex:1;">
+                        <input type="number" id="quizScoreTotal" placeholder="Total points" style="flex:1;">
+                        <button id="recordQuizScoreBtn" class="btn-primary">➕ Add as Test Score</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="close-modal-btn btn-secondary">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resource Discovery Modal (Dual‑Route) -->
+    <div id="resourceModal" class="modal-bg guide-modal">
+        <div class="modal-medium" style="max-width: 800px; max-height: 85vh; display: flex; flex-direction: column;">
+            <h3>📚 Resource Discovery & Quiz Prep</h3>
+            <div style="display: flex; gap: 8px; margin: 12px 0; justify-content: center;">
+                <span id="stepIndicator1" class="step-badge active">1. Resource List</span>
+                <span>→</span>
+                <span id="stepIndicator2" class="step-badge">2. Select Route</span>
+                <span>→</span>
+                <span id="stepIndicator3" class="step-badge">3. Content / Quiz</span>
+            </div>
+            <div style="flex: 1; overflow-y: auto; padding-right: 8px;">
+                <!-- Step 1: AI prompt copy -->
+                <div id="step1" class="guide-step" style="display: block;">
+                    <h4>Step 1: Copy this prompt to AI</h4>
+                    <div class="guide-prompt" id="resourcePrompt" style="font-size: 0.75rem; max-height: 200px; overflow-y: auto;">Loading...</div>
+                    <button class="copy-btn" data-clipboard="resourcePrompt">📋 Copy Prompt</button>
+                    <p class="guide-note">Paste into DeepSeek/ChatGPT. Ask for 20 free resources.</p>
+                    <div style="margin-top: 16px; text-align: right;">
+                        <button id="step1Next" class="btn-primary">Next →</button>
+                    </div>
+                </div>
+                <!-- Step 2: Classify resources -->
+                <div id="step2" class="guide-step" style="display: none;">
+                    <h4>Step 2: Classify each resource</h4>
+                    <div id="resourceListContainer" style="max-height: 300px; overflow-y: auto;"></div>
+                    <div style="margin-top: 12px; display: flex; justify-content: space-between;">
+                        <button id="step2Back" class="btn-secondary">← Back</button>
+                        <button id="step2Next" class="btn-primary">Next →</button>
+                    </div>
+                </div>
+                <!-- Step 3: Text content or quiz generation -->
+                <div id="step3" class="guide-step" style="display: none;">
+                    <div id="textRoutePanel" style="display: none;">
+                        <h4>Step 3: Paste text content</h4>
+                        <div id="textResourceNote"></div>
+                        <textarea id="textContentInput" rows="10" placeholder="Paste the extracted text from the resource here..." style="width:100%; background:#0f172a; border:1px solid var(--border); border-radius:8px; padding:8px;"></textarea>
+                        <button id="generateFromTextBtn" class="btn-primary" style="margin-top:8px;">📂 Generate Categories/Book JSON</button>
+                    </div>
+                    <div id="quizRoutePanel" style="display: none;">
+                        <h4>Step 3: Quiz preparation</h4>
+                        <div id="quizResourceInfo"></div>
+                        <button id="generateQuizFromAI" class="btn-primary">📝 Generate Quiz JSON</button>
+                        <div style="margin-top: 16px;">
+                            <label>Or manually record your understanding (0‑100%):</label>
+                            <input type="range" id="manualUnderstandingSlider" min="0" max="100" step="1" value="50">
+                            <div id="manualValueDisplay" style="text-align:center;">50%</div>
+                            <button id="recordManualScoreBtn" class="btn-secondary" style="margin-top:8px;">💾 Save Understanding</button>
+                        </div>
+                    </div>
+                    <div style="margin-top: 16px; display: flex; justify-content: space-between;">
+                        <button id="step3Back" class="btn-secondary">← Back</button>
+                        <button id="step3Finish" class="btn-primary" style="display:none;">Finish</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="margin-top: 12px;">
+                <button class="close-modal-btn btn-secondary">Close</button>
+            </div>
+        </div>
+    </div>
+
+<script type="module">
+// ============================================================================
+// 3D KNOWLEDGE MAP – FIXED ENGINE (2D logic + Three.js renderer)
+// ============================================================================
+
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// Ensure D3 is available (used for color interpolation)
+if (typeof d3 === 'undefined') {
+    await import('https://d3js.org/d3.v7.min.js');
+}
+
+// ----------------------------------------------------------------------------
+// Override native browser dialogs with SweetAlert2 (CDN)
+// ----------------------------------------------------------------------------
+window.originalAlert = window.alert;
+window.originalConfirm = window.confirm;
+window.originalPrompt = window.prompt;
+
+window.alert = function(message) {
+    Swal.fire({
+        icon: 'info',
+        title: 'Notice',
+        text: String(message),
+        background: 'var(--surface)',
+        color: 'var(--text)',
+        confirmButtonColor: '#2dd4bf',
+        backdrop: 'rgba(0,0,0,0.85)'
+    });
+};
+
+window.confirm = async function(message) {
+    const result = await Swal.fire({
+        icon: 'question',
+        title: 'Confirm',
+        text: String(message),
+        showCancelButton: true,
+        confirmButtonText: 'Yes',
+        cancelButtonText: 'No',
+        background: 'var(--surface)',
+        color: 'var(--text)',
+        confirmButtonColor: '#2dd4bf',
+        cancelButtonColor: '#f43f5e',
+        backdrop: 'rgba(0,0,0,0.85)'
+    });
+    return result.isConfirmed;
+};
+
+window.prompt = async function(message, defaultValue = '') {
+    const result = await Swal.fire({
+        icon: 'question',
+        title: 'Input Required',
+        text: String(message),
+        input: 'text',
+        inputValue: defaultValue,
+        showCancelButton: true,
+        confirmButtonText: 'OK',
+        cancelButtonText: 'Cancel',
+        background: 'var(--surface)',
+        color: 'var(--text)',
+        confirmButtonColor: '#2dd4bf',
+        cancelButtonColor: '#f43f5e',
+        backdrop: 'rgba(0,0,0,0.85)',
+        inputAttributes: {
+            autocapitalize: 'off',
+            style: 'background: rgba(0,0,0,0.4); color: var(--text); border: 1px solid var(--border); border-radius: 12px; padding: 10px;'
+        }
+    });
+    if (result.isConfirmed) {
+        return result.value;
+    }
+    return null;
+};
+
+// ----------------------------------------------------------------------------
+// 1. STATE & DATABASE (fully working from 2D version)
+// ----------------------------------------------------------------------------
+let undoStack = [];
+let redoStack = [];
+
+const State = {
+    nodes: [],
+    focusId: 'root',
+    path: [],
+    colorblind: false,
+    fixedPositions: {}
+};
+
+function ensureScores(nodeId) {
+    let node = State.nodes.find(n => n.id === nodeId);
+    if (node && !node.scores) node.scores = [];
+    return node;
+}
+
+const SessionManager = {
+    save() {
+        const toSave = {
+            focusId: State.focusId,
+            path: State.path,
+            expandedNodes: UI.expandedNodes ? Array.from(UI.expandedNodes) : [],
+            folderScroll: document.getElementById('folder-view-container')?.scrollTop || 0,
+            lastUpdated: Date.now()
+        };
+        sessionStorage.setItem('knowledge_map_nav', JSON.stringify(toSave));
+    },
+    restore() {
+        const saved = sessionStorage.getItem('knowledge_map_nav');
+        if (!saved) return false;
+        try {
+            const data = JSON.parse(saved);
+            State.focusId = data.focusId || 'root';
+            State.path = data.path || [];
+            if (UI.expandedNodes && data.expandedNodes) {
+                UI.expandedNodes.clear();
+                data.expandedNodes.forEach(id => UI.expandedNodes.add(id));
+            }
+            setTimeout(() => {
+                const container = document.getElementById('folder-view-container');
+                if (container && data.folderScroll) container.scrollTop = data.folderScroll;
+            }, 100);
+            return true;
+        } catch(e) { return false; }
+    }
+};
+
+// Dexie database definition
+const dexieDB = new Dexie('KnowledgeMapDB_v2');
+dexieDB.version(1).stores({
+    nodes: 'id, name, type, parentIds, understanding, date, _kenna'
+});
+
+const DB = {
+    init: async () => {
+        await dexieDB.open();
+        console.log("Dexie database ready");
+    },
+    save: async (recordHistory = true) => {
+        // Clear and repopulate (or use bulkPut)
+        await dexieDB.nodes.clear();
+        await dexieDB.nodes.bulkAdd(State.nodes);
+        if (recordHistory) History.push();
+        UI.toast("💾 Workspace Saved");
+        UI.checkBackupNag();
+    },
+    load: async () => {
+        State.nodes = await dexieDB.nodes.toArray();
+        History.push();
+    }
+};
+
+// Optional: auto-save middleware (uncomment if needed)
+// let autoSaveTimer;
+// function debouncedSave() {
+//     clearTimeout(autoSaveTimer);
+//     autoSaveTimer = setTimeout(() => DB.save(true), 1000);
+// }
+
+const History = {
+    push: () => {
+        undoStack.push(JSON.parse(JSON.stringify({ nodes: State.nodes, focusId: State.focusId, path: State.path })));
+        if (undoStack.length > 50) undoStack.shift();
+        redoStack = [];
+    },
+    undo: async () => {
+        if (undoStack.length < 2) return UI.toast("Nothing to undo.");
+        redoStack.push(undoStack.pop());
+        const prev = undoStack[undoStack.length - 1];
+        State.nodes = JSON.parse(JSON.stringify(prev.nodes));
+        State.focusId = prev.focusId;
+        State.path = JSON.parse(JSON.stringify(prev.path));
+        await DB.save(false);
+        Core.refresh();
+        Graph3D.fitToScreen();
+        UI.toast("↩️ Undo Successful");
+    },
+    redo: async () => {
+        if (!redoStack.length) return UI.toast("Nothing to redo.");
+        const next = redoStack.pop();
+        undoStack.push(next);
+        State.nodes = JSON.parse(JSON.stringify(next.nodes));
+        State.focusId = next.focusId;
+        State.path = JSON.parse(JSON.stringify(next.path));
+        await DB.save(false);
+        Core.refresh();
+        Graph3D.fitToScreen();
+        UI.toast("↪️ Redo Successful");
+    }
+};
+
+// ----------------------------------------------------------------------------
+// 2. MATH & PHYSICS (from 2D – uses d3 interpolators)
+// ----------------------------------------------------------------------------
+const MathCore = {
+    getColor: (understanding) => {
+        const u = understanding / 100;
+        if (State.colorblind) {
+            return d3.interpolateRgb("#d95f02", "#1b9e77")(u);
+        }
+        if (u < 0.3) return d3.interpolateRgb("#b91c1c", "#f97316")(u / 0.3);
+        if (u < 0.6) return d3.interpolateRgb("#f97316", "#eab308")((u - 0.3) / 0.3);
+        if (u < 0.85) return d3.interpolateRgb("#eab308", "#84cc16")((u - 0.6) / 0.25);
+        return d3.interpolateRgb("#84cc16", "#2dd4bf")((u - 0.85) / 0.15);
+    },
+    getSize: (charCount) => Math.max(14, Math.log((charCount || 180) + 50) * 4.2),
+    getTotalSize: (nodeId) => {
+        const node = State.nodes.find(n => n.id === nodeId);
+        if (!node) return 0;
+        let total = node.size || 0;
+        const children = State.nodes.filter(n => n.parentIds.includes(nodeId));
+        for (let child of children) total += MathCore.getTotalSize(child.id);
+        return total;
+    },
+    cascade: (id) => {
+        const node = State.nodes.find(x => x.id === id);
+        if (!node) return;
+        const children = State.nodes.filter(x => x.parentIds.includes(id));
+        if (children.length) {
+            node.understanding = Math.round(d3.mean(children, c => c.understanding));
+        }
+        node.parentIds.forEach(pid => {
+            if (pid !== 'root') MathCore.cascade(pid);
+        });
+    },
+    cascadeAll: () => {
+        const categories = State.nodes.filter(n => n.parentIds.includes('root'));
+        categories.forEach(c => MathCore.cascade(c.id));
+    }
+};
+
+// ----------------------------------------------------------------------------
+// 3. PARSER & INGESTION (from 2D – handles categories & books, duplicates)
+// ----------------------------------------------------------------------------
+const Parser = {
+    healJSON: (rawText) => {
+        try { return JSON.parse(rawText); } catch(e) {
+            UI.toast("⚠️ AI formatting error. Attempting repair...");
+            let fixed = rawText.replace(/,\s*([\]}])/g, '$1');
+            try { return JSON.parse(fixed); } catch(e2) {
+                alert("Auto-Repair Failed.\nPlease ask the AI to output valid JSON.");
+                return null;
+            }
+        }
+    },
+    process: async (file, isCategoryZone) => {
+        UI.loader(true, "Reading File...");
+        await new Promise(r => setTimeout(r, 100));
+        const text = await file.text();
+        UI.loader(true, "Parsing AI JSON...", 30);
+        const data = Parser.healJSON(text);
+        if (!data) return UI.loader(false);
+
+        const jsonString = JSON.stringify(data).toLowerCase();
+        if (jsonString.match(/lgbtq|sex|gender studies|explicit/i)) {
+            UI.loader(false);
+            return alert("BLOCKED: Content contains restricted topics.");
+        }
+
+        UI.loader(true, "Building Hierarchy...", 70);
+        if (isCategoryZone || data.type === 'categories') {
+            if (!data.items) return alert("Invalid Category JSON.");
+            const createCategoryNode = (cat, parentId) => {
+                let existing = State.nodes.find(n => n.name === cat.name && n.parentIds.includes(parentId));
+                if (existing) {
+                    if (cat.content) existing.content = cat.content;
+                    if (cat.understanding) existing.understanding = cat.understanding;
+                    existing.date = Date.now();
+                } else {
+                    const newId = 'c_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+                    State.nodes.push({
+                        id: newId, name: cat.name, type: 'category', parentIds: [parentId],
+                        size: (cat.content?.length || 500) + 300, understanding: cat.understanding || 0,
+                        content: cat.content || '', date: Date.now()
+                    });
+                    existing = State.nodes[State.nodes.length-1];
+                }
+                if (cat.children && Array.isArray(cat.children)) {
+                    for (let child of cat.children) createCategoryNode(child, existing.id);
+                }
+            };
+            let targetParentId = 'root';
+            if (State.focusId !== 'root') {
+                const focusNode = State.nodes.find(n => n.id === State.focusId);
+                if (focusNode && focusNode.type === 'category') targetParentId = State.focusId;
+            }
+            for (let cat of data.items) createCategoryNode(cat, targetParentId);
+        } else {
+            // book/document import
+            if (!data.title) return alert("Invalid Book JSON.");
+            let catIds = [];
+            if (data.categories) {
+                data.categories.forEach(cn => {
+                    let existing = State.nodes.find(n => n.name === cn && n.type === 'category');
+                    if (existing) catIds.push(existing.id);
+                });
+            }
+            if (!catIds.length) {
+                let fallback = State.nodes.find(n => n.type === 'category');
+                if (!fallback) {
+                    fallback = { id: 'c_gen', name: 'General Studies', type: 'category', parentIds: ['root'], size: 2000, understanding: 0, content: '', date: Date.now() };
+                    State.nodes.push(fallback);
+                }
+                catIds = [fallback.id];
+            }
+            let existingBook = State.nodes.find(n => n.name === data.title && n.type === 'book' && n.parentIds.some(pid => catIds.includes(pid)));
+            const bookId = existingBook ? existingBook.id : ('b_' + Date.now());
+            if (!existingBook) {
+                State.nodes.push({ id: bookId, name: data.title, type: 'book', parentIds: catIds,
+                    size: (data.summary || "").length + 5000, understanding: 0, content: data.summary || '', date: Date.now() });
+            } else {
+                existingBook.content = data.summary || existingBook.content;
+                existingBook.size = (data.summary || "").length + 5000;
+                existingBook.date = Date.now();
+            }
+            const traverse = (item, parentId) => {
+                let existingChild = State.nodes.find(n => n.name === item.title && n.parentIds.includes(parentId));
+                const nodeId = existingChild ? existingChild.id : ('n_' + Math.random().toString(36).substr(2,9));
+                if (!existingChild) {
+                    const content = item.content || item.summary || "";
+                    State.nodes.push({ id: nodeId, name: item.title, type: 'folder', parentIds: [parentId],
+                        content, size: content.length + 200, understanding: 0, date: Date.now() });
+                } else {
+                    existingChild.content = item.content || existingChild.content;
+                    existingChild.size = (item.content?.length || 300) + 200;
+                    existingChild.date = Date.now();
+                }
+                if (item.children && item.children.length) {
+                    for (let child of item.children) traverse(child, nodeId);
+                }
+            };
+            if (data.children) for (let child of data.children) traverse(child, bookId);
+        }
+        UI.loader(true, "Cascading...", 90);
+        MathCore.cascadeAll();
+        await DB.save();
+        UI.loader(false);
+        UI.hideModal('upload-hub-modal');
+        Core.refresh();
+        Graph3D.fitToScreen();
+        UI.toast("✅ Assimilation Complete.");
+    }
+};
+
+// ----------------------------------------------------------------------------
+// 4. 3D GRAPH ENGINE (unchanged – works with the fixed state)
+// ----------------------------------------------------------------------------
+const Graph3D = {
+    scene: null, camera: null, renderer: null, controls: null,
+    spheres: new Map(), lines: new Map(),
+    sim: null, animationId: null, nodeObjects: [],
+
+    init() {
+        const container = document.getElementById('map-container');
+        const width = container.clientWidth, height = container.clientHeight;
+        this.scene = new THREE.Scene();
+        this.scene.background = new THREE.Color(0x030408);
+        this.scene.fog = new THREE.FogExp2(0x030408, 0.008);
+        this.camera = new THREE.PerspectiveCamera(45, width/height, 0.1, 1000);
+        this.camera.position.set(10, 8, 15);
+        this.camera.lookAt(0, 0, 0);
+        this.renderer = new THREE.WebGLRenderer({ antialias: true });
+        this.renderer.setSize(width, height);
+        this.renderer.shadowMap.enabled = true;
+        container.appendChild(this.renderer.domElement);
+        
+        this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+        this.controls.enableDamping = true;
+        this.controls.dampingFactor = 0.05;
+        this.controls.rotateSpeed = 1.0;
+        this.controls.zoomSpeed = 1.2;
+        this.controls.enableZoom = true;
+        this.controls.autoRotate = false;
+        this.controls.target.set(0, 0, 0);
+        
+        const ambientLight = new THREE.AmbientLight(0x404060);
+        this.scene.add(ambientLight);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+        dirLight.position.set(5, 10, 7);
+        this.scene.add(dirLight);
+        const backLight = new THREE.PointLight(0x4466cc, 0.3);
+        backLight.position.set(-2, 1, -3);
+        this.scene.add(backLight);
+        
+        this.startAnimation();
+        this.setupInteractions(); // Replaces setupDrag
+    },
+    startAnimation() {
+        const animate = () => {
+            this.animationId = requestAnimationFrame(animate);
+            if (this.sim) this.sim.step();
+            this.updateNodePositions();
+            this.controls.update();
+            this.renderer.render(this.scene, this.camera);
+        };
+        animate();
+    },
+    updateNodePositions() {
+        for (let obj of this.nodeObjects) {
+            if (obj.mesh) {
+                obj.mesh.position.set(obj.x, obj.y, obj.z);
+            }
+        }
+        for (let [key, line] of this.lines.entries()) {
+            const [sid, tid] = key.split('->');
+            const src = this.nodeObjects.find(o => o.id === sid);
+            const tgt = this.nodeObjects.find(o => o.id === tid);
+            if (src && tgt && src.x !== undefined && tgt.x !== undefined && line.geometry) {
+                const points = [
+                    new THREE.Vector3(src.x || 0, src.y || 0, src.z || 0),
+                    new THREE.Vector3(tgt.x || 0, tgt.y || 0, tgt.z || 0)
+                ];
+                line.geometry.setFromPoints(points);
+                line.geometry.attributes.position.needsUpdate = true;
+            }
+        }
+    },
+    buildFromState() {
+        for (let obj of this.nodeObjects) {
+            if (obj.mesh) {
+                this.scene.remove(obj.mesh);
+                obj.mesh.geometry.dispose();
+                if (obj.mesh.material) obj.mesh.material.dispose();
+            }
+        }
+        for (let line of this.lines.values()) {
+            this.scene.remove(line);
+            if (line.geometry) line.geometry.dispose();
+            if (line.material) line.material.dispose();
+        }
+        this.spheres.clear(); this.lines.clear(); this.nodeObjects = [];
+
+        const centerNode = State.focusId === 'root' ?
+            { id: 'root', name: 'Master Library', type: 'root', size: 20000, understanding: 0, parentIds: [] } :
+            State.nodes.find(n => n.id === State.focusId);
+        if (!centerNode && State.focusId !== 'root') return Core.goHome();
+
+        let children = State.nodes.filter(n => n.parentIds.includes(centerNode.id));
+        let shadowParents = [];
+        if (centerNode.id !== 'root') {
+            centerNode.parentIds.forEach(pid => {
+                if (pid !== 'root' && !State.path.some(p => p.id === pid)) {
+                    let pNode = State.nodes.find(n => n.id === pid);
+                    if (pNode) shadowParents.push(pNode);
+                }
+            });
+        }
+        let allNodes = [centerNode, ...children, ...shadowParents];
+        this.centerNodeId = centerNode.id;
+        this.shadowParentIds = shadowParents.map(p => p.id);
+
+        if (children.length > 0) {
+            let totalDescendantsSum = 0;
+            for (let child of children) totalDescendantsSum += MathCore.getTotalSize(child.id);
+            for (let child of children) {
+                let childTotal = MathCore.getTotalSize(child.id);
+                let ratio = childTotal / totalDescendantsSum;
+                let baseRadius = MathCore.getSize(childTotal) * 0.08;
+                let siblingFactor = Math.pow(0.7, children.length - 1);
+                let ratioBoost = 0.5 + ratio * 0.8;
+                let finalRadius = baseRadius * siblingFactor * ratioBoost;
+                child._adjustedRadius = Math.min(0.8, Math.max(0.2, finalRadius));
+            }
+            let parentTotal = MathCore.getTotalSize(centerNode.id);
+            centerNode._adjustedRadius = Math.min(1.2, Math.max(0.5, MathCore.getSize(parentTotal) * 0.08));
+        }
+
+        for (let node of allNodes) {
+            const saved = State.fixedPositions[node.id];
+            if (saved) { node.x = saved.x; node.y = saved.y; node.z = saved.z; node.fx = saved.x; node.fy = saved.y; node.fz = saved.z; }
+            else {
+                node.fx = node.fy = node.fz = null;
+                if (node.id === centerNode.id) { node.x = 0; node.y = 0; node.z = 0; node.fx=0; node.fy=0; node.fz=0; } else {
+                    const isParent = shadowParents.some(p => p.id === node.id);
+                    if (!isParent) {
+                        const childCount = children.length;
+                        const idx = children.indexOf(node);
+                        const phi = Math.acos(1 - 2 * (idx + 0.5) / childCount);
+                        const theta = Math.PI * 2 * (idx + 0.5) * (Math.sqrt(5) - 1);
+                        const radius = 4.5;
+                        node.x = Math.sin(phi) * Math.cos(theta) * radius;
+                        node.y = Math.sin(phi) * Math.sin(theta) * radius;
+                        node.z = Math.cos(phi) * radius;
+                    } else {
+                        const angle = Math.random() * Math.PI * 2;
+                        const radius = 4 + Math.random() * 2;
+                        node.x = Math.cos(angle) * radius;
+                        node.z = Math.sin(angle) * radius;
+                        node.y = 3 + Math.random() * 2;
+                    }
+                }
+            }
+        }
+
+        for (let node of allNodes) {
+            const totalSize = MathCore.getTotalSize(node.id);
+            let radius = node._adjustedRadius !== undefined ? node._adjustedRadius : Math.max(0.8, MathCore.getSize(totalSize) * 0.25);
+            const color = MathCore.getColor(node.understanding);
+            const geometry = new THREE.SphereGeometry(radius, 32, 32);
+            const material = new THREE.MeshStandardMaterial({ color: color, roughness: 0.3, metalness: 0.1 });
+            material.emissive = new THREE.Color(color);
+            material.emissiveIntensity = 0.3;
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.userData = { id: node.id, name: node.name }; // store name for raycasting display
+            mesh.position.set(node.x, node.y, node.z);
+            this.scene.add(mesh);
+            
+            this.spheres.set(node.id, mesh);
+            this.nodeObjects.push({ id: node.id, mesh, radius, compositeRadius: radius, x: node.x, y: node.y, z: node.z, vx:0, vy:0, vz:0, fx: node.fx, fy: node.fy, fz: node.fz, _nodeName: node.name });
+        }
+
+        for (let child of children) {
+            const key = `${centerNode.id}->${child.id}`;
+            const src = this.nodeObjects.find(o => o.id === centerNode.id);
+            const tgt = this.nodeObjects.find(o => o.id === child.id);
+            if (src && tgt) {
+                const points = [new THREE.Vector3(src.x, src.y, src.z), new THREE.Vector3(tgt.x, tgt.y, tgt.z)];
+                const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: 0x88aaff, linewidth: 2 }));
+                this.scene.add(line); this.lines.set(key, line);
+            }
+        }
+        for (let parent of shadowParents) {
+            const key = `${parent.id}->${centerNode.id}`;
+            const src = this.nodeObjects.find(o => o.id === parent.id);
+            const tgt = this.nodeObjects.find(o => o.id === centerNode.id);
+            if (src && tgt) {
+                const points = [new THREE.Vector3(src.x, src.y, src.z), new THREE.Vector3(tgt.x, tgt.y, tgt.z)];
+                const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: 0x88aaff, linewidth: 1, transparent: true, opacity: 0.4 }));
+                this.scene.add(line); this.lines.set(key, line);
+            }
+        }
+        this.initForceSimulation();
+    },
+    initForceSimulation() {
+        const nodes = this.nodeObjects;
+        const edges = [];
+        const self = this;
+        for (let [key] of this.lines.entries()) {
+            const [src, tgt] = key.split('->');
+            edges.push({ src, tgt });
+        }
+        const centerId = this.centerNodeId;
+        const sParentIds = this.shadowParentIds || [];
+        const nodeCount = nodes.length;
+        const avgRadius = nodes.reduce((sum, n) => sum + (n.radius || 0.5), 0) / nodeCount;
+        const viewportWidth = this.camera.aspect * Math.tan((this.camera.fov * Math.PI) / 360) * 2 * 15;
+        const viewportHeight = Math.tan((this.camera.fov * Math.PI) / 360) * 2 * 15;
+        const area = viewportWidth * viewportHeight;
+        const desiredDensity = 20;
+        const targetSpacing = Math.sqrt(area / Math.max(1, nodeCount)) * 0.8;
+        
+        const kSpring = 0.02 / Math.sqrt(nodeCount + 1);
+        const kRepulsion = 2.0 * Math.sqrt(nodeCount / 10);
+        const damping = 0.65;
+        const centerPull = 0.02 / Math.sqrt(nodes.length + 1);
+        const targetYStrength = 0.0;
+        const safetyBuffer = targetSpacing * 0.2;
+        this.simAlpha = 1.0;
+        this.simCooldown = 0.998;
+
+        this.sim = {
+            step: () => {
+                if (this.simAlpha < 0.01) return;
+                this.simAlpha *= this.simCooldown;
+                for (let i = 0; i < nodes.length; i++) {
+                    const a = nodes[i];
+                    if (a.fx !== null && a.fy !== null && a.fz !== null) {
+                        a.vx = a.vy = a.vz = 0;
+                        a.x = a.fx; a.y = a.fy; a.z = a.fz;
+                        continue;
+                    }
+                    let fx=0, fy=0, fz=0;
+
+                    for (let j = 0; j < nodes.length; j++) {
+                        if (i === j) continue;
+                        const b = nodes[j];
+                        const dx = a.x - b.x, dy = a.y - b.y, dz = a.z - b.z;
+                        const dist = Math.hypot(dx, dy, dz) || 0.1;
+                        const aLabelWidth = this.getLabelWorldWidth(a._nodeName || '', 14);
+                        const bLabelWidth = this.getLabelWorldWidth(b._nodeName || '', 14);
+                        const aEffective = Math.max(a.radius * 1.2, aLabelWidth * 0.6);
+                        const bEffective = Math.max(b.radius * 1.2, bLabelWidth * 0.6);
+                        const minDist = aEffective + bEffective + 0.3;
+                        if (dist < minDist) {
+                            const overlap = minDist - dist;
+                            const rep = kRepulsion * overlap / (dist + 0.2);
+                            const dirX = dx/dist, dirY = dy/dist, dirZ = dz/dist;
+                            fx += dirX * rep; fy += dirY * rep; fz += dirZ * rep;
+                        }
+                    }
+                    const isChild = a.id !== this.centerNodeId && 
+                                   !this.shadowParentIds?.includes(a.id) && 
+                                   this.centerNodeId && 
+                                   a.parentIds?.includes(this.centerNodeId);
+                    
+                    if (isChild) {
+                        const parentObj = this.nodeObjects.find(n => n.id === this.centerNodeId);
+                        if (parentObj) {
+                            const dx = a.x - parentObj.x;
+                            const dy = a.y - parentObj.y;
+                            const dz = a.z - parentObj.z;
+                            const dist = Math.hypot(dx, dy, dz) || 0.01;
+                            const outwardStrength = 0.03 * Math.sqrt(this.nodeObjects.length + 1);
+                            fx += (dx / dist) * outwardStrength;
+                            fy += (dy / dist) * outwardStrength;
+                            fz += (dz / dist) * outwardStrength;
+                        }
+                    } else {
+                        fx -= a.x * centerPull;
+                        fz -= a.z * centerPull;
+                        fy -= a.y * (centerPull * 0.7);
+                    }
+                    fy -= a.y * 0.01 * this.simAlpha;
+                    fx *= this.simAlpha; fy *= this.simAlpha; fz *= this.simAlpha;
+                                      const maxRadius = 25;
+                    const distFromCenter = Math.hypot(a.x, a.y, a.z);
+                    if (distFromCenter > maxRadius) {
+                        const pullStrength = 0.05;
+                        const dx = -a.x, dy = -a.y, dz = -a.z;
+                        const pullDirX = dx / distFromCenter, pullDirY = dy / distFromCenter, pullDirZ = dz / distFromCenter;
+                        const pullMag = (distFromCenter - maxRadius) * pullStrength;
+                        fx += pullDirX * pullMag;
+                        fy += pullDirY * pullMag;
+                        fz += pullDirZ * pullMag;
+                    }
+                    fx *= this.simAlpha; fy *= this.simAlpha; fz *= this.simAlpha;
+                    a.vx = (a.vx + fx) * damping; a.vy = (a.vy + fy) * damping; a.vz = (a.vz + fz) * damping;
+                    const maxSpeed = 0.4 * this.simAlpha;
+                    let speed = Math.hypot(a.vx, a.vy, a.vz);
+                    if (speed > maxSpeed) { a.vx = a.vx / speed * maxSpeed; a.vy = a.vy / speed * maxSpeed; a.vz = a.vz / speed * maxSpeed; }
+                    a.x += a.vx; a.y += a.vy; a.z += a.vz;
+                    if (isNaN(a.x) || isNaN(a.y) || isNaN(a.z)) { a.x = (Math.random()-0.5)*3; a.y = (Math.random()-0.5)*3; a.z = (Math.random()-0.5)*3; a.vx=a.vy=a.vz=0; }
+                }
+            }
+        };
+    },
+    setupInteractions() {
+        this.raycaster = new THREE.Raycaster();
+        this.mouse = new THREE.Vector2();
+        this.hoveredNode = null;
+        this.dragObject = null;
+        this.dragPlane = new THREE.Plane();
+        
+        let isDragging = false;
+        let mouseDownNode = null;
+        let mouseDownPos = { x: 0, y: 0 };
+        let dragStarted = false;
+        
+        // Touch detection
+        let lastTapTime = 0;
+        let lastTapNode = null;
+        let tapTimeout = null;
+        let touchStartNode = null;
+        let touchStartTime = 0;
+        let touchMoved = false;
+        let longPressTimer = null;
+        let longPressTriggered = false;
+
+        const getIntersect = (clientX, clientY) => {
+            const rect = this.renderer.domElement.getBoundingClientRect();
+            this.mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+            this.mouse.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+            this.raycaster.setFromCamera(this.mouse, this.camera);
+            const intersects = this.raycaster.intersectObjects(Array.from(this.spheres.values()));
+            return intersects.length > 0 ? intersects[0].object : null;
+        };
+
+        const showName = (nodeName, duration = 1500) => {
+            const display = document.getElementById('node-text-display');
+            display.textContent = nodeName;
+            display.style.display = 'block';
+            if (duration > 0) {
+                setTimeout(() => { display.style.display = 'none'; }, duration);
+            }
+        };
+        const hideName = () => {
+            document.getElementById('node-text-display').style.display = 'none';
+        };
+
+        // --- MOUSE MOVE (hover & drag update) ---
+        this.renderer.domElement.addEventListener('mousemove', (e) => {
+            if (this.dragObject) {
+                const dist = Math.hypot(e.clientX - mouseDownPos.x, e.clientY - mouseDownPos.y);
+                if (dist > 5 && !dragStarted) {
+                    dragStarted = true;
+                    isDragging = true;
+                }
+                const rect = this.renderer.domElement.getBoundingClientRect();
+                this.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+                this.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+                this.raycaster.setFromCamera(this.mouse, this.camera);
+                const intersectionPoint = new THREE.Vector3();
+                if (this.raycaster.ray.intersectPlane(this.dragPlane, intersectionPoint)) {
+                    const nodeObj = this.nodeObjects.find(n => n.mesh === this.dragObject);
+                    if (nodeObj) {
+                        nodeObj.fx = intersectionPoint.x;
+                        nodeObj.fy = intersectionPoint.y;
+                        nodeObj.fz = intersectionPoint.z;
+                        nodeObj.x = intersectionPoint.x;
+                        nodeObj.y = intersectionPoint.y;
+                        nodeObj.z = intersectionPoint.z;
+                        this.dragObject.position.copy(intersectionPoint);
+                    }
+                }
+                return;
+            }
+
+            // Hover
+            const mesh = getIntersect(e.clientX, e.clientY);
+            if (mesh !== this.hoveredNode) {
+                if (this.hoveredNode) hideName();
+                this.hoveredNode = mesh;
+                if (this.hoveredNode) {
+                    this.renderer.domElement.style.cursor = 'pointer';
+                    const nodeObj = this.nodeObjects.find(n => n.mesh === this.hoveredNode);
+                    if (nodeObj) showName(nodeObj._nodeName, 0); // persistent
+                } else {
+                    this.renderer.domElement.style.cursor = 'default';
+                }
+            }
+        });
+
+        // --- MOUSE DOWN ---
+        this.renderer.domElement.addEventListener('mousedown', (e) => {
+            if (e.button !== 0) return;
+            const mesh = getIntersect(e.clientX, e.clientY);
+            mouseDownPos = { x: e.clientX, y: e.clientY };
+            mouseDownNode = mesh;
+            dragStarted = false;
+            isDragging = false;
+
+            if (mesh) {
+                this.dragObject = mesh;
+                this.controls.enabled = false;
+                if (this.sim) this.simAlpha = 0.8;
+                const nodeObj = this.nodeObjects.find(n => n.mesh === this.dragObject);
+                if (nodeObj && nodeObj.id !== 'root') {
+                    nodeObj.fx = nodeObj.x;
+                    nodeObj.fy = nodeObj.y;
+                    nodeObj.fz = nodeObj.z;
+                    this.dragPlane.setFromNormalAndCoplanarPoint(
+                        this.camera.getWorldDirection(new THREE.Vector3()),
+                        this.dragObject.position
+                    );
+                    this.renderer.domElement.style.cursor = 'grabbing';
+                }
+            }
+        });
+
+        // --- MOUSE UP (simple reliable click) ---
+        this.renderer.domElement.addEventListener('mouseup', async (e) => {
+            // If no drag object, nothing to do
+            if (!this.dragObject) {
+                this.controls.enabled = true;
+                return;
+            }
+            
+            const moved = Math.hypot(e.clientX - mouseDownPos.x, e.clientY - mouseDownPos.y) > 5;
+            const nodeObj = this.nodeObjects.find(n => n.mesh === this.dragObject);
+            
+            if (moved && isDragging && nodeObj && nodeObj.id !== 'root') {
+                // Drag finished: save fixed position
+                State.fixedPositions[nodeObj.id] = { fx: nodeObj.fx, fy: nodeObj.fy, fz: nodeObj.fz };
+                await DB.save(false);
+                nodeObj.fx = nodeObj.x;
+                nodeObj.fy = nodeObj.y;
+                nodeObj.fz = nodeObj.z;
+            } else if (!moved && nodeObj && nodeObj.id !== 'root') {
+                // It's a click (not a drag) -> open the node
+                Core.focus(nodeObj.id);
+            }
+            
+            // Clean up
+            this.dragObject = null;
+            this.controls.enabled = true;
+            this.renderer.domElement.style.cursor = this.hoveredNode ? 'pointer' : 'default';
+            isDragging = false;
+            mouseDownNode = null;
+        });
+
+        // --- TOUCH EVENTS (unchanged, works well on phone) ---
+        this.renderer.domElement.addEventListener('touchstart', (e) => {
+            const touch = e.touches[0];
+            const mesh = getIntersect(touch.clientX, touch.clientY);
+            touchStartNode = mesh;
+            touchStartTime = Date.now();
+            touchMoved = false;
+            longPressTriggered = false;
+            if (mesh) {
+                const nodeObj = this.nodeObjects.find(n => n.mesh === mesh);
+                if (nodeObj) {
+                    longPressTimer = setTimeout(() => {
+                        if (!touchMoved && nodeObj && nodeObj.id !== 'root') {
+                            longPressTriggered = true;
+                            Core.focus(nodeObj.id);
+                        }
+                    }, 500);
+                }
+            }
+        }, { passive: false });
+
+        this.renderer.domElement.addEventListener('touchmove', (e) => {
+            touchMoved = true;
+            if (longPressTimer) clearTimeout(longPressTimer);
+            hideName();
+        }, { passive: false });
+
+        this.renderer.domElement.addEventListener('touchend', (e) => {
+            if (longPressTimer) clearTimeout(longPressTimer);
+            if (!touchMoved && touchStartNode && !longPressTriggered) {
+                const nodeObj = this.nodeObjects.find(n => n.mesh === touchStartNode);
+                if (nodeObj && nodeObj.id !== 'root') {
+                    const now = Date.now();
+                    if (now - lastTapTime < 300 && lastTapNode === nodeObj) {
+                        // Double tap -> open
+                        Core.focus(nodeObj.id);
+                        lastTapTime = 0;
+                        lastTapNode = null;
+                        if (tapTimeout) clearTimeout(tapTimeout);
+                    } else {
+                        // Single tap -> show name
+                        showName(nodeObj._nodeName, 1500);
+                        lastTapTime = now;
+                        lastTapNode = nodeObj;
+                        if (tapTimeout) clearTimeout(tapTimeout);
+                        tapTimeout = setTimeout(() => {
+                            lastTapTime = 0;
+                            lastTapNode = null;
+                        }, 300);
+                    }
+                }
+            }
+            touchStartNode = null;
+            touchMoved = false;
+        });
+
+        // --- CONTEXT MENU (right-click) -> show name
+        this.renderer.domElement.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            const mesh = getIntersect(e.clientX, e.clientY);
+            if (mesh) {
+                const nodeObj = this.nodeObjects.find(n => n.mesh === mesh);
+                if (nodeObj) showName(nodeObj._nodeName, 2000);
+            }
+        });
+    },
+    getLabelWorldWidth(text, fontSize) {
+        const avgCharWidth = 0.6;
+        const charCount = text ? text.length : 10;
+        const viewportScale = Math.min(1, this.camera.aspect * 0.5 + 0.5);
+        return charCount * avgCharWidth * fontSize * 0.01 * viewportScale;
+    },
+    fitToScreen() {
+        if (this.nodeObjects.length === 0) return;
+        
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, minZ = Infinity, maxZ = -Infinity;
+        for (let obj of this.nodeObjects) {
+            const nodeName = obj._nodeName || 'Node';
+            const labelWorldWidth = this.getLabelWorldWidth(nodeName, 14);
+            const effectiveRadius = Math.max(obj.radius * 1.2, labelWorldWidth * 0.6);
+            const margin = effectiveRadius * 2.0 + 1.0;
+            minX = Math.min(minX, obj.x - margin); maxX = Math.max(maxX, obj.x + margin);
+            minY = Math.min(minY, obj.y - margin); maxY = Math.max(maxY, obj.y + margin);
+            minZ = Math.min(minZ, obj.z - margin); maxZ = Math.max(maxZ, obj.z + margin);
+        }
+        
+        const sizeX = maxX - minX; const sizeY = maxY - minY; const sizeZ = maxZ - minZ;
+        const center = new THREE.Vector3(0, 0, 0);
+        
+        const aspect = this.camera.aspect;
+        const fovRad = (this.camera.fov * Math.PI) / 180;
+        const tanFov = Math.tan(fovRad / 2);
+        
+        if (this.fillFactor === undefined) this.fillFactor = 2.0;
+        const targetSizeX = sizeX / this.fillFactor;
+        const targetSizeY = sizeY / this.fillFactor;
+        const targetSizeZ = sizeZ / this.fillFactor;
+        
+        const hDist = Math.max(targetSizeX, targetSizeZ) / (2 * tanFov * aspect);
+        const vDist = targetSizeY / (2 * tanFov);
+        let distance = Math.max(hDist, vDist, 3);
+        
+        const nodeCount = this.nodeObjects.length;
+        const densityFactor = Math.min(1, 20 / nodeCount);
+        distance *= (1 + 0.3 * densityFactor);
+        
+        const azimuth = 45 * Math.PI / 180;
+        const elevation = 30 * Math.PI / 180;
+        const x = center.x + Math.cos(azimuth) * Math.cos(elevation) * distance;
+        const y = center.y + Math.sin(elevation) * distance;
+        const z = center.z + Math.sin(azimuth) * Math.cos(elevation) * distance;
+        
+        this.camera.position.set(x, y, z);
+        this.controls.target.copy(center);
+        this.controls.update();
+    }
+};
+
+// ----------------------------------------------------------------------------
+// 5. CORE NAVIGATION & ACTIONS (from 2D, adapted for 3D)
+// ----------------------------------------------------------------------------
+const Core = {
+    focus: (id) => {
+        if (id === State.focusId) return;
+        let n = State.nodes.find(x => x.id === id);
+        if (n) {
+            let idx = State.path.findIndex(p => p.id === id);
+            if (idx !== -1) State.path = State.path.slice(0, idx+1);
+            else State.path.push({id: n.id, name: n.name});
+        }
+        State.focusId = id;
+        Core.refresh();
+        Graph3D.fitToScreen();
+        SessionManager.save();
+        
+        // --- Auto-open action panel & expand docks for leaf nodes (no children) ---
+        if (id !== 'root') {
+            const node = State.nodes.find(x => x.id === id);
+            if (node) {
+                const hasChildren = State.nodes.some(child => child.parentIds.includes(id));
+                if (!hasChildren) {
+                    // Show the action panel for this leaf node
+                    UI.selectItem(id, node.name);
+                    // Expand bottom dock if it was collapsed
+                    const dock = document.getElementById('dock');
+                    if (dock && dock.classList.contains('collapsed')) {
+                        dock.classList.remove('collapsed');
+                        localStorage.setItem('dock_collapsed', 'false');
+                    }
+                    // Expand left control card if it was collapsed
+                    const controlCard = document.getElementById('control-card');
+                    if (controlCard && controlCard.classList.contains('collapsed')) {
+                        controlCard.classList.remove('collapsed');
+                        localStorage.setItem('control_card_collapsed', 'false');
+                    }
+                }
+            }
+        }
+    },
+    goHome: () => { State.focusId = 'root'; State.path = []; Core.refresh(); Graph3D.fitToScreen(); },
+    goUp: () => { if (State.path.length > 1) { State.path.pop(); Core.focus(State.path[State.path.length-1].id); } else Core.goHome(); },
+    refresh: () => {
+        UI.updateBreadcrumbs();
+        UI.renderFolders();
+        Graph3D.buildFromState();
+        // Debounced re‑center to avoid jitter
+        if (window._fitTimeoutId) {
+            clearTimeout(window._fitTimeoutId);
+            window._fitTimeoutId = null;
+        }
+        requestAnimationFrame(() => {
+            Graph3D.fitToScreen();
+        });
+        window._fitTimeoutId = setTimeout(() => {
+            Graph3D.fitToScreen();
+            window._fitTimeoutId = null;
+        }, 200);
+        window._fitTimeoutId = setTimeout(() => {
+            Graph3D.fitToScreen();
+            window._fitTimeoutId = null;
+        }, 1000);
+        document.getElementById('action-panel').style.display = 'none';
+    },
+    editUnderstanding: () => {
+        let id = document.getElementById('selected-folder-title').dataset.id;
+        let n = State.nodes.find(x => x.id === id);
+        if (!n) return;
+        document.getElementById('understanding-slider').value = n.understanding;
+        document.getElementById('understanding-value-display').innerText = n.understanding + '%';
+        UI.showModal('understanding-modal');
+    },
+    saveUnderstanding: async () => {
+        let id = document.getElementById('selected-folder-title').dataset.id;
+        let n = State.nodes.find(x => x.id === id);
+        if (n) {
+            n.understanding = parseInt(document.getElementById('understanding-slider').value);
+            MathCore.cascade(n.id);
+            await DB.save();
+            UI.hideModal('understanding-modal');
+            Core.refresh();
+        }
+    },
+    editContent: () => {
+        let id = document.getElementById('selected-folder-title').dataset.id;
+        let n = State.nodes.find(x => x.id === id);
+        if (!n) return;
+        document.getElementById('content-modal-title').innerText = n.name;
+        let textarea = document.getElementById('content-textarea');
+        textarea.value = n.content || "";
+        let searchTerm = document.getElementById('search-input').value.trim();
+        UI.showModal('content-modal');
+        if (searchTerm) {
+            setTimeout(() => {
+                let idx = textarea.value.toLowerCase().indexOf(searchTerm.toLowerCase());
+                if (idx !== -1) { textarea.focus(); textarea.setSelectionRange(idx, idx + searchTerm.length); }
+            }, 100);
+        }
+    },
+    saveContent: async () => {
+        let id = document.getElementById('selected-folder-title').dataset.id;
+        let n = State.nodes.find(x => x.id === id);
+        if (n) {
+            n.content = document.getElementById('content-textarea').value;
+            n.size = n.content.length + 200;
+            await DB.save();
+            UI.hideModal('content-modal');
+            Core.refresh();
+        }
+    },
+    rename: async () => {
+        let id = document.getElementById('selected-folder-title').dataset.id;
+        let n = State.nodes.find(x => x.id === id);
+        if (!n) return;
+        let newName = await prompt("Enter new name:", n.name);
+        if (newName && newName.trim()) { n.name = newName.trim(); await DB.save(); Core.refresh(); }
+    },
+    deleteFolder: async () => {
+        let id = document.getElementById('selected-folder-title').dataset.id;
+        if (await confirm("Delete this item and all its children permanently?")) {
+            let toDelete = [id];
+            const getKids = (pid) => { State.nodes.filter(x => x.parentIds.includes(pid)).forEach(c => { toDelete.push(c.id); getKids(c.id); }); };
+            getKids(id);
+            State.nodes = State.nodes.filter(x => !toDelete.includes(x.id));
+            await DB.save();
+            if (State.path.some(p => p.id === id)) Core.goHome(); else Core.refresh();
+        }
+    },
+    deleteAll: async () => {
+        if (await confirm("⚠ COMPLETE WIPE: Are you sure?")) { 
+            await dexieDB.delete();
+            indexedDB.deleteDatabase('KnowledgeMapDB_v1'); // also clean old one
+            location.reload(); 
+        }
+    },
+    backup: () => {
+        let blob = new Blob([JSON.stringify(State.nodes)], { type: 'application/json' });
+        let a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+        a.download = `KnowledgeBackup_${new Date().toISOString().split('T')[0]}.json`; a.click();
+        localStorage.setItem('last_backup', Date.now());
+    },
+    copyCatPrompt: () => {
+        const prompt = `Act as Expert. Output JSON with hierarchical categories (no content). Exclude sensitive topics. Output valid JSON inside a markdown code block \`\`\`json. Schema: { "type": "categories", "items": [{"name": "...", "children": [{"name": "..."}] }] }`;
+        navigator.clipboard.writeText(prompt);
+        UI.toast("📋 Category Prompt Copied");
+    },
+    copyBookPrompt: () => {
+        let cats = State.nodes.filter(n=>n.type==='category').map(n=>n.name).join(", ");
+        const prompt = `Extract book hierarchy. Output JSON in markdown code block. Schema: { "type": "book", "title": "...", "categories": [${cats || 'General Education'}], "children": [{"title": "...", "children": [...]}] } Exclude sensitive content.`;
+        navigator.clipboard.writeText(prompt);
+        UI.toast("📋 Book Prompt Copied");
+    },
+    openScoresModal: () => {
+        let id = document.getElementById('selected-folder-title').dataset.id;
+        let node = State.nodes.find(n => n.id === id);
+        if (!node) return;
+        if (!node.scores) node.scores = [];
+        document.getElementById('scores-modal-title').innerText = `Test Scores: ${node.name}`;
+        UI.renderScoresList(node);
+        UI.showModal('scores-modal');
+    },
+    addScore: async () => {
+        let id = document.getElementById('selected-folder-title').dataset.id;
+        let node = State.nodes.find(n => n.id === id);
+        if (!node) return;
+        if (!node.scores) node.scores = [];
+        let earned = parseFloat(document.getElementById('score-earned').value);
+        let possible = parseFloat(document.getElementById('score-possible').value);
+        if (isNaN(earned) || isNaN(possible) || possible <= 0) return alert("Invalid numbers");
+        node.scores.push({ earned, possible });
+        let totalPercent = node.scores.reduce((sum, s) => sum + (s.earned / s.possible) * 100, 0);
+        node.understanding = Math.round(totalPercent / node.scores.length);
+        MathCore.cascade(node.id);
+        await DB.save();
+        UI.renderScoresList(node);
+        Core.refresh();
+        document.getElementById('score-earned').value = '';
+        document.getElementById('score-possible').value = '';
+    },
+    deleteScore: async (index) => {
+        let id = document.getElementById('selected-folder-title').dataset.id;
+        let node = State.nodes.find(n => n.id === id);
+        if (!node || !node.scores) return;
+        node.scores.splice(index, 1);
+        if (node.scores.length === 0) node.understanding = 0;
+        else {
+            let totalPercent = node.scores.reduce((sum,s) => sum + (s.earned / s.possible) * 100, 0);
+            node.understanding = Math.round(totalPercent / node.scores.length);
+        }
+        MathCore.cascade(node.id);
+        await DB.save();
+        UI.renderScoresList(node);
+        Core.refresh();
+    }
+};
+
+// ----------------------------------------------------------------------------
+// 6. UI CONTROLLER (from 2D – renders folders, modals, toasts)
+// ----------------------------------------------------------------------------
+function escapeHtml(str) {
+    return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
+}
+
+const UI = {
+    toast: (msg) => { let t = document.createElement('div'); t.className = 'toast'; t.innerText = msg; document.getElementById('toast-container').appendChild(t); setTimeout(() => t.remove(), 3000); },
+    showModal: (id) => document.getElementById(id).style.display = 'flex',
+    hideModal: (id) => document.getElementById(id).style.display = 'none',
+    loader: (show, msg, progress) => {
+        const overlay = document.getElementById('loader-overlay');
+        const statusText = document.getElementById('loader-status-text');
+        const fillBar = document.getElementById('fluid-bar-fill');
+        if (show) {
+            overlay.style.display = 'flex';
+            if (msg !== undefined) statusText.innerHTML = msg;
+            if (progress !== undefined) fillBar.style.width = progress + '%';
+        } else {
+            overlay.style.display = 'none';
+            statusText.innerHTML = '';
+            fillBar.style.width = '0%';
+        }
+    },
+    checkBackupNag: () => { let last = localStorage.getItem('last_backup'); if (!last || Date.now() - last > 604800000) UI.toast("⚠️ Reminder: Click Backup to save your data!"); },
+    updateBreadcrumbs: () => {
+        const b = document.getElementById('breadcrumbs');
+        if (!b) return;
+        
+        const truncate = (str, maxLen = 20) => {
+            if (str.length <= maxLen) return str;
+            return str.slice(0, maxLen - 3) + '...';
+        };
+        
+        let html = '';
+        // Home icon (always visible)
+        html += `<div class="crumb ${State.focusId === 'root' ? 'crumb-active' : ''}" onclick="Core.goHome()" style="display:inline-flex; align-items:center;">
+                    <i class="fas fa-home"></i>
+                    <span class="crumb-text" style="display:none;">Home</span>
+                </div>`;
+        
+        // If not at root, add a back button (go up one level)
+        if (State.focusId !== 'root') {
+            html += `<div class="crumb" onclick="Core.goUp()" style="display:inline-flex; align-items:center;">
+                        <i class="fas fa-arrow-left"></i>
+                        <span class="crumb-text" style="display:none;">Back</span>
+                    </div>`;
+        }
+        
+        // Show current folder name (if not root) – truncated
+        if (State.focusId !== 'root') {
+            const current = State.path[State.path.length - 1];
+            if (current) {
+                const displayName = truncate(current.name, 20);
+                html += `<div class="crumb crumb-active" style="display:inline-flex; align-items:center; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+                            ${displayName}
+                        </div>`;
+            }
+        }
+        
+        b.innerHTML = html;
+        
+        // Optional: hide text labels on very small screens (<480px) to save space
+        if (window.innerWidth < 480) {
+            const homeSpan = b.querySelector('.crumb:first-child .crumb-text');
+            if (homeSpan) homeSpan.style.display = 'none';
+            const backSpan = b.querySelector('.crumb .fa-arrow-left + .crumb-text');
+            if (backSpan) backSpan.style.display = 'none';
+        }
+    },
+    renderFolders: () => {
+        const query = document.getElementById('search-input').value.toLowerCase();
+        const sort = document.getElementById('sort-select').value;
+        const view = document.getElementById('view-select').value;
+        const container = document.getElementById('folder-view-container');
+
+        let children = [];
+        if (State.focusId === 'root') children = State.nodes.filter(n => n.parentIds.includes('root') && n.type === 'category');
+        else children = State.nodes.filter(n => n.parentIds.includes(State.focusId));
+
+        if (query) children = children.filter(n => n.name.toLowerCase().includes(query));
+        children.sort((a,b) => {
+            if (sort === 'az') return a.name.localeCompare(b.name);
+            if (sort === 'za') return b.name.localeCompare(a.name);
+            if (sort === 'prog-desc') return b.understanding - a.understanding;
+            if (sort === 'prog-asc') return a.understanding - b.understanding;
+            if (sort === 'size-desc') return b.size - a.size;
+            if (sort === 'size-asc') return a.size - b.size;
+            if (sort === 'date-desc') return b.date - a.date;
+            if (sort === 'date-asc') return a.date - b.date;
+            let aKids = State.nodes.filter(n => n.parentIds.includes(a.id)).length;
+            let bKids = State.nodes.filter(n => n.parentIds.includes(b.id)).length;
+            return (sort === 'dens-desc') ? bKids - aKids : aKids - bKids;
+        });
+
+        let html = '';
+        if (State.focusId !== 'root') {
+            let parentNode = null;
+            let focusedNode = State.nodes.find(n => n.id === State.focusId);
+            if (focusedNode && focusedNode.parentIds.length) {
+                let parentId = focusedNode.parentIds[0];
+                parentNode = State.nodes.find(n => n.id === parentId);
+            }
+            const parentName = parentNode ? parentNode.name : 'Root';
+            html += `<div class="nav-parent-link" onclick="Core.goUp();"><span>⬆️</span> <span>Go up to: <strong style="color:var(--accent);">${escapeHtml(parentName)}</strong></span></div>`;
+        }
+        if (children.length === 0) {
+            html += `<p style="color: var(--text-dim); padding: 16px; text-align:center;">No items to show.<br>Use "Add Knowledge" to import content.</p>`;
+        } else {
+            for (let c of children) {
+                const icon = c.type === 'category' ? '<i class="fas fa-folder"></i>' : (c.type === 'book' ? '<i class="fas fa-book"></i>' : '<i class="fas fa-file-alt"></i>');
+                const color = MathCore.getColor(c.understanding);
+                html += `<div class="folder-item" data-id="${c.id}" onclick="Core.focus('${c.id}'); UI.selectItem('${c.id}', '${escapeHtml(c.name)}');">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <span style="font-weight:500;">${icon} ${escapeHtml(c.name)}</span>
+                                <span style="color:${color};">${Math.round(c.understanding)}%</span>
+                            </div>
+                            <div class="progress-track"><div class="progress-fill" style="width:${c.understanding}%; background:${color};"></div></div>
+                          </div>`;
+            }
+        }
+        container.innerHTML = html;
+        SessionManager.save();
+    },
+    selectItem: (id, name) => {
+        document.getElementById('action-panel').style.display = 'block';
+        let title = document.getElementById('selected-folder-title');
+        title.innerText = "Selected: " + name;
+        title.dataset.id = id;
+    },
+    snapCard: (pos) => { let card = document.getElementById('control-card'); card.className = `pointer-events-auto pos-${pos}`; },
+    renderScoresList: (node) => {
+        const container = document.getElementById('scores-list');
+        if (!container) return;
+        if (!node.scores || node.scores.length === 0) { container.innerHTML = '<p style="color:var(--text-dim);">No scores recorded.</p>'; return; }
+        let html = '';
+        node.scores.forEach((score, idx) => {
+            const percent = ((score.earned / score.possible) * 100).toFixed(1);
+            html += `<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid var(--border);">
+                        <span>${score.earned} / ${score.possible} (${percent}%)</span>
+                        <button class="btn-secondary" style="padding:2px 8px;" onclick="Core.deleteScore(${idx})">✖</button>
+                     </div>`;
+        });
+        container.innerHTML = html;
+    }
+};
+
+// ----------------------------------------------------------------------------
+// 7. KENNA'S LIBRARY CATEGORIES & IMPORT/REMOVE
+// ----------------------------------------------------------------------------
+const libraryCategories = {
+      "type": "categories",
+      "items": [
+        {
+          "name": "Agricultural/Animal/Plant/Veterinary Science and Related Fields",
+          "children": [
+            { "name": "Agriculture, General" },
+            { "name": "Agricultural Business and Management" },
+            { "name": "Agricultural Mechanization" },
+            { "name": "Agricultural Production Operations" },
+            { "name": "Agricultural and Food Products Processing" },
+            { "name": "Agricultural and Domestic Animal Services" },
+            { "name": "Applied Horticulture and Horticultural Business Services" },
+            { "name": "International Agriculture" },
+            { "name": "Agricultural Public Services" },
+            { "name": "Animal Sciences" },
+            { "name": "Food Science and Technology" },
+            { "name": "Plant Sciences" },
+            { "name": "Soil Sciences" },
+            { "name": "Agriculture/Veterinary Preparatory Programs" },
+            { "name": "Veterinary Medicine" },
+            { "name": "Veterinary Biomedical and Clinical Sciences" },
+            { "name": "Veterinary Administrative Services" },
+            { "name": "Veterinary/Animal Health Technologies/Technicians" },
+            { "name": "Agricultural/Animal/Plant/Veterinary Science and Related Fields, Other" }
+          ]
+        },
+        {
+          "name": "Natural Resources and Conservation",
+          "children": [
+            { "name": "Natural Resources Conservation and Research" },
+            { "name": "Environmental/Natural Resources Management and Policy" },
+            { "name": "Fishing and Fisheries Sciences and Management" },
+            { "name": "Forestry" },
+            { "name": "Wildlife and Wildlands Science and Management" },
+            { "name": "Natural Resources and Conservation, Other" }
+          ]
+        },
+        {
+          "name": "Architecture and Related Services",
+          "children": [
+            { "name": "Architecture" },
+            { "name": "City/Urban, Community, and Regional Planning" },
+            { "name": "Environmental Design" },
+            { "name": "Interior Architecture" },
+            { "name": "Landscape Architecture" },
+            { "name": "Architectural History, Criticism, and Conservation" },
+            { "name": "Architectural Sciences and Technology" },
+            { "name": "Real Estate Development" },
+            { "name": "Architecture and Related Services, Other" }
+          ]
+        },
+        {
+          "name": "Communication, Journalism, and Related Programs",
+          "children": [
+            { "name": "Communication and Media Studies" },
+            { "name": "Journalism" },
+            { "name": "Radio, Television, and Digital Communication" },
+            { "name": "Public Relations, Advertising, and Applied Communication" },
+            { "name": "Publishing" },
+            { "name": "Communication, Journalism, and Related Programs, Other" }
+          ]
+        },
+        {
+          "name": "Communications Technologies/Technicians and Support Services",
+          "children": [
+            { "name": "Communications Technologies/Technicians" },
+            { "name": "Audiovisual Communications Technologies/Technicians" },
+            { "name": "Graphic Communications" },
+            { "name": "Communications Technologies/Technicians and Support Services, Other" }
+          ]
+        },
+        {
+          "name": "Computer and Information Sciences and Support Services",
+          "children": [
+            { "name": "Computer and Information Sciences, General" },
+            { "name": "Computer Programming" },
+            { "name": "Data Processing" },
+            { "name": "Information Science/Studies" },
+            { "name": "Computer Systems Analysis" },
+            { "name": "Data Entry/Microcomputer Applications" },
+            { "name": "Computer Science" },
+            { "name": "Computer Software and Media Applications" },
+            { "name": "Computer Systems Networking and Telecommunications" },
+            { "name": "Computer/Information Technology Administration and Management" },
+            { "name": "Computer and Information Sciences and Support Services, Other" }
+          ]
+        },
+        {
+          "name": "Culinary, Entertainment, and Personal Services",
+          "children": [
+            { "name": "Funeral Service and Mortuary Science" },
+            { "name": "Cosmetology and Related Personal Grooming Services" },
+            { "name": "Culinary Arts and Related Services" },
+            { "name": "Casino Operations and Services" },
+            { "name": "Culinary, Entertainment, and Personal Services, Other" }
+          ]
+        },
+        {
+          "name": "Education",
+          "children": [
+            { "name": "Education, General" },
+            { "name": "Bilingual, Multilingual, and Multicultural Education" },
+            { "name": "Curriculum and Instruction" },
+            { "name": "Educational Administration and Supervision" },
+            { "name": "Educational/Instructional Media Design" },
+            { "name": "Educational Assessment, Evaluation, and Research" },
+            { "name": "International and Comparative Education" },
+            { "name": "Social and Philosophical Foundations of Education" },
+            { "name": "Special Education and Teaching" },
+            { "name": "Student Counseling and Personnel Services" },
+            { "name": "Teacher Education and Professional Development, Specific Levels and Methods" },
+            { "name": "Teacher Education and Professional Development, Specific Subject Areas" },
+            { "name": "Teaching English or French as a Second or Foreign Language" },
+            { "name": "Teaching Assistants/Aides" },
+            { "name": "Education, Other" }
+          ]
+        },
+        {
+          "name": "Engineering",
+          "children": [
+            { "name": "Engineering, General" },
+            { "name": "Aerospace, Aeronautical, and Astronautical/Space Engineering" },
+            { "name": "Agricultural Engineering" },
+            { "name": "Architectural Engineering" },
+            { "name": "Biomedical/Medical Engineering" },
+            { "name": "Ceramic Sciences and Engineering" },
+            { "name": "Chemical Engineering" },
+            { "name": "Civil Engineering" },
+            { "name": "Computer Engineering" },
+            { "name": "Electrical, Electronics, and Communications Engineering" },
+            { "name": "Engineering Mechanics" },
+            { "name": "Engineering Physics" },
+            { "name": "Engineering Science" },
+            { "name": "Environmental/Environmental Health Engineering" },
+            { "name": "Materials Engineering" },
+            { "name": "Mechanical Engineering" },
+            { "name": "Metallurgical Engineering" },
+            { "name": "Mining and Mineral Engineering" },
+            { "name": "Naval Architecture and Marine Engineering" },
+            { "name": "Nuclear Engineering" },
+            { "name": "Ocean Engineering" },
+            { "name": "Petroleum Engineering" },
+            { "name": "Systems Engineering" },
+            { "name": "Textile Sciences and Engineering" },
+            { "name": "Polymer/Plastics Engineering" },
+            { "name": "Construction Engineering" },
+            { "name": "Forest Engineering" },
+            { "name": "Industrial Engineering" },
+            { "name": "Manufacturing Engineering" },
+            { "name": "Operations Research" },
+            { "name": "Surveying Engineering" },
+            { "name": "Geological/Geophysical Engineering" },
+            { "name": "Paper Science and Engineering" },
+            { "name": "Electromechanical Engineering" },
+            { "name": "Mechatronics, Robotics, and Automation Engineering" },
+            { "name": "Biochemical Engineering" },
+            { "name": "Engineering Chemistry" },
+            { "name": "Biological/Biosystems Engineering" },
+            { "name": "Electrical and Computer Engineering" },
+            { "name": "Energy Systems Engineering" },
+            { "name": "Engineering, Other" }
+          ]
+        },
+        {
+          "name": "Engineering/Engineering-Related Technologies/Technicians",
+          "children": [
+            { "name": "Engineering Technologies/Technicians, General" },
+            { "name": "Architectural Engineering Technologies/Technicians" },
+            { "name": "Civil Engineering Technologies/Technicians" },
+            { "name": "Electrical/Electronic Engineering Technologies/Technicians" },
+            { "name": "Electromechanical Technologies/Technicians" },
+            { "name": "Environmental Control Technologies/Technicians" },
+            { "name": "Industrial Production Technologies/Technicians" },
+            { "name": "Quality Control and Safety Technologies/Technicians" },
+            { "name": "Mechanical Engineering Related Technologies/Technicians" },
+            { "name": "Mining and Petroleum Technologies/Technicians" },
+            { "name": "Construction Engineering Technology/Technician" },
+            { "name": "Engineering-Related Technologies/Technicians" },
+            { "name": "Computer Engineering Technologies/Technicians" },
+            { "name": "Drafting/Design Engineering Technologies/Technicians" },
+            { "name": "Nuclear Engineering Technology/Technician" },
+            { "name": "Engineering-Related Fields" },
+            { "name": "Nanotechnology" },
+            { "name": "Energy Systems Technologies/Technicians" },
+            { "name": "Engineering/Engineering-Related Technologies/Technicians, Other" }
+          ]
+        },
+        {
+          "name": "Foreign Languages, Literatures, and Linguistics",
+          "children": [
+            { "name": "Linguistic, Comparative, and Related Language Studies and Services" },
+            { "name": "African Languages, Literatures, and Linguistics" },
+            { "name": "East Asian Languages, Literatures, and Linguistics" },
+            { "name": "Slavic, Baltic and Albanian Languages, Literatures, and Linguistics" },
+            { "name": "Germanic Languages, Literatures, and Linguistics" },
+            { "name": "Modern Greek Language and Literature" },
+            { "name": "South Asian Languages, Literatures, and Linguistics" },
+            { "name": "Iranian/Persian Languages, Literatures, and Linguistics" },
+            { "name": "Romance Languages, Literatures, and Linguistics" },
+            { "name": "American Indian/Native American Languages, Literatures, and Linguistics" },
+            { "name": "Middle/Near Eastern and Semitic Languages, Literatures, and Linguistics" },
+            { "name": "Classics and Classical Languages, Literatures, and Linguistics" },
+            { "name": "Celtic Languages, Literatures, and Linguistics" },
+            { "name": "Southeast Asian and Australasian/Pacific Languages, Literatures, and Linguistics" },
+            { "name": "Turkic, Uralic-Altaic, Caucasian, and Central Asian Languages, Literatures, and Linguistics" },
+            { "name": "American Sign Language" },
+            { "name": "Second Language Learning" },
+            { "name": "Armenian Languages, Literatures, and Linguistics" },
+            { "name": "Foreign Languages, Literatures, and Linguistics, Other" }
+          ]
+        },
+        {
+          "name": "Family and Consumer Sciences/Human Sciences",
+          "children": [
+            { "name": "Family and Consumer Sciences/Human Sciences, General" },
+            { "name": "Family and Consumer Sciences/Human Sciences Business Services" },
+            { "name": "Family and Consumer Economics and Related Studies" },
+            { "name": "Foods, Nutrition, and Related Services" },
+            { "name": "Housing and Human Environments" },
+            { "name": "Human Development, Family Studies, and Related Services" },
+            { "name": "Apparel and Textiles" },
+            { "name": "Work and Family Studies" },
+            { "name": "Family and Consumer Sciences/Human Sciences, Other" }
+          ]
+        },
+        {
+          "name": "Legal Professions and Studies",
+          "children": [
+            { "name": "Non-Professional Legal Studies" },
+            { "name": "Law" },
+            { "name": "Legal Research and Advanced Professional Studies" },
+            { "name": "Legal Support Services" },
+            { "name": "Legal Professions and Studies, Other" }
+          ]
+        },
+        {
+          "name": "English Language and Literature/Letters",
+          "children": [
+            { "name": "English Language and Literature, General" },
+            { "name": "Rhetoric and Composition/Writing Studies" },
+            { "name": "Literature" },
+            { "name": "English Language and Literature/Letters, Other" }
+          ]
+        },
+        {
+          "name": "Liberal Arts and Sciences, General Studies and Humanities",
+          "children": [
+            { "name": "Liberal Arts and Sciences, General Studies and Humanities" }
+          ]
+        },
+        {
+          "name": "Library Science",
+          "children": [
+            { "name": "Library Science and Administration" },
+            { "name": "Library and Archives Assisting" },
+            { "name": "Library Science, Other" }
+          ]
+        },
+        {
+          "name": "Biological and Biomedical Sciences",
+          "children": [
+            { "name": "Biology, General" },
+            { "name": "Biochemistry, Biophysics and Molecular Biology" },
+            { "name": "Botany/Plant Biology" },
+            { "name": "Cell/Cellular Biology and Anatomical Sciences" },
+            { "name": "Microbiological Sciences and Immunology" },
+            { "name": "Zoology/Animal Biology" },
+            { "name": "Genetics" },
+            { "name": "Physiology, Pathology and Related Sciences" },
+            { "name": "Pharmacology and Toxicology" },
+            { "name": "Biomathematics, Bioinformatics, and Computational Biology" },
+            { "name": "Biotechnology" },
+            { "name": "Ecology, Evolution, Systematics, and Population Biology" },
+            { "name": "Molecular Medicine" },
+            { "name": "Neurobiology and Neurosciences" },
+            { "name": "Biological and Biomedical Sciences, Other" }
+          ]
+        },
+        {
+          "name": "Mathematics and Statistics",
+          "children": [
+            { "name": "Mathematics" },
+            { "name": "Applied Mathematics" },
+            { "name": "Statistics" },
+            { "name": "Applied Statistics" },
+            { "name": "Mathematics and Statistics, Other" }
+          ]
+        },
+        {
+          "name": "Military Science, Leadership and Operational Art",
+          "children": [
+            { "name": "Air Force ROTC, Air Science and Operations" },
+            { "name": "Army ROTC, Military Science and Operations" },
+            { "name": "Navy/Marine ROTC, Naval Science and Operations" },
+            { "name": "Military Science and Operational Studies" },
+            { "name": "Security Policy and Strategy" },
+            { "name": "Military Economics and Management" },
+            { "name": "Military Science, Leadership and Operational Art, Other" }
+          ]
+        },
+        {
+          "name": "Military Technologies and Applied Sciences",
+          "children": [
+            { "name": "Intelligence, Command Control and Information Operations" },
+            { "name": "Military Applied Sciences" },
+            { "name": "Military Systems and Maintenance Technology" },
+            { "name": "Military Technology and Applied Sciences Management" },
+            { "name": "Military Technologies and Applied Sciences, Other" }
+          ]
+        },
+        {
+          "name": "Multi/Interdisciplinary Studies",
+          "children": [
+            { "name": "Multi-/Interdisciplinary Studies, General" },
+            { "name": "Biological and Physical Sciences" },
+            { "name": "Peace Studies and Conflict Resolution" },
+            { "name": "Systems Science and Theory" },
+            { "name": "Mathematics and Computer Science" },
+            { "name": "Biopsychology" },
+            { "name": "Gerontology" },
+            { "name": "Historic Preservation and Conservation" },
+            { "name": "Medieval and Renaissance Studies" },
+            { "name": "Museology/Museum Studies" },
+            { "name": "Science, Technology and Society" },
+            { "name": "Accounting and Computer Science" },
+            { "name": "Behavioral Sciences" },
+            { "name": "Natural Sciences" },
+            { "name": "Nutrition Sciences" },
+            { "name": "International/Globalization Studies" },
+            { "name": "Holocaust and Related Studies" },
+            { "name": "Classical and Ancient Studies" },
+            { "name": "Cognitive Science" },
+            { "name": "Cultural Studies/Critical Theory and Analysis" },
+            { "name": "Human Biology" },
+            { "name": "Dispute Resolution" },
+            { "name": "Maritime Studies" },
+            { "name": "Computational Science" },
+            { "name": "Human Computer Interaction" },
+            { "name": "Marine Sciences" },
+            { "name": "Sustainability Studies" },
+            { "name": "Anthrozoology" },
+            { "name": "Climate Science" },
+            { "name": "Cultural Studies and Comparative Literature" },
+            { "name": "Design for Human Health" },
+            { "name": "Earth Systems Science" },
+            { "name": "Economics and Computer Science" },
+            { "name": "Economics and Foreign Language/Literature" },
+            { "name": "Environmental Geosciences" },
+            { "name": "Geoarcheaology" },
+            { "name": "Geobiology" },
+            { "name": "Geography and Environmental Studies" },
+            { "name": "History and Language/Literature" },
+            { "name": "History and Political Science" },
+            { "name": "Linguistics and Anthropology" },
+            { "name": "Linguistics and Computer Science" },
+            { "name": "Mathematical Economics" },
+            { "name": "Mathematics and Atmospheric/Oceanic Science" },
+            { "name": "Philosophy, Politics, and Economics" },
+            { "name": "Digital Humanities and Textual Studies" },
+            { "name": "Thanatology" },
+            { "name": "Data Science" },
+            { "name": "Data Analytics" },
+            { "name": "Multi/Interdisciplinary Studies, Other" }
+          ]
+        },
+        {
+          "name": "Parks, Recreation, Leisure, Fitness, and Kinesiology",
+          "children": [
+            { "name": "Parks, Recreation, and Leisure Studies" },
+            { "name": "Parks, Recreation, and Leisure Facilities Management" },
+            { "name": "Sports, Kinesiology, and Physical Education/Fitness" },
+            { "name": "Outdoor Education" },
+            { "name": "Parks, Recreation, Leisure, Fitness, and Kinesiology, Other" }
+          ]
+        },
+        {
+          "name": "Basic Skills and Developmental/Remedial Education",
+          "children": [
+            { "name": "Basic Skills and Developmental/Remedial Education" },
+            { "name": "General Exam Preparation and Test-Taking Skills" }
+          ]
+        },
+        {
+          "name": "Citizenship Activities",
+          "children": [
+            { "name": "Citizenship Activities" }
+          ]
+        },
+        {
+          "name": "Health-Related Knowledge and Skills",
+          "children": [
+            { "name": "Health-Related Knowledge and Skills" }
+          ]
+        },
+        {
+          "name": "Interpersonal and Social Skills",
+          "children": [
+            { "name": "Interpersonal and Social Skills" }
+          ]
+        },
+        {
+          "name": "Leisure and Recreational Activities",
+          "children": [
+            { "name": "Leisure and Recreational Activities" },
+            { "name": "Noncommercial Vehicle Operation" }
+          ]
+        },
+        {
+          "name": "Personal Awareness and Self-Improvement",
+          "children": [
+            { "name": "Personal Awareness and Self-Improvement" }
+          ]
+        },
+        {
+          "name": "Philosophy and Religious Studies",
+          "children": [
+            { "name": "Philosophy and Religious Studies, General" },
+            { "name": "Philosophy" },
+            { "name": "Religion/Religious Studies" },
+            { "name": "Philosophy and Religious Studies, Other" }
+          ]
+        },
+        {
+          "name": "Theology and Religious Vocations",
+          "children": [
+            { "name": "Bible/Biblical Studies" },
+            { "name": "Missions/Missionary Studies and Missiology" },
+            { "name": "Religious Education" },
+            { "name": "Religious Music and Worship" },
+            { "name": "Theological and Ministerial Studies" },
+            { "name": "Pastoral Counseling and Specialized Ministries" },
+            { "name": "Religious Institution Administration and Law" },
+            { "name": "Theology and Religious Vocations, Other" }
+          ]
+        },
+        {
+          "name": "Physical Sciences",
+          "children": [
+            { "name": "Physical Sciences, General" },
+            { "name": "Astronomy and Astrophysics" },
+            { "name": "Atmospheric Sciences and Meteorology" },
+            { "name": "Chemistry" },
+            { "name": "Geological and Earth Sciences/Geosciences" },
+            { "name": "Physics" },
+            { "name": "Materials Sciences" },
+            { "name": "Physics and Astronomy" },
+            { "name": "Physical Sciences, Other" }
+          ]
+        },
+        {
+          "name": "Science Technologies/Technicians",
+          "children": [
+            { "name": "Science Technologies/Technicians, General" },
+            { "name": "Biology/Biotechnology Technologies/Technicians" },
+            { "name": "Nuclear and Industrial Radiologic Technologies/Technicians" },
+            { "name": "Physical Science Technologies/Technicians" },
+            { "name": "Science Technologies/Technicians, Other" }
+          ]
+        },
+        {
+          "name": "Psychology",
+          "children": [
+            { "name": "Psychology, General" },
+            { "name": "Research and Experimental Psychology" },
+            { "name": "Clinical, Counseling and Applied Psychology" },
+            { "name": "Psychology, Other" }
+          ]
+        },
+        {
+          "name": "Homeland Security, Law Enforcement, Firefighting and Related Protective Services",
+          "children": [
+            { "name": "Criminal Justice and Corrections" },
+            { "name": "Fire Protection" },
+            { "name": "Homeland Security" },
+            { "name": "Security Science and Technology" },
+            { "name": "Homeland Security, Law Enforcement, Firefighting and Related Protective Services, Other" }
+          ]
+        },
+        {
+          "name": "Public Administration and Social Service Professions",
+          "children": [
+            { "name": "Human Services, General" },
+            { "name": "Community Organization and Advocacy" },
+            { "name": "Public Administration" },
+            { "name": "Public Policy Analysis" },
+            { "name": "Social Work" },
+            { "name": "Public Administration and Social Service Professions, Other" }
+          ]
+        },
+        {
+          "name": "Social Sciences",
+          "children": [
+            { "name": "Social Sciences, General" },
+            { "name": "Anthropology" },
+            { "name": "Archeology" },
+            { "name": "Criminology" },
+            { "name": "Demography" },
+            { "name": "Economics" },
+            { "name": "Geography and Cartography" },
+            { "name": "International Relations and National Security Studies" },
+            { "name": "Political Science and Government" },
+            { "name": "Sociology" },
+            { "name": "Urban Studies/Affairs" },
+            { "name": "Sociology and Anthropology" },
+            { "name": "Geography and Anthropology" },
+            { "name": "Social Sciences, Other" }
+          ]
+        },
+        {
+          "name": "Construction Trades",
+          "children": [
+            { "name": "Construction Trades, General" },
+            { "name": "Mason/Masonry" },
+            { "name": "Carpenters" },
+            { "name": "Electrical and Power Transmission Installers" },
+            { "name": "Building/Construction Finishing, Management, and Inspection" },
+            { "name": "Plumbing and Related Water Supply Services" },
+            { "name": "Construction Trades, Other" }
+          ]
+        },
+        {
+          "name": "Mechanic and Repair Technologies/Technicians",
+          "children": [
+            { "name": "Mechanics and Repairers, General" },
+            { "name": "Electrical/Electronics Maintenance and Repair Technologies/Technicians" },
+            { "name": "Heating, Air Conditioning, Ventilation and Refrigeration Maintenance Technology/Technician" },
+            { "name": "Heavy/Industrial Equipment Maintenance Technologies/Technicians" },
+            { "name": "Precision Systems Maintenance and Repair Technologies/Technicians" },
+            { "name": "Vehicle Maintenance and Repair Technologies/Technicians" },
+            { "name": "Energy Systems Maintenance and Repair Technologies/Technicians" },
+            { "name": "Mechanic and Repair Technologies/Technicians, Other" }
+          ]
+        },
+        {
+          "name": "Precision Production",
+          "children": [
+            { "name": "Precision Production Trades, General" },
+            { "name": "Leatherworking and Upholstery" },
+            { "name": "Precision Metal Working" },
+            { "name": "Woodworking" },
+            { "name": "Boilermaking/Boilermaker" },
+            { "name": "Precision Production, Other" }
+          ]
+        },
+        {
+          "name": "Transportation and Materials Moving",
+          "children": [
+            { "name": "Air Transportation" },
+            { "name": "Ground Transportation" },
+            { "name": "Marine Transportation" },
+            { "name": "Transportation and Materials Moving, Other" }
+          ]
+        },
+        {
+          "name": "Visual and Performing Arts",
+          "children": [
+            { "name": "Visual and Performing Arts, General" },
+            { "name": "Crafts/Craft Design, Folk Art and Artisanry" },
+            { "name": "Dance" },
+            { "name": "Design and Applied Arts" },
+            { "name": "Drama/Theatre Arts and Stagecraft" },
+            { "name": "Film/Video and Photographic Arts" },
+            { "name": "Fine and Studio Arts" },
+            { "name": "Music" },
+            { "name": "Arts, Entertainment, and Media Management" },
+            { "name": "Community/Environmental/Socially-Engaged Art" },
+            { "name": "Visual and Performing Arts, Other" }
+          ]
+        },
+        {
+          "name": "Health Professions and Related Programs",
+          "children": [
+            { "name": "Health Services/Allied Health/Health Sciences, General" },
+            { "name": "Chiropractic" },
+            { "name": "Communication Disorders Sciences and Services" },
+            { "name": "Dentistry" },
+            { "name": "Advanced/Graduate Dentistry and Oral Sciences" },
+            { "name": "Dental Support Services and Allied Professions" },
+            { "name": "Health and Medical Administrative Services" },
+            { "name": "Allied Health and Medical Assisting Services" },
+            { "name": "Allied Health Diagnostic, Intervention, and Treatment Professions" },
+            { "name": "Clinical/Medical Laboratory Science/Research and Allied Professions" },
+            { "name": "Health/Medical Preparatory Programs" },
+            { "name": "Medicine" },
+            { "name": "Medical Clinical Sciences/Graduate Medical Studies" },
+            { "name": "Mental and Social Health Services and Allied Professions" },
+            { "name": "Optometry" },
+            { "name": "Ophthalmic and Optometric Support Services and Allied Professions" },
+            { "name": "Pharmacy, Pharmaceutical Sciences, and Administration" },
+            { "name": "Public Health" },
+            { "name": "Rehabilitation and Therapeutic Professions" },
+            { "name": "Health Aides/Attendants/Orderlies" },
+            { "name": "Medical Illustration and Informatics" },
+            { "name": "Dietetics and Clinical Nutrition Services" },
+            { "name": "Health Professions Education, Ethics, and Humanities" },
+            { "name": "Alternative and Complementary Medicine and Medical Systems" },
+            { "name": "Alternative and Complementary Medical Support Services" },
+            { "name": "Somatic Bodywork and Related Therapeutic Services" },
+            { "name": "Movement and Mind-Body Therapies and Education" },
+            { "name": "Energy and Biologically Based Therapies" },
+            { "name": "Registered Nursing, Nursing Administration, Nursing Research and Clinical Nursing" },
+            { "name": "Practical Nursing, Vocational Nursing and Nursing Assistants" },
+            { "name": "Health Professions and Related Clinical Sciences, Other" }
+          ]
+        },
+        {
+          "name": "Business, Management, Marketing, and Related Support Services",
+          "children": [
+            { "name": "Business/Commerce, General" },
+            { "name": "Business Administration, Management and Operations" },
+            { "name": "Accounting and Related Services" },
+            { "name": "Business Operations Support and Assistant Services" },
+            { "name": "Business/Corporate Communications" },
+            { "name": "Business/Managerial Economics" },
+            { "name": "Entrepreneurial and Small Business Operations" },
+            { "name": "Finance and Financial Management Services" },
+            { "name": "Hospitality Administration/Management" },
+            { "name": "Human Resources Management and Services" },
+            { "name": "International Business" },
+            { "name": "Management Information Systems and Services" },
+            { "name": "Management Sciences and Quantitative Methods" },
+            { "name": "Marketing" },
+            { "name": "Real Estate" },
+            { "name": "Taxation" },
+            { "name": "Insurance" },
+            { "name": "General Sales, Merchandising and Related Marketing Operations" },
+            { "name": "Specialized Sales, Merchandising and Marketing Operations" },
+            { "name": "Construction Management" },
+            { "name": "Telecommunications Management" },
+            { "name": "Business, Management, Marketing, and Related Support Services, Other" }
+          ]
+        },
+        {
+          "name": "High School/Secondary Diplomas and Certificates",
+          "children": [
+            { "name": "High School/Secondary Diploma Programs" },
+            { "name": "High School/Secondary Certificate Programs" }
+          ]
+        },
+        {
+          "name": "History",
+          "children": [
+            { "name": "History" }
+          ]
+        },
+        {
+          "name": "Health Professions Residency/Fellowship Programs",
+          "children": [
+            { "name": "Dental Residency/Fellowship Programs" },
+            { "name": "Veterinary Residency/Fellowship Programs" },
+            { "name": "Nurse Practitioner Residency/Fellowship Programs" },
+            { "name": "Pharmacy Residency/Fellowship Programs" },
+            { "name": "Physician Assistant Residency/Fellowship Programs" },
+            { "name": "Health Professions Residency/Fellowship Programs, Other" }
+          ]
+        },
+        {
+          "name": "Medical Residency/Fellowship Programs",
+          "children": [
+            { "name": "Combined Medical Residency/Fellowship Programs" },
+            { "name": "Multiple-Pathway Medical Fellowship Programs" },
+            { "name": "Allergy and Immunology Residency/Fellowship Programs" },
+            { "name": "Anesthesiology Residency/Fellowship Programs" },
+            { "name": "Dermatology Residency/Fellowship Programs" },
+            { "name": "Emergency Medicine Residency/Fellowship Programs" },
+            { "name": "Family Medicine Residency/Fellowship Programs" },
+            { "name": "Internal Medicine Residency/Fellowship Programs" },
+            { "name": "Medical Genetics and Genomics Residency/Fellowship Programs" },
+            { "name": "Neurological Surgery Residency/Fellowship Programs" },
+            { "name": "Neurology Residency/Fellowship Programs" },
+            { "name": "Nuclear Medicine Residency/Fellowship Programs" },
+            { "name": "Obstetrics and Gynecology Residency/Fellowship Programs" },
+            { "name": "Ophthalmology Residency/Fellowship Programs" },
+            { "name": "Orthopedic Surgery Residency/Fellowship Programs" },
+            { "name": "Osteopathic Medicine Residency/Fellowship Programs" },
+            { "name": "Otolaryngology Residency/Fellowship Programs" },
+            { "name": "Pathology Residency/Fellowship Programs" },
+            { "name": "Pediatrics Residency/Fellowship Programs" },
+            { "name": "Physical Medicine and Rehabilitation Residency/Fellowship Programs" },
+            { "name": "Plastic Surgery Residency/Fellowship Programs" },
+            { "name": "Podiatric Medicine Residency/Fellowship Programs" },
+            { "name": "Preventive Medicine Residency/Fellowship Programs" },
+            { "name": "Psychiatry Residency/Fellowship Programs" },
+            { "name": "Radiation Oncology Residency/Fellowship Programs" },
+            { "name": "Radiology Residency/Fellowship Programs" },
+            { "name": "Surgery Residency/Fellowship Programs" },
+            { "name": "Urology Residency/Fellowship Programs" },
+            { "name": "Medical Residency/Fellowship Programs, Other" }
+          ]
+        }
+      ]
+    };
+
+async function importLibraryCategories() {
+    UI.loader(true, "📚 Importing Library Categories...", 0);
+    await new Promise(r => setTimeout(r, 50));
+    
+    // Count total categories to import (including children)
+    let totalCount = 0;
+    function countNodes(cat) {
+        totalCount++; // count current category
+        if (cat.children && Array.isArray(cat.children)) {
+            for (let child of cat.children) countNodes(child);
+        }
+    }
+    for (let cat of libraryCategories.items) countNodes(cat);
+    
+    let processedCount = 0;
+    function updateProgress() {
+        processedCount++;
+        const percent = Math.floor((processedCount / totalCount) * 100);
+        const fillBar = document.getElementById('fluid-bar-fill');
+        if (fillBar) fillBar.style.width = percent + '%';
+        const statusText = document.getElementById('loader-status-text');
+        if (statusText) statusText.innerHTML = `📚 Importing... ${percent}% (${processedCount}/${totalCount})`;
+    }
+    
+    const addCategoryNode = (cat, parentId) => {
+        let existing = State.nodes.find(n => n.name === cat.name && n.parentIds.includes(parentId));
+        if (!existing) {
+            const newId = 'lib_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+            State.nodes.push({ 
+                id: newId, 
+                name: cat.name, 
+                type: 'category', 
+                parentIds: [parentId], 
+                size: 600, 
+                understanding: 0, 
+                content: '', 
+                date: Date.now(),
+                _kenna: true
+            });
+            existing = State.nodes[State.nodes.length-1];
+        } else {
+            existing._kenna = true;
+        }
+        updateProgress(); // update after adding this node
+        if (cat.children && Array.isArray(cat.children)) {
+            for (let child of cat.children) addCategoryNode(child, existing.id);
+        }
+    };
+    
+    for (let cat of libraryCategories.items) addCategoryNode(cat, 'root');
+    
+    UI.loader(true, "📊 Cascading understanding levels...", 90);
+    await MathCore.cascadeAll();
+    
+    UI.loader(true, "💾 Saving to database...", 95);
+    await DB.save();
+    
+    UI.loader(false);
+    Core.refresh();
+    UI.toast(`✅ Imported ${totalCount} library categories.`);
+}
+
+async function removeLibraryCategories() {
+    const toDelete = State.nodes.filter(n => n._kenna === true).map(n => n.id);
+    if (toDelete.length === 0) { 
+        UI.toast("No library categories found."); 
+        return; 
+    }
+    if (!await confirm(`Remove ${toDelete.length} library categories and all subcategories?`)) return;
+    
+    let allToDelete = new Set(toDelete);
+    let added;
+    do {
+        added = false;
+        for (let node of State.nodes) {
+            if (allToDelete.has(node.id)) continue;
+            if (node.parentIds.some(pid => allToDelete.has(pid))) {
+                allToDelete.add(node.id);
+                added = true;
+            }
+        }
+    } while (added);
+    
+    if (allToDelete.has(State.focusId)) {
+        State.focusId = 'root';
+        State.path = [];
+    }
+    
+    State.nodes = State.nodes.filter(n => !allToDelete.has(n.id));
+    await DB.save();
+    Core.refresh();
+    UI.toast(`🗑️ Removed ${allToDelete.size} categories.`);
+}
+
+// ----------------------------------------------------------------------------
+// 8. EVENT LISTENERS & INITIALIZATION (fully connected)
+// ----------------------------------------------------------------------------
+window.addEventListener('load', async () => {
+    await DB.init();
+    
+    // --- FAST ONE‑TIME MIGRATION from old IndexedDB ---
+    const migrationFlag = localStorage.getItem('dexie_migration_done');
+    if (!migrationFlag) {
+        UI.loader(true, "📦 Migrating your data (one time only)...", 0);
+        try {
+            // Check if old database exists
+            const oldDB = await new Promise((resolve) => {
+                const req = indexedDB.open('KnowledgeMapDB_v1', 1);
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => resolve(null);
+            });
+            
+            if (oldDB) {
+                const tx = oldDB.transaction('nodes', 'readonly');
+                const store = tx.objectStore('nodes');
+                const oldNodes = await new Promise((resolve) => {
+                    const getAll = store.getAll();
+                    getAll.onsuccess = () => resolve(getAll.result || []);
+                    getAll.onerror = () => resolve([]);
+                });
+                
+                if (oldNodes.length > 0) {
+                    // Use chunked bulkAdd to avoid blocking the UI
+                    const chunkSize = 500;
+                    for (let i = 0; i < oldNodes.length; i += chunkSize) {
+                        const chunk = oldNodes.slice(i, i + chunkSize);
+                        await dexieDB.nodes.bulkAdd(chunk);
+                        const percent = Math.floor((i + chunk.length) / oldNodes.length * 100);
+                        const fillBar = document.getElementById('fluid-bar-fill');
+                        if (fillBar) fillBar.style.width = percent + '%';
+                        const statusText = document.getElementById('loader-status-text');
+                        if (statusText) statusText.innerHTML = `📦 Migrating... ${percent}% (${Math.min(i+chunk.length, oldNodes.length)}/${oldNodes.length})`;
+                        await new Promise(r => setTimeout(r, 5)); // let UI breathe
+                    }
+                    console.log(`✅ Migrated ${oldNodes.length} nodes from old database.`);
+                    UI.toast(`📦 Migrated ${oldNodes.length} items to new database.`);
+                }
+                oldDB.close();
+            }
+        } catch(e) {
+            console.warn("Migration error:", e);
+        }
+        localStorage.setItem('dexie_migration_done', 'true');
+        UI.loader(false);
+    }
+    
+    // Load data into State (from Dexie)
+    await DB.load();
+    
+    // If no nodes exist, create a default "Master" node as a child of root
+    if (State.nodes.length === 0) {
+        const masterId = 'master_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+        State.nodes.push({
+            id: masterId,
+            name: 'Master',
+            type: 'category',
+            parentIds: ['root'],
+            size: 500,
+            understanding: 0,
+            content: 'Default workspace. Add categories or import Kenna\'s library.',
+            date: Date.now(),
+            scores: []
+        });
+        await DB.save(false);
+    }
+    
+    // --- ONE-TIME MIGRATION: Flag existing Kenna categories for removal ---
+    // This runs silently and only once (adds _kenna = true to all Kenna nodes).
+    // It does nothing if migration has already been run (flag already present).
+    const migrationKey = 'kenna_migration_v1';
+    if (!localStorage.getItem(migrationKey)) {
+        console.log("Running one-time Kenna category flagging migration...");
+        
+        // List of top-level Kenna category names (exactly as in libraryCategories)
+        const kennaTopNames = [
+            "Agricultural/Animal/Plant/Veterinary Science and Related Fields",
+            "Natural Resources and Conservation",
+            "Architecture and Related Services",
+            "Communication, Journalism, and Related Programs",
+            "Communications Technologies/Technicians and Support Services",
+            "Computer and Information Sciences and Support Services",
+            "Culinary, Entertainment, and Personal Services",
+            "Education",
+            "Engineering",
+            "Engineering/Engineering-Related Technologies/Technicians",
+            "Foreign Languages, Literatures, and Linguistics",
+            "Family and Consumer Sciences/Human Sciences",
+            "Legal Professions and Studies",
+            "English Language and Literature/Letters",
+            "Liberal Arts and Sciences, General Studies and Humanities",
+            "Library Science",
+            "Biological and Biomedical Sciences",
+            "Mathematics and Statistics",
+            "Military Science, Leadership and Operational Art",
+            "Military Technologies and Applied Sciences",
+            "Multi/Interdisciplinary Studies",
+            "Parks, Recreation, Leisure, Fitness, and Kinesiology",
+            "Basic Skills and Developmental/Remedial Education",
+            "Citizenship Activities",
+            "Health-Related Knowledge and Skills",
+            "Interpersonal and Social Skills",
+            "Leisure and Recreational Activities",
+            "Personal Awareness and Self-Improvement",
+            "Philosophy and Religious Studies",
+            "Theology and Religious Vocations",
+            "Physical Sciences",
+            "Science Technologies/Technicians",
+            "Psychology",
+            "Homeland Security, Law Enforcement, Firefighting and Related Protective Services",
+            "Public Administration and Social Service Professions",
+            "Social Sciences",
+            "Construction Trades",
+            "Mechanic and Repair Technologies/Technicians",
+            "Precision Production",
+            "Transportation and Materials Moving",
+            "Visual and Performing Arts",
+            "Health Professions and Related Programs",
+            "Business, Management, Marketing, and Related Support Services",
+            "High School/Secondary Diplomas and Certificates",
+            "History",
+            "Health Professions Residency/Fellowship Programs",
+            "Medical Residency/Fellowship Programs"
+        ];
+        
+        // Find top‑level nodes that match Kenna names
+        let toFlagIds = new Set();
+        for (let node of State.nodes) {
+            if (kennaTopNames.includes(node.name) && node.parentIds.includes('root')) {
+                toFlagIds.add(node.id);
+            }
+        }
+        
+        // Recursively add all descendants
+        let added;
+        do {
+            added = false;
+            for (let node of State.nodes) {
+                if (toFlagIds.has(node.id)) continue;
+                if (node.parentIds.some(pid => toFlagIds.has(pid))) {
+                    toFlagIds.add(node.id);
+                    added = true;
+                }
+            }
+        } while (added);
+        
+        // Apply the flag
+        let flaggedCount = 0;
+        for (let node of State.nodes) {
+            if (toFlagIds.has(node.id) && !node._kenna) {
+                node._kenna = true;
+                flaggedCount++;
+            }
+        }
+        
+        if (flaggedCount > 0) {
+            await DB.save(false);
+            console.log(`✅ Migration complete: flagged ${flaggedCount} existing nodes as Kenna categories.`);
+        }
+        localStorage.setItem(migrationKey, 'true');
+    }
+    // --- End of migration ---
+    
+    Graph3D.init();
+    SessionManager.restore();
+    Core.refresh();
+    if (State.colorblind) document.body.classList.add('colorblind-mode');
+    // Colorblind mode toggle
+    document.getElementById('colorblind-toggle').addEventListener('change', e => {
+        State.colorblind = e.target.checked;
+        if (State.colorblind) document.body.classList.add('colorblind-mode');
+        else document.body.classList.remove('colorblind-mode');
+        Core.refresh();
+    });
+    
+    // Show all labels toggle
+    let showAllLabels = false;
+    const labelsToggle = document.getElementById('show-all-labels-toggle');
+    if (labelsToggle) {
+        labelsToggle.addEventListener('change', (e) => {
+            showAllLabels = e.target.checked;
+            Graph3D.buildFromState();
+        });
+    }
+    const savedCollapsed = localStorage.getItem('control_card_collapsed');
+    if (savedCollapsed === 'true') document.getElementById('control-card').classList.add('collapsed');
+    window.addEventListener('resize', () => {
+        const container = document.getElementById('map-container');
+        if (!container) return;
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+        
+        if (Graph3D && Graph3D.renderer) Graph3D.renderer.setSize(width, height);
+        if (Graph3D && Graph3D.camera) {
+            Graph3D.camera.aspect = width / height;
+            Graph3D.camera.updateProjectionMatrix();
+            setTimeout(() => Graph3D.fitToScreen(), 50);
+            UI.updateBreadcrumbs(); // <-- add this line
+        }
+    });
+});
+  
+// Graph zoom slider
+const zoomSlider = document.getElementById('graph-zoom-slider');
+const zoomDisplay = document.getElementById('zoom-value-display');
+if (zoomSlider) {
+    zoomSlider.addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        zoomDisplay.textContent = val.toFixed(1);
+        if (Graph3D) {
+            Graph3D.fillFactor = val;
+            Graph3D.fitToScreen();
+        }
+    });
+    // Load saved zoom from localStorage if any
+    const savedZoom = localStorage.getItem('graph_zoom_factor');
+    if (savedZoom) {
+        Graph3D.fillFactor = parseFloat(savedZoom);
+        zoomSlider.value = Graph3D.fillFactor;
+        zoomDisplay.textContent = Graph3D.fillFactor.toFixed(1);
+    }
+    zoomSlider.addEventListener('change', () => {
+        localStorage.setItem('graph_zoom_factor', Graph3D.fillFactor);
+    });
+}
+
+// Collapse/expand logic for card and dock
+document.getElementById('collapse-toggle-btn').addEventListener('click', () => {
+    const card = document.getElementById('control-card');
+    card.classList.toggle('collapsed');
+    localStorage.setItem('control_card_collapsed', card.classList.contains('collapsed'));
+});
+document.querySelectorAll('.snap-btn').forEach(btn => btn.addEventListener('click', (e) => UI.snapCard(e.target.dataset.pos)));
+document.getElementById('search-input').addEventListener('input', UI.renderFolders);
+document.getElementById('sort-select').addEventListener('change', UI.renderFolders);
+document.getElementById('view-select').addEventListener('change', UI.renderFolders);
+document.getElementById('dock-home').addEventListener('click', Core.goHome);
+document.getElementById('dock-add').addEventListener('click', () => UI.showModal('upload-hub-modal'));
+document.getElementById('dock-settings').addEventListener('click', () => UI.showModal('settings-modal'));
+document.getElementById('dock-backup').addEventListener('click', Core.backup);
+document.getElementById('dock-delete-all').addEventListener('click', Core.deleteAll);
+document.getElementById('copy-cat-prompt').addEventListener('click', Core.copyCatPrompt);
+document.getElementById('copy-book-prompt').addEventListener('click', Core.copyBookPrompt);
+document.getElementById('btn-adjust-understanding').addEventListener('click', Core.editUnderstanding);
+document.getElementById('save-understanding-btn').addEventListener('click', Core.saveUnderstanding);
+document.getElementById('understanding-slider').addEventListener('input', e => document.getElementById('understanding-value-display').innerText = e.target.value + '%');
+document.getElementById('btn-edit-content').addEventListener('click', Core.editContent);
+document.getElementById('save-content-btn').addEventListener('click', Core.saveContent);
+document.getElementById('btn-rename').addEventListener('click', Core.rename);
+document.getElementById('btn-delete').addEventListener('click', Core.deleteFolder);
+document.getElementById('btn-scores').addEventListener('click', Core.openScoresModal);
+document.getElementById('add-score-btn').addEventListener('click', Core.addScore);
+document.getElementById('close-scores-modal').addEventListener('click', () => UI.hideModal('scores-modal'));
+document.getElementById('fit-graph-btn').addEventListener('click', () => Graph3D.fitToScreen());
+
+// Upload zones
+const setupDrop = (zoneId, fileInputId, isCat) => {
+    let zone = document.getElementById(zoneId);
+    zone.addEventListener('click', () => document.getElementById(fileInputId).click());
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.borderColor = 'var(--accent)'; });
+    zone.addEventListener('dragleave', e => { e.preventDefault(); zone.style.borderColor = 'var(--border)'; });
+    zone.addEventListener('drop', e => {
+        e.preventDefault(); zone.style.borderColor = 'var(--border)';
+        if(e.dataTransfer.files[0]) Parser.process(e.dataTransfer.files[0], isCat);
+    });
+    document.getElementById(fileInputId).addEventListener('change', e => { if(e.target.files[0]) Parser.process(e.target.files[0], isCat); });
+};
+setupDrop('drop-categories', 'file-categories', true);
+setupDrop('drop-books', 'file-books', false);
+
+// Close modals
+document.querySelectorAll('.close-modal-btn').forEach(btn => btn.addEventListener('click', (e) => e.target.closest('.modal-bg').style.display = 'none'));
+
+// Paste JSON modal
+let pendingPasteZone = null;
+document.querySelectorAll('.paste-json-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        pendingPasteZone = btn.dataset.zone;
+        document.getElementById('paste-json-textarea').value = '';
+        UI.showModal('paste-json-modal');
+    });
+});
+document.getElementById('paste-submit-btn').addEventListener('click', async () => {
+    const jsonText = document.getElementById('paste-json-textarea').value;
+    if (!jsonText) return;
+    const blob = new Blob([jsonText], { type: 'application/json' });
+    const file = new File([blob], "pasted.json", { type: 'application/json' });
+    await Parser.process(file, pendingPasteZone === 'categories');
+    UI.hideModal('paste-json-modal');
+});
+document.getElementById('paste-cancel-btn').addEventListener('click', () => UI.hideModal('paste-json-modal'));
+
+// Quiz Wizard stub (working from 2D)
+document.getElementById('btn-quiz-guide').addEventListener('click', () => {
+    const nodeId = document.getElementById('selected-folder-title').dataset.id;
+    const node = State.nodes.find(n => n.id === nodeId);
+    const promptDiv = document.getElementById('quizExtractPrompt');
+    promptDiv.textContent = `Generate a quiz for "${node ? node.name : 'this topic'}" based on: ${node?.content?.slice(0,800) || 'No content available.'} Output JSON array of questions.`;
+    UI.showModal('quizWizardModal');
+});
+document.getElementById('previewQuizBtn').addEventListener('click', () => {
+    const json = document.getElementById('quizJsonInput').value;
+    try { JSON.parse(json); alert("JSON valid. Export to external app."); } catch(e) { alert("Invalid JSON"); }
+});
+document.getElementById('recordQuizScoreBtn').addEventListener('click', async () => {
+    const earned = parseFloat(document.getElementById('quizScoreEarned').value);
+    const total = parseFloat(document.getElementById('quizScoreTotal').value);
+    if (isNaN(earned) || isNaN(total) || total <= 0) return alert("Invalid numbers");
+    const id = document.getElementById('selected-folder-title').dataset.id;
+    const node = State.nodes.find(n => n.id === id);
+    if (!node) return;
+    if (!node.scores) node.scores = [];
+    node.scores.push({ earned, possible: total });
+    let totalPercent = node.scores.reduce((s,sc) => s + (sc.earned/sc.possible)*100, 0);
+    node.understanding = Math.round(totalPercent / node.scores.length);
+    MathCore.cascade(node.id);
+    await DB.save();
+    Core.refresh();
+    UI.hideModal('quizWizardModal');
+});
+
+// Resource discovery (working from 2D with full dashboard)
+document.getElementById('btn-resource-discovery').addEventListener('click', () => {
+    const nodeId = document.getElementById('selected-folder-title').dataset.id;
+    const node = State.nodes.find(n => n.id === nodeId);
+    const promptDiv = document.getElementById('resourcePrompt');
+    promptDiv.textContent = `List 20 free resources for "${node ? node.name : 'topic'}". Output numbered list with title, type, URL.`;
+    UI.showModal('resourceModal');
+});
+let discoveredResources = [];
+function updateResourceList() {
+    const container = document.getElementById('resourceListContainer');
+    if (!container) return;
+    let html = `<div class="resource-list">`;
+    discoveredResources.forEach((r, i) => {
+        html += `<div class="resource-item" data-idx="${i}"><strong>${escapeHtml(r.title)}</strong><br><small>${r.url}</small><br><select class="route-select" data-idx="${i}"><option value="text">Text-based (paste content)</option><option value="quiz">Quiz/self-assessment</option></select></div>`;
+    });
+    html += `</div><button id="processResourcesBtn" class="btn-primary">Process Selected</button>`;
+    container.innerHTML = html;
+    document.querySelectorAll('.route-select').forEach(sel => {
+        sel.addEventListener('change', (e) => {
+            const idx = parseInt(e.target.dataset.idx);
+            discoveredResources[idx].route = e.target.value;
+        });
+    });
+    document.getElementById('processResourcesBtn')?.addEventListener('click', () => {
+        // simplified: just close and give info
+        alert("In full version, you would now paste/fetch content for each text resource or generate quizzes. For now, use the 'Add File' button to import JSON.");
+        UI.hideModal('resourceModal');
+    });
+}
+document.getElementById('step1Next')?.addEventListener('click', async () => {
+    const aiOutput = await prompt("Paste the AI's resource list (numbered lines with URLs):");
+    if (aiOutput) {
+        const lines = aiOutput.split('\n');
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        discoveredResources = [];
+        for (let line of lines) {
+            const match = line.match(urlRegex);
+            if (match) {
+                let url = match[0].replace(/[\]\)]+$/, '');
+                let title = line.replace(/^\d+[\.\)]\s*/, '').replace(urlRegex, '').trim() || url;
+                discoveredResources.push({ title, url, route: 'text' });
+            }
+        }
+        if (discoveredResources.length) updateResourceList();
+        else alert("No URLs found.");
+    }
+});
+document.getElementById('step2Back')?.addEventListener('click', () => { /* back to step1 */ });
+document.getElementById('step3Back')?.addEventListener('click', () => {});
+document.getElementById('generateFromTextBtn')?.addEventListener('click', () => alert("Paste content into the textarea, then use 'Add File' to import as book JSON."));
+document.getElementById('generateQuizFromAI')?.addEventListener('click', () => alert("Use the Quiz Wizard button instead."));
+
+// Kenna's library buttons
+document.getElementById('library-categories-btn').addEventListener('click', importLibraryCategories);
+document.getElementById('remove-library-categories-btn').addEventListener('click', removeLibraryCategories);
+
+document.getElementById('dock-toggle-left').addEventListener('click', () => {
+    document.getElementById('dock').classList.add('collapsed');
+    localStorage.setItem('dock_collapsed', 'true');
+    window.dispatchEvent(new Event('resize'));
+});
+document.getElementById('dock-toggle-right').addEventListener('click', () => {
+    const dock = document.getElementById('dock');
+    if (dock.classList.contains('collapsed')) {
+        dock.classList.remove('collapsed');
+        localStorage.setItem('dock_collapsed', 'false');
+    } else {
+        dock.classList.add('collapsed');
+        localStorage.setItem('dock_collapsed', 'true');
+    }
+    window.dispatchEvent(new Event('resize'));
+});
+const savedDockCollapsed = localStorage.getItem('dock_collapsed');
+if (savedDockCollapsed === 'true') document.getElementById('dock').classList.add('collapsed');
+
+// Expose globals for debugging
+window.Core = Core;
+window.State = State;
+window.removeLibraryCategories = removeLibraryCategories;
+window.UI = UI;
+window.Graph3D = Graph3D;
+</script>
+</body>
+</html>
