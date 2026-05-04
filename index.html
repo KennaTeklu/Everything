@@ -152,18 +152,21 @@
     }
     .recent-item:active { background: rgba(255,255,255,0.2); }
 
-    /* Bottom navigation bar */
+    /* Bottom navigation bar – fixed at bottom, always visible */
     .bottom-nav {
-      flex-shrink: 0;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 70px;
       background: rgba(0, 0, 0, 0.7);
       backdrop-filter: blur(20px);
       display: flex;
       justify-content: space-around;
       align-items: center;
-      padding: 10px 20px 20px;
+      padding: 10px 20px;
       border-top: 0.5px solid rgba(255,255,255,0.1);
-      z-index: 300;  /* Above modal */
-      position: relative;
+      z-index: 300;              /* Above modal */
       pointer-events: auto;
     }
     .nav-btn {
@@ -246,20 +249,24 @@
     .add-tile .app-icon { background: rgba(255,255,255,0.15); border: 2px dashed rgba(255,255,255,0.5); }
     .add-tile .app-name { color: #ccc; }
 
-    /* Modal overlay for app iframe */
+    /* Modal overlay for app iframe – now uses flex and no transform */
     .app-modal {
       position: fixed;
       top: 0;
       left: 0;
-      width: 100%;
-      height: calc(100% - 70px);  /* Leave space for bottom nav */
-      bottom: auto;
+      right: 0;
+      bottom: 70px;               /* Leaves exactly 70px for bottom nav */
       background: #000;
       z-index: 200;
       display: flex;
       flex-direction: column;
-      transform: translateY(100%);
-      transition: transform 0.3s ease-out;
+      visibility: hidden;         /* Hidden by default */
+      transition: visibility 0.3s, opacity 0.3s ease-out;
+      opacity: 0;
+    }
+    .app-modal.open {
+      visibility: visible;
+      opacity: 1;
     }
     .app-modal.open { transform: translateY(0); }
     .modal-header {
@@ -633,7 +640,7 @@
     setTimeout(() => {
       modalIframe.src = app.url;
     }, 50);
-    modal.classList.add('open');
+    modal.classList.add('open');   // triggers visibility + opacity
     addToRecents(app);
     renderRecentsDrawer();
     addNotification(`Opened: ${app.name}`, "external-link-alt");
@@ -916,6 +923,14 @@ document.getElementById('backBtn').addEventListener('click', () => {
     addNotification("✨ Ready! Long-press any app for options", "rocket");
   }
   init();
+    window.addEventListener('resize', () => {
+    // The modal uses 'bottom:70px', which automatically adjusts.
+    // No additional action needed, but force iframe reflow:
+    if (modal.classList.contains('open')) {
+      modalIframe.style.display = 'none';
+      setTimeout(() => { modalIframe.style.display = 'flex'; }, 10);
+    }
+  });
 </script>
 </body>
 </html>
