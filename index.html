@@ -372,6 +372,24 @@
 </div>
 
 <script>
+  const DEFAULT_APPS = [
+    { id: 'default-3dmap', name: '3D Map', url: 'map.html', icon: 'fa-cube', favicon: 'icons/map.svg', isDefault: true },
+    { id: 'default-quiz', name: 'Quiz', url: 'quiz.html', icon: 'fa-question-circle', favicon: 'icons/quiz.png', isDefault: true },
+    { id: 'default-flashcards', name: 'Medical Flashcards', url: 'flashcards.html', icon: 'fa-stethoscope', favicon: 'icons/medical.png', isDefault: true },
+    { id: 'default-spanish', name: 'Spanish Flashcards', url: 'spanish.html', icon: 'fa-flag-checkered', favicon: 'icons/spanish.png', isDefault: true },
+    { id: 'default-oromo', name: 'Afaan Oromo Flashcards', url: 'oromo.html', icon: 'fa-comment-dots', favicon: 'icons/oromo.png', isDefault: true },
+    { id: 'default-tts', name: 'Text to Speech', url: 'tts.html', icon: 'fa-head-side-vr', favicon: 'icons/tts.png', isDefault: true },
+    { id: 'default-nutrient', name: 'Nutrient Tracker', url: 'nutrient.html', icon: 'fa-apple-alt', favicon: 'icons/nutrient.png', isDefault: true },
+    { id: 'default-inventory', name: 'Inventory', url: 'inventory.html', icon: 'fa-boxes', favicon: 'icons/inventory.png', isDefault: true },
+    { id: 'default-chat', name: 'Chat App', url: 'chat.html', icon: 'fa-comment-dots', favicon: 'icons/chat.png', isDefault: true },
+    { id: 'default-sport', name: 'Sport Tracker', url: 'sport.html', icon: 'fa-heartbeat', favicon: 'icons/sport.png', isDefault: true },
+    { id: 'default-church', name: 'Church Attendance', url: 'church.html', icon: 'fa-church', favicon: 'icons/church.png', isDefault: true },
+    { id: 'default-prayer', name: 'Prayer Game', url: 'prayer.html', icon: 'fa-hands-praying', favicon: 'icons/prayer.png', isDefault: true },
+    { id: 'default-voice', name: 'Voice to Text', url: 'voice.html', icon: 'fa-microphone-alt', favicon: 'icons/voice.svg', isDefault: true },
+    { id: 'default-chatbot', name: 'AI Support', url: 'chatbot.html', icon: 'fa-robot', favicon: 'icons/chatbot.png', isDefault: true },
+    { id: 'default-scheduler', name: 'Smart Scheduler', url: 'scheduler.html', icon: 'fa-calendar-alt', favicon: '', isDefault: true }
+  ];
+
 
   // ---------- STATE ----------
   let customApps = [];           // user-added
