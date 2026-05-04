@@ -314,6 +314,7 @@
       .app-grid.small { grid-template-columns: repeat(4, 1fr); }
     }
   </style>
+<link rel="icon" type="image/svg+xml" href="icons/Everything.svg">
 </head>
 <body>
 
@@ -371,24 +372,6 @@
 </div>
 
 <script>
-  // ---------- DEFAULT APPS ----------
-  const DEFAULT_APPS = [
-    { id: 'default-3dmap', name: '3D Map', url: 'map.html', icon: 'fa-cube', isDefault: true, favicon: '' },
-    { id: 'default-quiz', name: 'Quiz', url: 'quiz.html', icon: 'fa-question-circle', isDefault: true, favicon: '' },
-    { id: 'default-flashcards', name: 'Medical Flashcards', url: 'flashcards.html', icon: 'fa-stethoscope', isDefault: true, favicon: '' },
-    { id: 'default-spanish', name: 'Spanish Flashcards', url: 'spanish.html', icon: 'fa-flag-checkered', isDefault: true, favicon: '' },
-    { id: 'default-oromo', name: 'Afaan Oromo Flashcards', url: 'oromo.html', icon: 'fa-comment-dots', isDefault: true, favicon: '' },
-    { id: 'default-tts', name: 'Text to Speech', url: 'tts.html', icon: 'fa-head-side-vr', isDefault: true, favicon: '' },
-    { id: 'default-nutrient', name: 'Nutrient Tracker', url: 'nutrient.html', icon: 'fa-apple-alt', isDefault: true, favicon: '' },
-    { id: 'default-inventory', name: 'Inventory', url: 'inventory.html', icon: 'fa-boxes', isDefault: true, favicon: '' },
-    { id: 'default-chat', name: 'Chat App', url: 'chat.html', icon: 'fa-comment-dots', isDefault: true, favicon: '' },
-    { id: 'default-sport', name: 'Sport Tracker', url: 'sport.html', icon: 'fa-heartbeat', isDefault: true, favicon: '' },
-    { id: 'default-church', name: 'Church Attendance', url: 'church.html', icon: 'fa-church', isDefault: true, favicon: '' },
-    { id: 'default-prayer', name: 'Prayer Game', url: 'prayer.html', icon: 'fa-hands-praying', isDefault: true, favicon: '' },
-    { id: 'default-voice', name: 'Voice to Text', url: 'voice.html', icon: 'fa-microphone-alt', isDefault: true, favicon: '' },
-    { id: 'default-chatbot', name: 'AI Support', url: 'chatbot.html', icon: 'fa-robot', isDefault: true, favicon: '' },
-    { id: 'default-eaten', name: 'Eaten-yet?', url: 'eaten-yet.html', icon: 'fa-utensils', isDefault: true, favicon: '' }
-  ];
 
   // ---------- STATE ----------
   let customApps = [];           // user-added
