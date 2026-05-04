@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Smiley AI Support</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/material-design-iconic-font/2.2.0/css/material-design-iconic-font.min.css">
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --secondary-color: #6366f1;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+            --background-light: #f8fafc;
+            --background-dark: #1e293b;
+            --text-light: #f8fafc;
+            --text-dark: #1e293b;
+            --transition-speed: 0.3s;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #e0e7ff, #f0f4ff);
+            transition: background-color var(--transition-speed);
+             display: flex;
+             justify-content: center;
+             align-items: center;
+        }
+
+        .chat-container {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 400px;
+            max-width: 95%;
+            height: calc(100vh - 100px);
+             max-height: 80vh;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+            overflow: hidden;
+            flex-direction: column;
+            z-index: 1000;
+            transition: all var(--transition-speed);
+        }
+
+        .chat-container.show {
+            display: flex;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            padding: 1.2rem;
+            color: var(--text-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chat-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chat-title::before {
+            content: '🤖';
+            font-size: 1.2rem;
+        }
+
+        .chat-controls {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .control-button {
+            background: transparent;
+            border: none;
+            color: var(--text-light);
+            padding: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color var(--transition-speed);
+        }
+
+        .control-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .chat-log {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 1rem;
+            border-radius: 12px;
+            position: relative;
+            animation: messageIn 0.3s ease-out;
+        }
+
+        .message.user {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: var(--text-light);
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.agent {
+            background: var(--background-light);
+            color: var(--text-dark);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            margin-top: 0.5rem;
+            text-align: right;
+        }
+
+        .suggestions {
+            padding: 1rem;
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .suggestion-chip {
+            background: var(--background-light);
+            color: var(--primary-color);
+            padding: 0.5rem 1rem;
+            border-radius: 16px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border: 1px solid var(--primary-color);
+            transition: all var(--transition-speed);
+        }
+
+        .suggestion-chip:hover {
+            background: var(--primary-color);
+            color: var(--text-light);
+        }
+
+        .input-area {
+            padding: 1rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .input-field {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color var(--transition-speed);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .send-button {
+            background: var(--primary-color);
+            color: var(--text-light);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+        }
+
+        .send-button:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .toggle-chat-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--primary-color);
+            color: var(--text-light);
+            width: 60px;
+            height: 60px;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: all var(--transition-speed);
+        }
+
+        .toggle-chat-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 0.5rem;
+            padding: 1rem;
+            align-items: center;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            animation: typingBounce 1s infinite;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes messageIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes typingBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .dark-mode {
+            background: var(--background-dark);
+            color: var(--text-light);
+        }
+
+        .dark-mode .chat-container {
+            background: #2d3748;
+        }
+
+        .dark-mode .message.agent {
+            background: #4a5568;
+            color: var(--text-light);
+        }
+
+        .dark-mode .input-field {
+            background: #4a5568;
+            color: var(--text-light);
+            border-color: #2d3748;
+        }
+
+        .dark-mode .suggestion-chip {
+            background: #4a5568;
+            color: var(--text-light);
+        }
+
+        @media (max-width: 600px) {
+            .chat-container {
+                width: 100%;
+                 max-height: 90vh;
+                height: calc(100vh - 40px);
+                bottom: 0;
+                right: 0;
+                border-radius: 0;
+            }
+             .toggle-chat-btn {
+                 bottom:10px;
+                right:10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="toggle-chat-btn" id="toggle-chat">
+        <i class="zmdi zmdi-comment-alt-text"></i>
+    </button>
+
+    <div class="chat-container" id="chat-container">
+        <div class="chat-header">
+            <div class="chat-title">Smiley AI Assistant</div>
+            <div class="chat-controls">
+                <button class="control-button" id="theme-toggle" title="Toggle theme">
+                    <i class="zmdi zmdi-brightness-6"></i>
+                </button>
+                <button class="control-button" id="voice-toggle" title="Toggle voice">
+                    <i class="zmdi zmdi-volume-up"></i>
+                </button>
+                <button class="control-button" id="clear-chat" title="Clear chat">
+                    <i class="zmdi zmdi-delete"></i>
+                </button>
+                 <button class="control-button" id="reset-defaults" title="Reset Defaults">
+                    <i class="zmdi zmdi-refresh"></i>
+                </button>
+                <button class="control-button" id="close-chat" title="Close chat">
+                    <i class="zmdi zmdi-close"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="chat-log" id="chat-log"></div>
+
+        <div class="suggestions" id="suggestions">
+        </div>
+
+        <div class="input-area">
+            <input type="text" class="input-field" id="user-input" placeholder="Type your message..." autocomplete="off">
+            <button class="send-button" id="send-message">
+                <i class="zmdi zmdi-mail-send"></i>
+            </button>
+        </div>
+    </div>
+<script>
+  // Constants and State Management
+const TYPING_SPEED = 50;
+const MAX_RETRIES = 3;
+const API_ENDPOINT = 'https://script.google.com/macros/library/d/1b2-CAojWz7evtu58RXl5gcPRK3VMS24gVGqTBbu0kaDY985Vy-7iDsC3/1/exec';
+const MAX_SUGGESTIONS = 3;
+
+
+const state = {
+    darkMode: false,
+    isMuted: false,
+    isTyping: false,
+    conversationHistory: [],
+    cachedResponses: new Map(),
+    retryCount: 0,
+    availableQuickReplies: [],
+    displayedQuickReplies: []
+};
+
+// DOM Elements
+const elements = {
+    chatLog: document.getElementById('chat-log'),
+    userInput: document.getElementById('user-input'),
+    sendButton: document.getElementById('send-message'),
+    chatbotToggleBtn: document.getElementById('toggle-chat'),
+    closeBtn: document.getElementById('close-chat'),
+    chatContainer: document.getElementById('chat-container'),
+    quickReplyContainer: document.getElementById('suggestions'),
+    voiceButton: document.getElementById('voice-toggle'),
+    themeButton: document.getElementById('theme-toggle'),
+    resetButton: document.getElementById('clear-chat'),
+     resetDefaultsButton: document.getElementById('reset-defaults'),
+};
+
+// Quick Reply Templates
+const allQuickReplies = [
+    "What services do you offer?",
+    "How much does it cost?",
+    "How can I book a cleaning?",
+    "What areas do you service?",
+    "Do you offer eco-friendly cleaning?",
+    "What payment methods are accepted?",
+    "Contact support",
+    "Emergency service",
+     "Do you clean carpets?",
+    "What is your cancellation policy?",
+    "Do you have references?",
+    "Are you insured?",
+     "Can I get a free quote?",
+    "Do you offer discounts?",
+    "How long does a cleaning take?",
+    "What cleaning products do you use?",
+];
+
+// Speech Synthesis Setup
+const synth = window.speechSynthesis;
+const voices = synth.getVoices();
+
+// Utility Functions
+function getRandomColor() {
+    return '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+function sanitizeInput(input) {
+    const div = document.createElement('div');
+    div.textContent = input;
+    return div.innerHTML;
+}
+
+// Theme Management
+function applyTheme(isDarkMode) {
+    const root = document.documentElement;
+    const theme = isDarkMode ? {
+        backgroundColor: '#1a1a1a',
+        textColor: '#ffffff',
+        primaryColor: '#4f46e5',
+        secondaryColor: '#6366f1',
+        shadowColor: 'rgba(0, 0, 0, 0.3)'
+    } : {
+        backgroundColor: '#f0f4ff',
+        textColor: '#1a202c',
+        primaryColor: '#00b4d8',
+        secondaryColor: '#0077b6',
+        shadowColor: 'rgba(0, 0, 0, 0.1)'
+    };
+
+    Object.entries(theme).forEach(([property, value]) => {
+        root.style.setProperty(`--${property}`, value);
+    });
+    
+    state.darkMode = isDarkMode;
+    elements.themeButton.innerHTML = isDarkMode ? '<i class="zmdi zmdi-brightness-5"></i>' : '<i class="zmdi zmdi-brightness-6"></i>';
+    localStorage.setItem('darkMode', isDarkMode);
+}
+
+// Voice Control
+function voiceControl(text) {
+    if (state.isMuted || !text) return;
+
+    // Cancel any ongoing speech
+    synth.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "en-US";
+    utterance.volume = 1;
+    utterance.rate = 1;
+    utterance.pitch = 1;
+
+     // Use a more natural voice if available
+    const preferredVoice = voices.find(voice => voice.name.includes('Samantha'));
+    if (preferredVoice) utterance.voice = preferredVoice;
+
+
+    utterance.onerror = (event) => {
+        console.error('Speech synthesis error:', event);
+    };
+
+    synth.speak(utterance);
+}
+
+// Message Display
+function displayMessage(message, sender, animate = true) {
+    if (!message) return;
+
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('message', sender);
+    
+    if (animate && sender === 'agent') {
+        typeWriterEffect(messageElement, sanitizeInput(message));
+    } else {
+        messageElement.innerHTML = sanitizeInput(message);
+    }
+
+    elements.chatLog.appendChild(messageElement);
+    elements.chatLog.scrollTop = elements.chatLog.scrollHeight;
+
+    // Store in conversation history
+    state.conversationHistory.push({ sender, message });
+    localStorage.setItem('chatHistory', JSON.stringify(state.conversationHistory));
+}
+
+function typeWriterEffect(element, text) {
+    state.isTyping = true;
+    let index = 0;
+    element.innerHTML = '';
+    
+    function type() {
+        if (index < text.length) {
+            element.innerHTML += text.charAt(index);
+            index++;
+            setTimeout(type, TYPING_SPEED);
+        } else {
+            state.isTyping = false;
+        }
+    }
+    
+    type();
+}
+
+// API Interaction
+async function fetchResponse(input) {
+    if (state.cachedResponses.has(input)) {
+        return state.cachedResponses.get(input);
+    }
+
+    try {
+        const response = await fetch(API_ENDPOINT);
+        if (!response.ok) throw new Error('Network response failed');
+
+        const data = await response.json();
+        const result = processResponse(data, input);
+        state.cachedResponses.set(input, result);
+        return result;
+    } catch (error) {
+        console.error('API Error:', error);
+        if (state.retryCount < MAX_RETRIES) {
+            state.retryCount++;
+            return new Promise(resolve => setTimeout(() => resolve(fetchResponse(input)), 1000));
+        }
+        throw error;
+    }
+}
+
+function processResponse(data, input) {
+    const lowerCaseInput = input.toLowerCase();
+    const foundItem = data.find(item => 
+        item.Keywords?.split(',').some(keyword => 
+            lowerCaseInput.includes(keyword.trim().toLowerCase())
+        )
+    );
+
+    const relatedItems = foundItem ? data.filter(item => 
+        item !== foundItem && 
+        item.Keywords?.split(',').some(keyword => 
+            lowerCaseInput.includes(keyword.trim().toLowerCase())
+        )
+    ) : [];
+
+    return {
+          response: foundItem?.['Response Template'] || getFallbackResponse(lowerCaseInput),
+          related: relatedItems
+    };
+}
+
+
+function getFallbackResponse(input) {
+    if (input.includes("services")) {
+        return "We offer a range of cleaning services including residential, commercial, and deep cleaning.";
+    } else if (input.includes("pricing") || input.includes("cost")) {
+        return "Our pricing varies depending on the type of cleaning and size of the space. Please contact us for a detailed quote.";
+    } else if (input.includes("book") || input.includes("appointment")) {
+        return "You can book a cleaning appointment through our website or by contacting our customer service team.";
+    } else if (input.includes("areas") || input.includes("service area")) {
+      return "We service the greater metropolitan area. Please provide your location for specific details.";
+  } else if (input.includes("eco-friendly") || input.includes("green cleaning")) {
+        return "Yes, we offer eco-friendly cleaning options using environmentally safe products.";
+    } else if (input.includes("payment") || input.includes("methods")) {
+          return "We accept various payment methods including credit cards, debit cards, and online transfers.";
+      } else if (input.includes("contact") || input.includes("support")) {
+        return "You can contact our support team through our website, by email, or by phone.";
+    }
+    else if (input.includes("carpets")) {
+        return "Yes, we provide professional carpet cleaning services.";
+    }
+     else if (input.includes("cancellation")) {
+        return "Our cancellation policy requires 24 hours notice to avoid a cancellation fee.";
+     } else if (input.includes("references")) {
+        return "Yes, we would be happy to provide references upon request.";
+    }
+     else if (input.includes("insured")) {
+        return "Yes, we are fully insured for your peace of mind.";
+    }
+    else if (input.includes("quote")) {
+        return "Yes, we offer free quotes. Please provide details about the cleaning you need.";
+    } else if (input.includes("discounts")) {
+        return "We may offer discounts for regular clients and first-time customers. Please ask us about current promotions.";
+    }
+    else if (input.includes("how long")) {
+      return "The duration of a cleaning service varies depending on the scope of work and size of the area.";
+     }  else if (input.includes("products")) {
+      return "We use a variety of high-quality, eco-friendly cleaning products.";
+     }
+     else {
+        return "I apologize, but I don't have a specific answer for that question. How else can I help you?";
+    }
+}
+
+
+// Input Handling
+async function handleUserInput(input) {
+    if (!input.trim() || state.isTyping) return;
+
+    displayMessage(input, 'user');
+    elements.chatContainer.classList.add('loading');
+    elements.userInput.value = '';
+
+    try {
+        const { response, related } = await fetchResponse(input);
+        displayMessage(response, 'agent');
+        voiceControl(response);
+        displayQuickReplies(related);
+        regenerateQuickReplies();
+    } catch (error) {
+        console.error('Error:', error);
+        displayMessage("I apologize, but I'm having trouble processing your request. Please try again in a moment.", 'agent');
+    } finally {
+        elements.chatContainer.classList.remove('loading');
+        state.retryCount = 0;
+    }
+}
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+function regenerateQuickReplies() {
+     state.availableQuickReplies = shuffleArray(allQuickReplies);
+    state.displayedQuickReplies = state.availableQuickReplies.slice(0, MAX_SUGGESTIONS);
+    renderQuickReplies();
+}
+
+
+
+// Quick Replies
+function displayQuickReplies(relatedQuestions) {
+  if(relatedQuestions.length === 0){
+      regenerateQuickReplies();
+       return;
+  }
+    elements.quickReplyContainer.innerHTML = '';
+    
+    const uniqueQuestions = new Set();
+    relatedQuestions.forEach(item => {
+        if (item['Issue Type'] && !uniqueQuestions.has(item['Issue Type'])) {
+            uniqueQuestions.add(item['Issue Type']);
+            
+            const button = document.createElement('button');
+            button.classList.add('suggestion-chip')
+            button.textContent = item['Issue Type'];
+            button.addEventListener('click', () => handleUserInput(item['Issue Type']));
+            elements.quickReplyContainer.appendChild(button);
+        }
+    });
+     if(elements.quickReplyContainer.children.length < MAX_SUGGESTIONS){
+           const remaining = MAX_SUGGESTIONS - elements.quickReplyContainer.children.length;
+         const newSuggestions =  state.availableQuickReplies.filter(item=> !Array.from(elements.quickReplyContainer.children).some(child=>child.textContent === item)).slice(0, remaining)
+         newSuggestions.forEach(item=>{
+              const button = document.createElement('button');
+            button.classList.add('suggestion-chip')
+            button.textContent = item;
+             button.addEventListener('click', () => handleUserInput(item));
+            elements.quickReplyContainer.appendChild(button);
+         })
+        
+     }
+     
+}
+
+function renderQuickReplies() {
+    elements.quickReplyContainer.innerHTML = '';
+    state.displayedQuickReplies.forEach(reply => {
+        const button = document.createElement('button');
+        button.classList.add('suggestion-chip');
+        button.textContent = reply;
+        button.addEventListener('click', () => handleUserInput(reply));
+        elements.quickReplyContainer.appendChild(button);
+    });
+}
+
+// Event Listeners
+function setupEventListeners() {
+    // Chat toggle
+    elements.chatbotToggleBtn.addEventListener('click', () => {
+        elements.chatContainer.classList.toggle('show');
+        if (elements.chatContainer.classList.contains('show')) {
+            elements.userInput.focus();
+        }
+    });
+
+    // Close button
+    elements.closeBtn.addEventListener('click', () => {
+        elements.chatContainer.classList.remove('show');
+    });
+
+    // Send button
+    elements.sendButton.addEventListener('click', () => {
+        handleUserInput(elements.userInput.value);
+    });
+
+    // Input field
+    elements.userInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            handleUserInput(elements.userInput.value);
+        }
+    });
+
+    // Voice button
+    elements.voiceButton.addEventListener('click', () => {
+        state.isMuted = !state.isMuted;
+        elements.voiceButton.innerHTML = state.isMuted ? '<i class="zmdi zmdi-volume-off"></i>' : '<i class="zmdi zmdi-volume-up"></i>';
+        if (state.isMuted) synth.cancel();
+    });
+
+    // Theme button
+    elements.themeButton.addEventListener('click', () => {
+        applyTheme(!state.darkMode);
+    });
+
+    // Reset button
+    elements.resetButton.addEventListener('click', () => {
+        elements.chatLog.innerHTML = '';
+        state.conversationHistory = [];
+        localStorage.removeItem('chatHistory');
+        applyTheme(false);
+        state.cachedResponses.clear();
+        regenerateQuickReplies();
+    });
+    
+     // Reset defaults button
+    elements.resetDefaultsButton.addEventListener('click', () => {
+        elements.chatLog.innerHTML = '';
+        state.conversationHistory = [];
+        localStorage.removeItem('chatHistory');
+         applyTheme(false);
+        state.cachedResponses.clear();
+         state.isMuted = false;
+         elements.voiceButton.innerHTML = '<i class="zmdi zmdi-volume-up"></i>';
+         regenerateQuickReplies();
+
+    });
+
+    
+
+    // Window focus
+    window.addEventListener('focus', () => {
+        elements.userInput.focus();
+    });
+}
+
+// Initialization
+function initialize() {
+    // Load saved theme preference
+    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+    applyTheme(savedDarkMode);
+
+    // Load conversation history
+    const savedHistory = localStorage.getItem('chatHistory');
+    if (savedHistory) {
+        JSON.parse(savedHistory).forEach(({ sender, message }) => {
+            displayMessage(message, sender, false);
+        });
+    }
+
+     regenerateQuickReplies();
+    setupEventListeners();
+}
+
+// Start the application
+initialize();
+  </script>
+  </body>
+</html>

@@ -1,0 +1,2807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> chat</title>
+    <!-- Font Awesome icons (will be used later) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    }
+    body {
+        background: #e9eef3;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0;
+        padding: 0;
+    }
+    .app-container {
+        width: 1300px;
+        max-width: 98vw;
+        height: 90vh;
+        background: white;
+        border-radius: 32px;
+        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+        display: flex;
+        overflow: hidden;
+    }
+
+    /* ---------- LEFT SIDEBAR ---------- */
+    .sidebar {
+        width: 280px;
+        background: #f8fafd;
+        border-right: 1px solid #e2eaf2;
+        display: flex;
+        flex-direction: column;
+    }
+    .sidebar-header {
+        padding: 24px 20px 16px;
+        border-bottom: 1px solid #e2eaf2;
+    }
+    .sidebar-header h1 {
+        font-size: 1.6rem;
+        font-weight: 600;
+        background: linear-gradient(145deg, #0b1c2f, #1d3a5c);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 4px;
+    }
+    .sidebar-header .sub {
+        color: #4a6f8f;
+        font-size: 0.8rem;
+        letter-spacing: 0.3px;
+    }
+    .tab-bar {
+        display: flex;
+        margin: 16px 20px 8px;
+        background: #e9eef3;
+        border-radius: 30px;
+        padding: 4px;
+    }
+    .tab {
+        flex: 1;
+        text-align: center;
+        padding: 8px 0;
+        border-radius: 30px;
+        font-weight: 500;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: 0.2s;
+        color: #3d5e7a;
+    }
+    .tab.active {
+        background: white;
+        color: #0b2a41;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    .sidebar-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 8px 12px 20px 20px;
+    }
+    .hidden {
+        display: none !important;
+    }
+
+    /* users list */
+    .user-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 12px;
+        border-radius: 16px;
+        cursor: pointer;
+        transition: background 0.15s;
+        margin-bottom: 4px;
+    }
+    .user-item:hover, .user-item.selected {
+        background: #e2eaf2;
+    }
+    .user-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: #1d3a5c;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 1.1rem;
+        margin-right: 12px;
+        flex-shrink: 0;
+    }
+    .user-info {
+        flex: 1;
+        min-width: 0;
+    }
+    .user-name {
+        font-weight: 600;
+        color: #0a2a41;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .badge-online {
+        width: 8px;
+        height: 8px;
+        background: #31b057;
+        border-radius: 50%;
+        display: inline-block;
+    }
+    .user-status {
+        font-size: 0.75rem;
+        color: #5f7d9c;
+    }
+
+    /* feature tree (populated later) */
+    .feature-tree ul {
+        list-style: none;
+        padding-left: 1.2rem;
+    }
+    .feature-tree li {
+        margin: 0.25rem 0;
+    }
+    .tree-node {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        border-radius: 30px;
+        padding: 0.2rem 0.5rem;
+        transition: background 0.1s;
+        font-size: 0.9rem;
+    }
+    .tree-node:hover {
+        background: #e2eaf2;
+    }
+    .caret {
+        display: inline-block;
+        width: 1.2rem;
+        font-size: 0.8rem;
+        color: #2b5f8a;
+        transition: transform 0.15s;
+    }
+    .caret.expanded {
+        transform: rotate(90deg);
+    }
+    .node-name {
+        color: #0a2a41;
+        font-weight: 450;
+    }
+    .leaf .caret {
+        visibility: hidden;
+    }
+    .children {
+        border-left: 1px dashed #bdd3e8;
+        margin-left: 0.5rem;
+        padding-left: 0.5rem;
+    }
+
+    /* ---------- MAIN CHAT AREA ---------- */
+    .main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: white;
+    }
+    .chat-header {
+        padding: 20px 30px;
+        border-bottom: 1px solid #e2eaf2;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .chat-header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .chat-header h2 {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #0b2a41;
+    }
+    .chat-header .status {
+        color: #31b057;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .chat-actions {
+        display: flex;
+        gap: 16px;
+        color: #3d5e7a;
+    }
+    .chat-actions i {
+        font-size: 1.3rem;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: 0.2s;
+    }
+    .chat-actions i:hover {
+        opacity: 1;
+    }
+
+    .message-container {
+        flex: 1;
+        overflow-y: auto;
+        padding: 30px;
+        background: #fbfdff;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    .message {
+        display: flex;
+        align-items: flex-end;
+        max-width: 70%;
+    }
+    .message.mine {
+        align-self: flex-end;
+        flex-direction: row-reverse;
+    }
+    .message-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: #1d3a5c;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin: 0 8px;
+        flex-shrink: 0;
+    }
+    .message-bubble {
+        background: #e9eef3;
+        padding: 12px 18px;
+        border-radius: 24px;
+        border-bottom-left-radius: 6px;
+        word-break: break-word;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .mine .message-bubble {
+        background: #1d3a5c;
+        color: white;
+        border-bottom-right-radius: 6px;
+        border-bottom-left-radius: 24px;
+    }
+    .message-meta {
+        font-size: 0.7rem;
+        color: #7a98b5;
+        margin-top: 4px;
+        text-align: right;
+    }
+    .mine .message-meta {
+        color: #b3cde5;
+    }
+
+    .input-area {
+        padding: 20px 30px;
+        border-top: 1px solid #e2eaf2;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: white;
+    }
+    .input-wrapper {
+        flex: 1;
+        background: #f2f6fa;
+        border-radius: 40px;
+        padding: 4px 20px;
+        display: flex;
+        align-items: center;
+    }
+    #messageInput {
+        flex: 1;
+        border: none;
+        background: transparent;
+        padding: 14px 0;
+        font-size: 1rem;
+        outline: none;
+    }
+    .attach-btn, .emoji-btn {
+        background: none;
+        border: none;
+        font-size: 1.4rem;
+        margin: 0 4px;
+        cursor: pointer;
+        color: #4a6f8f;
+        opacity: 0.7;
+    }
+    .attach-btn:hover, .emoji-btn:hover {
+        opacity: 1;
+    }
+    #sendBtn {
+        background: #1d3a5c;
+        color: white;
+        border: none;
+        padding: 12px 28px;
+        border-radius: 40px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+        box-shadow: 0 4px 8px rgba(29,58,92,0.2);
+    }
+    #sendBtn:hover {
+        background: #0b2a41;
+    }
+
+    /* ---------- RIGHT PROFILE PANEL ---------- */
+    .right-panel {
+        width: 260px;
+        background: #f8fafd;
+        border-left: 1px solid #e2eaf2;
+        padding: 24px 20px;
+        overflow-y: auto;
+    }
+    .profile-card {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: #1d3a5c;
+        color: white;
+        font-size: 2.5rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 12px;
+    }
+    .profile-name {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #0a2a41;
+    }
+    .profile-input {
+        margin-top: 20px;
+    }
+    #nameInput {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #d3e0ea;
+        border-radius: 40px;
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+        outline: none;
+    }
+    #setNameBtn {
+        width: 100%;
+        background: white;
+        border: 1px solid #1d3a5c;
+        color: #1d3a5c;
+        padding: 10px;
+        border-radius: 40px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    #currentName {
+        display: block;
+        margin-top: 8px;
+        font-size: 0.9rem;
+        color: #3d5e7a;
+    }
+    .right-panel hr {
+        border: 0.5px solid #e2eaf2;
+        margin: 24px 0;
+    }
+    .profile-meta p {
+        font-size: 0.9rem;
+        color: #3d5e7a;
+        margin: 8px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .profile-meta i {
+        width: 20px;
+        color: #1d3a5c;
+    }
+</style>
+</head>
+<body>
+    <!-- main app container -->
+    <div class="app-container">
+        <!-- LEFT SIDEBAR -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h1>⚡ everything</h1>
+                <div class="sub">chat · social · features</div>
+            </div>
+            <!-- tab bar: Users / Features -->
+            <div class="tab-bar" id="sidebarTabs">
+                <div class="tab active" data-tab="users">Users</div>
+                <div class="tab" data-tab="features">Features</div>
+            </div>
+            <div class="sidebar-content" id="sidebarContent">
+                <!-- Users panel -->
+                <div id="usersPanel" class="panel">
+                    <div id="usersContainer"></div>
+                </div>
+                <!-- Features panel (hidden by default) -->
+                <div id="featuresPanel" class="panel hidden">
+                    <div class="feature-tree" id="featureTree"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN CHAT AREA -->
+        <div class="main">
+            <div class="chat-header">
+                <div class="chat-header-left">
+                    <h2 id="chatWith">Select a user</h2>
+                    <span class="status" id="chatStatus"><span class="badge-online"></span> online</span>
+                </div>
+                <div class="chat-actions">
+                    <i class="fas fa-phone-alt"></i>
+                    <i class="fas fa-video"></i>
+                    <i class="fas fa-info-circle"></i>
+                </div>
+            </div>
+
+            <div id="messageContainer" class="message-container">
+                <!-- messages will appear here -->
+            </div>
+
+            <div class="input-area">
+                <div class="input-wrapper">
+                    <button class="attach-btn"><i class="fas fa-paperclip"></i></button>
+                    <input type="text" id="messageInput" placeholder="Type a message...">
+                    <button class="emoji-btn"><i class="far fa-smile"></i></button>
+                </div>
+                <button id="sendBtn">Send</button>
+            </div>
+        </div>
+
+        <!-- RIGHT PROFILE PANEL -->
+        <div class="right-panel">
+            <div class="profile-card">
+                <div class="profile-avatar" id="profileAvatar">?</div>
+                <div class="profile-name" id="profileName">Anonymous</div>
+            </div>
+            <div class="profile-input">
+                <input type="text" id="nameInput" placeholder="Your display name">
+                <button id="setNameBtn">Set Name</button>
+                <span id="currentName"></span>
+            </div>
+            <hr>
+            <div class="profile-meta">
+                <p><i class="fas fa-shield-alt"></i> End-to‑end encrypted</p>
+                <p><i class="fas fa-cloud"></i> Cloud sync</p>
+                <p><i class="fas fa-star"></i> Premium features</p>
+            </div>
+        </div>
+    </div>
+
+<script>
+    (function() {
+        // ==================== CONFIGURATION ====================
+        const API_BASE = 'https://my-proxy-server-phi.vercel.app/api/proxy'; // your proxy URL
+
+        // ---------- Device ID (unique, stored) ----------
+        let deviceId = localStorage.getItem('chatDeviceId');
+        if (!deviceId) {
+            deviceId = crypto.randomUUID ? crypto.randomUUID() : 'id-' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('chatDeviceId', deviceId);
+        }
+
+        // ---------- Global state ----------
+        let currentUser = null;               // { deviceId, name }
+        let lastMessageTime = new Date(0).toISOString();
+        let polling = false;
+        let myName = localStorage.getItem('chatMyName') || 'Anonymous';  // load from storage
+        let allUsers = [];
+        let messages = [];
+        let typingTimeout = null;
+        let isTyping = false;
+        let replyToMessage = null;
+        let searchQuery = '';
+        let emojiPickerVisible = false;
+        let notificationsEnabled = false;
+
+        // DOM elements
+        const messageContainer = document.getElementById('messageContainer');
+        const usersContainer = document.getElementById('usersContainer');
+        const chatWithSpan = document.getElementById('chatWith');
+        const chatStatus = document.getElementById('chatStatus');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const nameInput = document.getElementById('nameInput');
+        const setNameBtn = document.getElementById('setNameBtn');
+        const currentNameSpan = document.getElementById('currentName');
+        const profileName = document.getElementById('profileName');
+        const profileAvatar = document.getElementById('profileAvatar');
+        const attachBtn = document.querySelector('.attach-btn');
+        const emojiBtn = document.querySelector('.emoji-btn');
+
+        // Initialize profile with stored name
+        profileName.textContent = myName;
+        profileAvatar.textContent = myName[0] || '?';
+        currentNameSpan.textContent = 'Your name: ' + myName;
+        nameInput.value = myName;
+
+        // ==================== INITIALISATION ====================
+        // Register on load
+        fetch(`${API_BASE}?action=register&deviceId=${deviceId}`)
+            .then(res => res.json())
+            .then(data => console.log('Registered', data))
+            .catch(err => console.warn('Registration failed (maybe offline?)'));
+
+        // Request notification permission
+        if ('Notification' in window && Notification.permission !== 'denied') {
+            Notification.requestPermission().then(perm => {
+                notificationsEnabled = perm === 'granted';
+            });
+        }
+
+        // Load users
+        function loadUsers() {
+            fetch(`${API_BASE}?action=getUsers&deviceId=${deviceId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        allUsers = data.data;
+                        renderUsers(allUsers);
+                    }
+                })
+                .catch(() => {});
+        }
+
+        // Render users list – if only one user (self), list is empty
+        function renderUsers(users) {
+            usersContainer.innerHTML = '';
+            if (!users.length) {
+                usersContainer.innerHTML = '<div style="padding:20px; text-align:center; color:#888;">No other users online</div>';
+                return;
+            }
+            users.forEach(user => {
+                const div = document.createElement('div');
+                div.className = 'user-item' + (currentUser && currentUser.deviceId === user.deviceId ? ' selected' : '');
+                const avatar = document.createElement('div');
+                avatar.className = 'user-avatar';
+                avatar.textContent = (user.name && user.name[0]) || '?';
+                // Online status is simulated (would need lastSeen from backend)
+                const isOnline = Math.random() > 0.3; // fake
+                const info = document.createElement('div');
+                info.className = 'user-info';
+                info.innerHTML = `<div class="user-name">${user.name} ${isOnline ? '<span class="badge-online" title="Online"></span>' : ''}</div>
+                                   <div class="user-status">${user.deviceId.substr(0,6)}…</div>`;
+                div.appendChild(avatar);
+                div.appendChild(info);
+                div.onclick = () => selectUser(user);
+                usersContainer.appendChild(div);
+            });
+        }
+
+        // Select a user to chat with
+        function selectUser(user) {
+            currentUser = user;
+            chatWithSpan.textContent = user.name;
+            messageContainer.innerHTML = '';
+            messages = [];
+            lastMessageTime = new Date(0).toISOString();
+            loadMessages();
+            startPolling();
+            // Highlight selected user
+            document.querySelectorAll('.user-item').forEach(el => el.classList.remove('selected'));
+            if (event && event.currentTarget) event.currentTarget.classList.add('selected');
+            replyToMessage = null;
+            searchQuery = '';
+        }
+
+        // Load messages for current user
+        function loadMessages() {
+            if (!currentUser) return;
+            fetch(`${API_BASE}?action=getMessages&deviceId=${deviceId}&since=${lastMessageTime}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && data.data.length > 0) {
+                        const newMessages = data.data.filter(m => !messages.some(ex => ex.id === m.id));
+                        if (newMessages.length) {
+                            messages = [...messages, ...newMessages];
+                            appendMessages(newMessages);
+                            // Browser notification
+                            if (notificationsEnabled && currentUser) {
+                                newMessages.forEach(msg => {
+                                    if (msg.from !== deviceId) {
+                                        new Notification(`New message from ${currentUser.name}`, {
+                                            body: msg.text,
+                                            icon: 'https://via.placeholder.com/48'
+                                        });
+                                    }
+                                });
+                            }
+                        }
+                        const latest = data.data[data.data.length - 1].timestamp;
+                        if (latest > lastMessageTime) lastMessageTime = latest;
+                    }
+                })
+                .catch(() => {});
+        }
+
+        // Append messages to container
+        function appendMessages(messagesToAdd) {
+            messagesToAdd.forEach(msg => {
+                const msgDiv = createMessageElement(msg);
+                messageContainer.appendChild(msgDiv);
+            });
+            messageContainer.scrollTop = messageContainer.scrollHeight;
+        }
+
+        // Create a message element
+        function createMessageElement(msg) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message ' + (msg.from === deviceId ? 'mine' : '');
+            msgDiv.dataset.messageId = msg.id;
+            msgDiv.dataset.from = msg.from;
+            msgDiv.dataset.text = msg.text;
+
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = (msg.from === deviceId) ? (myName[0] || 'U') : (currentUser.name[0] || 'U');
+
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'message-bubble';
+
+            // Simple formatting (bold, italic)
+            let formattedText = msg.text
+                .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+                .replace(/\*(.*?)\*/g, '<i>$1</i>')
+                .replace(/__(.*?)__/g, '<u>$1</u>');
+            bubbleDiv.innerHTML = formattedText;
+
+            // Reactions (placeholder)
+            const reactionsDiv = document.createElement('div');
+            reactionsDiv.className = 'message-reactions';
+            bubbleDiv.appendChild(reactionsDiv);
+
+            const meta = document.createElement('div');
+            meta.className = 'message-meta';
+            const d = new Date(msg.timestamp);
+            meta.textContent = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            if (msg.from === deviceId) {
+                const statusSpan = document.createElement('span');
+                statusSpan.className = 'message-status';
+                statusSpan.innerHTML = ' ✓✓';
+                meta.appendChild(statusSpan);
+            }
+            bubbleDiv.appendChild(meta);
+
+            msgDiv.appendChild(avatar);
+            msgDiv.appendChild(bubbleDiv);
+
+            // Right-click context menu
+            msgDiv.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                showMessageContextMenu(e, msg);
+            });
+
+            // Double-click to react
+            msgDiv.addEventListener('dblclick', () => {
+                showReactionPicker(msg);
+            });
+
+            return msgDiv;
+        }
+
+        // ==================== ENHANCED FEATURES ====================
+        // (All placeholders – they show alerts, but core chat works)
+
+        function showReactionPicker(msg) {
+            alert('✨ Reactions coming soon!');
+        }
+
+        function showMessageContextMenu(e, msg) {
+            const menu = document.createElement('div');
+            menu.className = 'context-menu';
+            menu.style.position = 'absolute';
+            menu.style.background = 'white';
+            menu.style.border = '1px solid #ccc';
+            menu.style.borderRadius = '12px';
+            menu.style.padding = '8px 0';
+            menu.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+            menu.style.zIndex = '1000';
+            menu.style.minWidth = '150px';
+
+            const items = [
+                { label: 'Reply', action: () => replyTo(msg) },
+                { label: 'Copy', action: () => copyMessage(msg.text) },
+                { label: 'Forward', action: () => alert('✨ Forward coming soon!') },
+                { label: 'Edit', action: () => editMessage(msg), disabled: msg.from !== deviceId },
+                { label: 'Delete', action: () => deleteMessage(msg), disabled: msg.from !== deviceId }
+            ];
+
+            items.forEach(item => {
+                if (item.disabled) return;
+                const div = document.createElement('div');
+                div.textContent = item.label;
+                div.style.padding = '8px 16px';
+                div.style.cursor = 'pointer';
+                div.style.fontSize = '0.9rem';
+                div.onmouseover = () => div.style.background = '#f0f0f0';
+                div.onmouseout = () => div.style.background = 'white';
+                div.onclick = () => {
+                    item.action();
+                    menu.remove();
+                };
+                menu.appendChild(div);
+            });
+
+            document.body.appendChild(menu);
+            menu.style.left = e.pageX + 'px';
+            menu.style.top = e.pageY + 'px';
+
+            setTimeout(() => {
+                document.addEventListener('click', function closeMenu() {
+                    menu.remove();
+                    document.removeEventListener('click', closeMenu);
+                }, { once: true });
+            }, 10);
+        }
+
+        function replyTo(msg) {
+            replyToMessage = { id: msg.id, text: msg.text, from: msg.from };
+            messageInput.placeholder = `Replying to ${msg.from === deviceId ? 'yourself' : currentUser.name}: ${msg.text.substring(0,30)}...`;
+        }
+
+        function copyMessage(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Message copied!');
+            });
+        }
+
+        function editMessage(msg) {
+            alert('✨ Edit coming soon!');
+        }
+
+        function deleteMessage(msg) {
+            alert('✨ Delete coming soon!');
+        }
+
+        // ---------- Typing indicator ----------
+        messageInput.addEventListener('input', () => {
+            if (!currentUser) return;
+            if (!isTyping) {
+                isTyping = true;
+                chatStatus.innerHTML = '<span class="badge-online"></span> typing...';
+            }
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                isTyping = false;
+                chatStatus.innerHTML = '<span class="badge-online"></span> online';
+            }, 2000);
+        });
+
+        // ---------- Emoji picker ----------
+        emojiBtn.addEventListener('click', () => {
+            alert('✨ Emoji picker coming soon!');
+        });
+
+        // ---------- File attachment ----------
+        attachBtn.addEventListener('click', () => {
+            alert('✨ File upload coming soon!');
+        });
+
+        // ---------- Message search ----------
+        const searchInput = document.createElement('input');
+        searchInput.type = 'text';
+        searchInput.placeholder = 'Search messages...';
+        searchInput.style.margin = '0 20px';
+        searchInput.style.padding = '8px 12px';
+        searchInput.style.borderRadius = '20px';
+        searchInput.style.border = '1px solid #ccc';
+        searchInput.style.width = '200px';
+        document.querySelector('.chat-header-left').appendChild(searchInput);
+        searchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value.toLowerCase();
+            if (!currentUser) return;
+            const filtered = messages.filter(m => m.text.toLowerCase().includes(searchQuery));
+            messageContainer.innerHTML = '';
+            filtered.forEach(m => messageContainer.appendChild(createMessageElement(m)));
+            if (filtered.length === 0) {
+                messageContainer.innerHTML = '<div style="text-align:center; color:#888; margin-top:50px;">No matching messages</div>';
+            }
+        });
+
+        // ---------- Keyboard shortcuts ----------
+        messageInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendBtn.click();
+            }
+        });
+
+        // ---------- Send message ----------
+        sendBtn.addEventListener('click', () => {
+            let msg = messageInput.value;
+            if (!msg || !currentUser) return;
+
+            if (replyToMessage) {
+                msg = `> ${replyToMessage.text}\n\n` + msg;
+                replyToMessage = null;
+                messageInput.placeholder = 'Type a message...';
+            }
+
+            fetch(`${API_BASE}?action=sendMessage&fromDeviceId=${deviceId}&toDeviceId=${currentUser.deviceId}&message=${encodeURIComponent(msg)}`, { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        messageInput.value = '';
+                        const tempMsg = {
+                            id: data.data.messageId || 'temp-' + Date.now(),
+                            from: deviceId,
+                            text: msg,
+                            timestamp: data.data.timestamp || new Date().toISOString()
+                        };
+                        messages.push(tempMsg);
+                        appendMessages([tempMsg]);
+                    }
+                });
+        });
+
+        // ---------- Set name (persists in localStorage) ----------
+        setNameBtn.addEventListener('click', () => {
+            const name = nameInput.value.trim();
+            if (!name) return;
+            fetch(`${API_BASE}?action=setName&deviceId=${deviceId}&name=${encodeURIComponent(name)}`, { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        myName = name;
+                        localStorage.setItem('chatMyName', myName);   // save to localStorage
+                        currentNameSpan.textContent = 'Your name: ' + myName;
+                        profileName.textContent = myName;
+                        profileAvatar.textContent = myName[0] || '?';
+                        loadUsers(); // refresh list with new name
+                    }
+                });
+        });
+
+        // ---------- Tab switching ----------
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                const target = tab.dataset.tab;
+                document.getElementById('usersPanel').classList.toggle('hidden', target !== 'users');
+                document.getElementById('featuresPanel').classList.toggle('hidden', target !== 'features');
+            });
+        });
+
+        // ---------- Coming soon alerts (for header icons) ----------
+        document.querySelectorAll('.chat-actions i, .profile-meta i.fa-star').forEach(el => {
+            el.addEventListener('click', (e) => {
+                e.preventDefault();
+                alert('✨ This feature is coming soon!');
+            });
+        });
+
+        // ---------- Polling ----------
+        function startPolling() {
+            if (polling) return;
+            polling = true;
+            const interval = setInterval(() => {
+                if (!currentUser) {
+                    clearInterval(interval);
+                    polling = false;
+                    return;
+                }
+                loadMessages();
+            }, 3000);
+        }
+
+        // ---------- Load initial data ----------
+        loadUsers();
+        setInterval(loadUsers, 10000); // refresh user list every 10 sec
+
+        // ==================== FEATURE TREE (copy your full tree here) ====================
+        // IMPORTANT: You must paste the entire RAW_TREE constant from your previous script below.
+        // It is too large to duplicate here, but it's the same as before.
+
+        // ==================== FEATURE TREE (unchanged) ====================
+// ==================== FEATURE TREE (from your spec) ====================
+        const RAW_TREE = `
+SOCIAL-MEDIA-ECOSYSTEM/
+│
+├── PLATFORM-TYPES/
+│   ├── MESSAGING-PLATFORM/
+│   │   ├── CORE-ARCHITECTURE/
+│   │   │   ├── CLOUD-INFRASTRUCTURE/
+│   │   │   │   ├── Message-Sync-Across-Devices
+│   │   │   │   ├── Cloud-Storage
+│   │   │   │   ├── Message-History
+│   │   │   │   └── Zero-Device-Storage
+│   │   │   ├── PROTOCOLS/
+│   │   │   │   ├── End-to-End-Encryption
+│   │   │   │   ├── Serverless-Mesh
+│   │   │   │   ├── Decentralized-Network
+│   │   │   │   └── Onion-Routing
+│   │   │   └── AUTHENTICATION/
+│   │   │       ├── Phone-Number
+│   │   │       ├── Email-Only
+│   │   │       ├── Anonymous-ID
+│   │   │       ├── QR-Code-Login
+│   │   │       ├── Passkeys-Biometric
+│   │   │       └── Two-Factor
+│   │   │
+│   │   ├── COMMUNICATION/
+│   │   │   ├── ONE-ON-ONE-CHAT/
+│   │   │   │   ├── MESSAGE-TYPES/
+│   │   │   │   │   ├── Text
+│   │   │   │   │   ├── Photo
+│   │   │   │   │   ├── Video
+│   │   │   │   │   ├── Voice-Message
+│   │   │   │   │   ├── File
+│   │   │   │   │   ├── GIF
+│   │   │   │   │   ├── Sticker
+│   │   │   │   │   ├── Location
+│   │   │   │   │   └── Payment
+│   │   │   │   └── MESSAGE-ACTIONS/
+│   │   │   │       ├── Edit
+│   │   │   │       ├── Delete-for-Everyone
+│   │   │   │       ├── Unsend
+│   │   │   │       ├── Schedule
+│   │   │   │       ├── Forward
+│   │   │   │       ├── Reply
+│   │   │   │       ├── Mention
+│   │   │   │       ├── Star-Save
+│   │   │   │       └── React
+│   │   │   │
+│   │   │   ├── GROUP-CHAT/
+│   │   │   │   ├── Sizes/
+│   │   │   │   │   ├── Small (2-50)
+│   │   │   │   │   ├── Large (51-1000)
+│   │   │   │   │   └── Massive (1001-200000)
+│   │   │   │   ├── ADMIN-TOOLS/
+│   │   │   │   │   ├── Member-Approval
+│   │   │   │   │   ├── Permissions
+│   │   │   │   │   ├── Topics
+│   │   │   │   │   ├── Announcements
+│   │   │   │   │   └── Checklists
+│   │   │   │   └── FEATURES/
+│   │   │   │       ├── Polls
+│   │   │   │       ├── Quizzes
+│   │   │   │       ├── Shared-Media
+│   │   │   │       └── Group-Transfer
+│   │   │   │
+│   │   │   ├── VOICE-CALLS/
+│   │   │   │   ├── One-on-One
+│   │   │   │   ├── Group
+│   │   │   │   ├── Encrypted
+│   │   │   │   └── Low-Data-Mode
+│   │   │   │
+│   │   │   └── VIDEO-CALLS/
+│   │   │       ├── One-on-One
+│   │   │       ├── Group
+│   │   │       ├── Screen-Sharing
+│   │   │       ├── Call-Links
+│   │   │       ├── Reactions
+│   │   │       └── Backgrounds
+│   │   │
+│   │   ├── CHANNELS-BROADCAST/
+│   │   │   ├── PUBLIC-CHANNELS/
+│   │   │   │   ├── Unlimited-Subscribers
+│   │   │   │   ├── Comments
+│   │   │   │   └── Suggested-Posts
+│   │   │   └── BROADCAST-TOOLS/
+│   │   │       ├── Statistics
+│   │   │       ├── Schedule
+│   │   │       └── Monetization
+│   │   │
+│   │   ├── STORIES/
+│   │   │   ├── CREATION/
+│   │   │   │   ├── Photo
+│   │   │   │   ├── Video
+│   │   │   │   ├── Text
+│   │   │   │   ├── Music
+│   │   │   │   └── Audio-Files
+│   │   │   ├── DURATION/
+│   │   │   │   ├── 24-Hours
+│   │   │   │   ├── 48-Hours
+│   │   │   │   ├── 7-Days
+│   │   │   │   └── Permanent-Albums
+│   │   │   ├── INTERACTIONS/
+│   │   │   │   ├── Reactions
+│   │   │   │   ├── Polls
+│   │   │   │   ├── Questions
+│   │   │   │   ├── Quizzes
+│   │   │   │   └── Countdowns
+│   │   │   └── PRIVACY/
+│   │   │       ├── Close-Friends
+│   │   │       ├── Hide-From
+│   │   │       └── Viewers-List
+│   │   │
+│   │   ├── PRIVACY-SECURITY/
+│   │   │   ├── ENCRYPTION-LAYERS/
+│   │   │   │   ├── Default-Cloud
+│   │   │   │   ├── Secret-Chats
+│   │   │   │   ├── Self-Destruct-Timer
+│   │   │   │   └── Forwarding-Ban
+│   │   │   ├── CONTROLS/
+│   │   │   │   ├── Last-Seen
+│   │   │   │   ├── Profile-Photo
+│   │   │   │   ├── Read-Receipts
+│   │   │   │   ├── Typing-Indicator
+│   │   │   │   ├── Forwarding
+│   │   │   │   └── Screenshot-Block
+│   │   │   └── ACCOUNT-PROTECTION/
+│   │   │       ├── Two-Step-Verification
+│   │   │       ├── Login-Alerts
+│   │   │       ├── Active-Sessions
+│   │   │       ├── Frozen-Accounts
+│   │   │       └── Appeals
+│   │   │
+│   │   ├── FILE-SHARING/
+│   │   │   ├── TYPES/
+│   │   │   │   ├── Documents
+│   │   │   │   ├── Images
+│   │   │   │   ├── Videos
+│   │   │   │   ├── Audio
+│   │   │   │   └── Archives
+│   │   │   ├── LIMITS/
+│   │   │   │   ├── Small (100MB)
+│   │   │   │   ├── Medium (2GB)
+│   │   │   │   └── Large (4GB+)
+│   │   │   └── CLOUD/
+│   │   │       ├── Saved-Messages
+│   │   │       ├── Personal-Storage
+│   │   │       └── Searchable-Archive
+│   │   │
+│   │   ├── BOTS-AUTOMATION/
+│   │   │   ├── BOT-TYPES/
+│   │   │   │   ├── Customer-Service
+│   │   │   │   ├── AI-Assistant
+│   │   │   │   ├── Games
+│   │   │   │   ├── Productivity
+│   │   │   │   └── E-commerce
+│   │   │   ├── MINI-APPS/
+│   │   │   │   ├── Full-Screen
+│   │   │   │   ├── Geolocation
+│   │   │   │   └── Payments
+│   │   │   └── BUSINESS-AUTOMATION/
+│   │   │       ├── Away-Messages
+│   │   │       ├── Greetings
+│   │   │       ├── Quick-Replies
+│   │   │       └── Labels
+│   │   │
+│   │   ├── CUSTOMIZATION/
+│   │   │   ├── THEMES/
+│   │   │   │   ├── Light-Dark
+│   │   │   │   ├── Custom-Colors
+│   │   │   │   ├── Liquid-Glass
+│   │   │   │   └── Gift-Based
+│   │   │   ├── STICKERS/
+│   │   │   │   ├── Default
+│   │   │   │   ├── Animated
+│   │   │   │   ├── Custom-Creation
+│   │   │   │   └── Packs
+│   │   │   └── PROFILE/
+│   │   │       ├── Music
+│   │   │       ├── Birthday
+│   │   │       ├── Collectibles
+│   │   │       └── Default-Tab
+│   │   │
+│   │   ├── ECONOMY/
+│   │   │   ├── CURRENCY/
+│   │   │   │   ├── In-App-Stars
+│   │   │   │   ├── Blockchain-Collectibles
+│   │   │   │   └── Gifts
+│   │   │   ├── TRANSACTIONS/
+│   │   │   │   ├── Send-Money
+│   │   │   │   ├── Receive-Money
+│   │   │   │   ├── Tip-Creators
+│   │   │   │   └── Upgrade-Gifts
+│   │   │   └── COLLECTIBLES/
+│   │   │       ├── Crafting
+│   │   │       ├── Collections
+│   │   │       ├── Trading
+│   │   │       └── Offers
+│   │   │
+│   │   ├── SEARCH/
+│   │   │   ├── GLOBAL/
+│   │   │   │   ├── Messages
+│   │   │   │   ├── Media
+│   │   │   │   ├── Links
+│   │   │   │   └── Files
+│   │   │   ├── PUBLIC/
+│   │   │   │   ├── Channels
+│   │   │   │   ├── Groups
+│   │   │   │   └── Posts
+│   │   │   └── ADVANCED/
+│   │   │       ├── Filters
+│   │   │       ├── Hashtags
+│   │   │       └── Date-Range
+│   │   │
+│   │   ├── DEVICES/
+│   │   │   ├── MOBILE/
+│   │   │   │   ├── iOS
+│   │   │   │   ├── Android
+│   │   │   │   └── Gestures
+│   │   │   ├── DESKTOP/
+│   │   │   │   ├── Windows
+│   │   │   │   ├── Mac
+│   │   │   │   ├── Linux
+│   │   │   │   └── Keyboard-Shortcuts
+│   │   │   ├── WEB/
+│   │   │   │   ├── Browser-Version
+│   │   │   │   └── Progressive-Web-App
+│   │   │   └── MULTI-DEVICE/
+│   │   │       ├── Simultaneous-Login
+│   │   │       ├── Device-Management
+│   │   │       └── Logout-Remote
+│   │   │
+│   │   └── LEGAL/
+│   │       ├── Terms-of-Service
+│   │       ├── Privacy-Policy
+│   │       ├── Community-Guidelines
+│   │       ├── Data-Processing
+│   │       └── Age-Restrictions
+│   │
+│   ├── VIDEO-PLATFORM/
+│   │   ├── CONTENT-TYPES/
+│   │   │   ├── LONG-FORM/
+│   │   │   │   ├── Upload
+│   │   │   │   ├── Chapters
+│   │   │   │   ├── Cards
+│   │   │   │   ├── End-Screens
+│   │   │   │   └── Premieres
+│   │   │   ├── SHORT-FORM/
+│   │   │   │   ├── 15-60-Second
+│   │   │   │   ├── Vertical
+│   │   │   │   ├── Remix
+│   │   │   │   ├── Duet
+│   │   │   │   ├── Stitch
+│   │   │   │   └── Templates
+│   │   │   ├── LIVE/
+│   │   │   │   ├── Real-Time
+│   │   │   │   ├── Chat
+│   │   │   │   ├── Super-Chat
+│   │   │   │   ├── Guests
+│   │   │   │   ├── Redirect
+│   │   │   │   └── Save-Replay
+│   │   │   └── STORIES/
+│   │   │       ├── 24-Hour
+│   │   │       ├── 7-Day
+│   │   │       └── Clips
+│   │   │
+│   │   ├── CREATION-TOOLS/
+│   │   │   ├── RECORDING/
+│   │   │   │   ├── Camera
+│   │   │   │   ├── Timer
+│   │   │   │   ├── Speed
+│   │   │   │   ├── Filters
+│   │   │   │   ├── Effects
+│   │   │   │   ├── Green-Screen
+│   │   │   │   └── Voiceover
+│   │   │   ├── EDITING/
+│   │   │   │   ├── Trim
+│   │   │   │   ├── Cut
+│   │   │   │   ├── Split
+│   │   │   │   ├── Merge
+│   │   │   │   ├── Blur
+│   │   │   │   └── Captions
+│   │   │   ├── AUDIO/
+│   │   │   │   ├── Music-Library
+│   │   │   │   ├── Licensed-Tracks
+│   │   │   │   ├── Trending-Sounds
+│   │   │   │   ├── Original-Audio
+│   │   │   │   └── Voice-Filters
+│   │   │   └── AI-TOOLS/
+│   │   │       ├── Auto-Captions
+│   │   │       ├── Jump-Ahead
+│   │   │       ├── Comment-Summaries
+│   │   │       ├── Likeness-Generation
+│   │   │       └── Dubbing
+│   │   │
+│   │   ├── DISCOVERY/
+│   │   │   ├── ALGORITHMS/
+│   │   │   │   ├── For-You
+│   │   │   │   ├── Following
+│   │   │   │   ├── Trending
+│   │   │   │   └── Local
+│   │   │   ├── SEARCH/
+│   │   │   │   ├── Keyword
+│   │   │   │   ├── Voice
+│   │   │   │   ├── Filters
+│   │   │   │   └── Hashtags
+│   │   │   └── EXPLORE/
+│   │   │       ├── Categories
+│   │   │       ├── Recommendations
+│   │   │       └── Related-Content
+│   │   │
+│   │   ├── INTERACTIONS/
+│   │   │   ├── ENGAGEMENT/
+│   │   │   │   ├── Like
+│   │   │   │   ├── Comment
+│   │   │   │   ├── Share
+│   │   │   │   ├── Save
+│   │   │   │   └── Report
+│   │   │   ├── COMMUNITY/
+│   │   │   │   ├── Subscribe
+│   │   │   │   ├── Notification-Bell
+│   │   │   │   ├── Posts
+│   │   │   │   └── Polls
+│   │   │   └── MONETIZATION/
+│   │   │       ├── Partner-Program
+│   │   │       ├── Super-Chat
+│   │   │       ├── Memberships
+│   │   │       ├── Merchandise
+│   │   │       ├── Shopping
+│   │   │       └── Series
+│   │   │
+│   │   ├── CHANNELS/
+│   │   │   ├── CUSTOMIZATION/
+│   │   │   │   ├── Banner
+│   │   │   │   ├── Trailer
+│   │   │   │   ├── Sections
+│   │   │   │   └── Brand-Accounts
+│   │   │   └── MANAGEMENT/
+│   │   │       ├── Uploads
+│   │   │       ├── Playlists
+│   │   │       ├── Community
+│   │   │       └── Analytics
+│   │   │
+│   │   ├── ANALYTICS-STUDIO/
+│   │   │   ├── OVERVIEW/
+│   │   │   │   ├── Views
+│   │   │   │   ├── Watch-Time
+│   │   │   │   ├── Subscribers
+│   │   │   │   └── Revenue
+│   │   │   ├── REACH/
+│   │   │   │   ├── Impressions
+│   │   │   │   ├── Click-Through
+│   │   │   │   └── Unique-Viewers
+│   │   │   ├── ENGAGEMENT/
+│   │   │   │   ├── Average-View-Duration
+│   │   │   │   ├── Retention
+│   │   │   │   ├── Likes-Comments
+│   │   │   │   └── Shares-Saves
+│   │   │   └── AUDIENCE/
+│   │   │       ├── Demographics
+│   │   │       ├── Geography
+│   │   │       └── Active-Times
+│   │   │
+│   │   ├── ADVERTISING/
+│   │   │   ├── FORMATS/
+│   │   │   │   ├── In-Stream
+│   │   │   │   ├── Bumper
+│   │   │   │   ├── Overlay
+│   │   │   │   ├── Sponsored-Cards
+│   │   │   │   └── Branded-Effects
+│   │   │   ├── MANAGER/
+│   │   │   │   ├── Campaigns
+│   │   │   │   ├── Targeting
+│   │   │   │   ├── Budget
+│   │   │   │   └── Reporting
+│   │   │   └── SPARK-ADS/
+│   │   │       ├── Organic-Boost
+│   │   │       └── Hide-From-Profile
+│   │   │
+│   │   ├── PREMIUM/
+│   │   │   ├── Ad-Free
+│   │   │   ├── Background-Play
+│   │   │   ├── Offline-Downloads
+│   │   │   └── Music-Included
+│   │   │
+│   │   ├── DEVICES/
+│   │   │   ├── MOBILE/
+│   │   │   │   ├── App
+│   │   │   │   ├── Picture-in-Picture
+│   │   │   │   └── Background-Audio
+│   │   │   ├── DESKTOP/
+│   │   │   │   ├── Web
+│   │   │   │   ├── Native-App
+│   │   │   │   ├── Upload-Limits
+│   │   │   │   └── Keyboard-Shortcuts
+│   │   │   ├── TV/
+│   │   │   │   ├── Smart-TV
+│   │   │   │   ├── Casting
+│   │   │   │   └── 4K-Support
+│   │   │   └── GAMING/
+│   │   │       ├── Streaming
+│   │   │       ├── Horizontal-Mode
+│   │   │       └── Low-Latency
+│   │   │
+│   │   └── LEGAL/
+│   │       ├── Community-Guidelines
+│   │       ├── Copyright
+│   │       ├── Monetization-Policies
+│   │       └── Terms
+│   │
+│   ├── IMAGE-PLATFORM/
+│   │   ├── PROFILE/
+│   │   │   ├── BIO/
+│   │   │   │   ├── Text
+│   │   │   │   ├── Links
+│   │   │   │   ├── Music
+│   │   │   │   └── Interactive
+│   │   │   ├── HIGHLIGHTS/
+│   │   │   │   ├── Stories
+│   │   │   │   ├── Albums
+│   │   │   │   └── Reorder
+│   │   │   └── ACCOUNT-TYPE/
+│   │   │       ├── Personal
+│   │   │       ├── Creator
+│   │   │       └── Business
+│   │   │
+│   │   ├── CONTENT-TYPES/
+│   │   │   ├── SINGLE-IMAGE/
+│   │   │   │   ├── Upload
+│   │   │   │   ├── Filters
+│   │   │   │   ├── Edit
+│   │   │   │   └── Caption
+│   │   │   ├── CAROUSEL/
+│   │   │   │   ├── Multiple-Images
+│   │   │   │   ├── Reorder
+│   │   │   │   └── Music
+│   │   │   ├── STORIES/
+│   │   │   │   ├── Photo
+│   │   │   │   ├── Video
+│   │   │   │   ├── Text
+│   │   │   │   ├── Music
+│   │   │   │   └── Interactive-Stickers
+│   │   │   ├── REELS/
+│   │   │   │   ├── Short-Video
+│   │   │   │   ├── Music
+│   │   │   │   ├── Effects
+│   │   │   │   └── Remix
+│   │   │   └── LIVE/
+│   │   │       ├── Video
+│   │   │       ├── Chat
+│   │   │       ├── Shopping
+│   │   │       └── Guests
+│   │   │
+│   │   ├── CREATION-TOOLS/
+│   │   │   ├── CAMERA/
+│   │   │   │   ├── Capture
+│   │   │   │   ├── Timer
+│   │   │   │   ├── Grid
+│   │   │   │   └── Level
+│   │   │   ├── EDITING/
+│   │   │   │   ├── Crop
+│   │   │   │   ├── Adjust
+│   │   │   │   ├── Filters
+│   │   │   │   ├── AI-Restyle
+│   │   │   │   └── Text-Overlay
+│   │   │   └── STICKERS/
+│   │   │       ├── GIFs
+│   │   │       ├── Emoji
+│   │   │       ├── Location
+│   │   │       ├── Mentions
+│   │   │       ├── Polls
+│   │   │       ├── Questions
+│   │   │       ├── Countdowns
+│   │   │       └── AI-Generated
+│   │   │
+│   │   ├── DISCOVERY/
+│   │   │   ├── EXPLORE/
+│   │   │   │   ├── Algorithm
+│   │   │   │   ├── Trending
+│   │   │   │   └── For-You
+│   │   │   ├── SEARCH/
+│   │   │   │   ├── Keywords
+│   │   │   │   ├── Hashtags
+│   │   │   │   ├── Locations
+│   │   │   │   └── Users
+│   │   │   └── MAP/
+│   │   │       ├── Location-Tags
+│   │   │       ├── Nearby
+│   │   │       └── Popular-Places
+│   │   │
+│   │   ├── INTERACTIONS/
+│   │   │   ├── ENGAGEMENT/
+│   │   │   │   ├── Like
+│   │   │   │   ├── Comment
+│   │   │   │   ├── Share
+│   │   │   │   ├── Save
+│   │   │   │   └── Report
+│   │   │   ├── MESSAGING/
+│   │   │   │   ├── Direct
+│   │   │   │   ├── Group
+│   │   │   │   ├── Voice-Video
+│   │   │   │   └── Broadcast
+│   │   │   └── NOTES/
+│   │   │       ├── 24-Hour-Text
+│   │   │       └── Reminders
+│   │   │
+│   │   ├── SHOPPING/
+│   │   │   ├── PRODUCT-TAGS/
+│   │   │   │   ├── In-Posts
+│   │   │   │   ├── In-Stories
+│   │   │   │   └── In-Reels
+│   │   │   ├── SHOP/
+│   │   │   │   ├── Storefront
+│   │   │   │   ├── Catalog
+│   │   │   │   └── Collections
+│   │   │   ├── CHECKOUT/
+│   │   │   │   ├── In-App
+│   │   │   │   ├── Saved-Payment
+│   │   │   │   └── Order-Tracking
+│   │   │   └── LIVE-SHOPPING/
+│   │   │       ├── Real-Time
+│   │   │       └── Product-Presentation
+│   │   │
+│   │   ├── ANALYTICS/
+│   │   │   ├── PROFESSIONAL-DASHBOARD/
+│   │   │   │   ├── Account-Insights
+│   │   │   │   ├── Content-Performance
+│   │   │   │   └── Audience
+│   │   │   ├── POST-INSIGHTS/
+│   │   │   │   ├── Reach
+│   │   │   │   ├── Engagement
+│   │   │   │   ├── Saves
+│   │   │   │   └── Profile-Visits
+│   │   │   └── AUDIENCE/
+│   │   │       ├── Demographics
+│   │   │       ├── Active-Times
+│   │   │       └── Locations
+│   │   │
+│   │   ├── PRIVACY-SETTINGS/
+│   │   │   ├── ACCOUNT/
+│   │   │   │   ├── Public-Private
+│   │   │   │   ├── Close-Friends
+│   │   │   │   └── Restricted
+│   │   │   ├── INTERACTIONS/
+│   │   │   │   ├── Comment-Controls
+│   │   │   │   ├── Message-Requests
+│   │   │   │   ├── Hidden-Words
+│   │   │   │   └── Block-Mute
+│   │   │   └── SECURITY/
+│   │   │       ├── Two-Factor
+│   │   │       ├── Login-Activity
+│   │   │       └── Download-Data
+│   │   │
+│   │   ├── DEVICES/
+│   │   │   ├── MOBILE/
+│   │   │   │   ├── iOS
+│   │   │   │   ├── Android
+│   │   │   │   └── Gestures
+│   │   │   ├── DESKTOP/
+│   │   │   │   ├── Web
+│   │   │   │   ├── Scheduling
+│   │   │   │   └── Upload
+│   │   │   └── MULTI-DEVICE/
+│   │   │       ├── Sync
+│   │   │       └── Cross-Post
+│   │   │
+│   │   └── LEGAL/
+│   │       ├── Guidelines
+│   │       ├── Privacy
+│   │       └── Terms
+│   │
+│   ├── PROFESSIONAL-NETWORK/
+│   │   ├── PROFILE/
+│   │   │   ├── IDENTITY/
+│   │   │   │   ├── Work-History
+│   │   │   │   ├── Education
+│   │   │   │   ├── Skills
+│   │   │   │   ├── Certifications
+│   │   │   │   ├── Featured
+│   │   │   │   └── Services
+│   │   │   ├── MODES/
+│   │   │   │   ├── Creator
+│   │   │   │   ├── Open-to-Work
+│   │   │   │   ├── Open-to-Hiring
+│   │   │   │   └── Pronouns
+│   │   │   └── MEDIA/
+│   │   │       ├── Profile-Video
+│   │   │       ├── Cover-Image
+│   │   │       └── Portfolio
+│   │   │
+│   │   ├── JOBS/
+│   │   │   ├── SEARCH/
+│   │   │   │   ├── Filters
+│   │   │   │   ├── Alerts
+│   │   │   │   ├── Salary-Insights
+│   │   │   │   └── Company-Compare
+│   │   │   ├── APPLICATIONS/
+│   │   │   │   ├── Easy-Apply
+│   │   │   │   ├── Save
+│   │   │   │   └── Track
+│   │   │   └── RECRUITING/
+│   │   │       ├── Recruiter-Lite
+│   │   │       ├── Candidate-Search
+│   │   │       └── InMail
+│   │   │
+│   │   ├── CONTENT/
+│   │   │   ├── FEED/
+│   │   │   │   ├── Posts
+│   │   │   │   ├── Articles
+│   │   │   │   ├── Newsletters
+│   │   │   │   ├── Video
+│   │   │   │   ├── Documents
+│   │   │   │   └── Polls
+│   │   │   └── PUBLISHING/
+│   │   │       ├── Long-Form
+│   │   │       ├── Schedule
+│   │   │       └── Analytics
+│   │   │
+│   │   ├── MESSAGING/
+│   │   │   ├── INMAIL/
+│   │   │   │   ├── To-Connections
+│   │   │   │   ├── To-Anyone (Premium)
+│   │   │   │   └── Credits
+│   │   │   ├── CHAT/
+│   │   │   │   ├── Text
+│   │   │   │   ├── Voice-Notes
+│   │   │   │   ├── Reactions
+│   │   │   │   └── Video-Calls
+│   │   │   └── REQUESTS/
+│   │   │       ├── Filter
+│   │   │       └── Archive
+│   │   │
+│   │   ├── GROUPS/
+│   │   │   ├── JOIN
+│   │   │   ├── DISCUSSIONS
+│   │   │   └── JOB-POSTINGS
+│   │   │
+│   │   ├── LEARNING/
+│   │   │   ├── COURSES/
+│   │   │   │   ├── Video
+│   │   │   │   ├── Quizzes
+│   │   │   │   └── Certificates
+│   │   │   ├── SKILL-ASSESSMENTS/
+│   │   │   │   ├── Tests
+│   │   │   │   └── Badges
+│   │   │   └── LEARNING-PATHS/
+│   │   │       ├── Curated
+│   │   │       └── Recommended
+│   │   │
+│   │   ├── SEARCH/
+│   │   │   ├── PEOPLE/
+│   │   │   │   ├── Current-Company
+│   │   │   │   ├── Past-Company
+│   │   │   │   ├── School
+│   │   │   │   ├── Location
+│   │   │   │   └── Boolean
+│   │   │   ├── JOBS/
+│   │   │   │   ├── Title
+│   │   │   │   ├── Company
+│   │   │   │   └── Location
+│   │   │   ├── COMPANIES/
+│   │   │   │   ├── Profile
+│   │   │   │   ├── Employees
+│   │   │   │   └── Jobs
+│   │   │   └── CONTENT/
+│   │   │       ├── Posts
+│   │   │       ├── Articles
+│   │   │       └── News
+│   │   │
+│   │   ├── ADVERTISING/
+│   │   │   ├── SPONSORED-CONTENT
+│   │   │   ├── SPONSORED-MESSAGING
+│   │   │   ├── TEXT-ADS
+│   │   │   ├── DYNAMIC-ADS
+│   │   │   └── LEAD-GEN-FORMS
+│   │   │
+│   │   ├── ANALYTICS/
+│   │   │   ├── PROFILE/
+│   │   │   │   ├── Views
+│   │   │   │   ├── Search-Appearances
+│   │   │   │   └── Demographics
+│   │   │   ├── POST/
+│   │   │   │   ├── Impressions
+│   │   │   │   ├── Engagement
+│   │   │   │   └── Demographics
+│   │   │   └── COMPANY-PAGE/
+│   │   │       ├── Followers
+│   │   │       ├── Content-Performance
+│   │   │       └── Competitors
+│   │   │
+│   │   ├── PREMIUM/
+│   │   │   ├── InMail-Credits
+│   │   │   ├── Who-Viewed-You
+│   │   │   ├── Open-Profile
+│   │   │   ├── Job-Insights
+│   │   │   └── Learning-Access
+│   │   │
+│   │   ├── PRIVACY/
+│   │   │   ├── VIEWING-OPTIONS/
+│   │   │   │   ├── Anonymous
+│   │   │   │   ├── Private
+│   │   │   │   └── Public
+│   │   │   ├── DATA/
+│   │   │   │   ├── Visibility
+│   │   │   │   ├── Block
+│   │   │   │   └── Download
+│   │   │   └── SECURITY/
+│   │   │       └── Two-Factor
+│   │   │
+│   │   └── LEGAL/
+│   │       ├── User-Agreement
+│   │       ├── Privacy-Policy
+│   │       └── Community-Policies
+│   │
+│   ├── FORUM-COMMUNITY/
+│   │   ├── SUBFORUMS/
+│   │   │   ├── CREATE/
+│   │   │   │   ├── Public
+│   │   │   │   ├── Private
+│   │   │   │   ├── Restricted
+│   │   │   │   └── Rules
+│   │   │   ├── MODERATION/
+│   │   │   │   ├── Admins
+│   │   │   │   ├── Permissions
+│   │   │   │   ├── Auto-Mod
+│   │   │   │   └── Reports
+│   │   │   └── CUSTOMIZATION/
+│   │   │       ├── Appearance
+│   │   │       ├── Flair
+│   │   │       └── Emoji
+│   │   │
+│   │   ├── POSTS/
+│   │   │   ├── TYPES/
+│   │   │   │   ├── Text
+│   │   │   │   ├── Link
+│   │   │   │   ├── Image
+│   │   │   │   ├── Video
+│   │   │   │   ├── Poll
+│   │   │   │   └── Crosspost
+│   │   │   ├── FORMATTING/
+│   │   │   │   ├── Bold
+│   │   │   │   ├── Italics
+│   │   │   │   ├── Strikethrough
+│   │   │   │   ├── Quotes
+│   │   │   │   ├── Code
+│   │   │   │   └── Headers
+│   │   │   └── ACTIONS/
+│   │   │       ├── Upvote
+│   │   │       ├── Downvote
+│   │   │       ├── Comment
+│   │   │       ├── Share
+│   │   │       ├── Save
+│   │   │       ├── Hide
+│   │   │       └── Report
+│   │   │
+│   │   ├── COMMENTS/
+│   │   │   ├── THREADS/
+│   │   │   │   ├── Reply
+│   │   │   │   ├── Nested
+│   │   │   │   └── Collapse
+│   │   │   ├── SORTING/
+│   │   │   │   ├── Best
+│   │   │   │   ├── Top
+│   │   │   │   ├── New
+│   │   │   │   ├── Controversial
+│   │   │   │   └── Q&A
+│   │   │   └── MODERATION/
+│   │   │       ├── Pin
+│   │   │       ├── Lock
+│   │   │       ├── Remove
+│   │   │       └── Ban
+│   │   │
+│   │   ├── USER-PROFILE/
+│   │   │   ├── KARMA/
+│   │   │   │   ├── Post-Karma
+│   │   │   │   ├── Comment-Karma
+│   │   │   │   └── Awards
+│   │   │   ├── HISTORY/
+│   │   │   │   ├── Posts
+│   │   │   │   ├── Comments
+│   │   │   │   ├── Saved
+│   │   │   │   ├── Hidden
+│   │   │   │   └── Upvoted
+│   │   │   └── SETTINGS/
+│   │   │       ├── Content-Visibility
+│   │   │       └── Social-Links
+│   │   │
+│   │   ├── SEARCH/
+│   │   │   ├── KEYWORD
+│   │   │   ├── SUBFORUM-SPECIFIC
+│   │   │   ├── AUTHOR
+│   │   │   ├── FLAIR
+│   │   │   └── BOOLEAN-OPERATORS
+│   │   │
+│   │   ├── AWARDS/
+│   │   │   ├── PURCHASE
+│   │   │   ├── GIVE
+│   │   │   ├── RECEIVE
+│   │   │   └── COLLECT
+│   │   │
+│   │   ├── ANALYTICS/
+│   │   │   ├── POST-PERFORMANCE
+│   │   │   ├── TRAFFIC
+│   │   │   ├── MEMBER-GROWTH
+│   │   │   └── ENGAGEMENT
+│   │   │
+│   │   ├── INTERFACES/
+│   │   │   ├── MODERN
+│   │   │   ├── CLASSIC
+│   │   │   ├── MOBILE
+│   │   │   └── DESKTOP
+│   │   │
+│   │   └── LEGAL/
+│   │       ├── Content-Policy
+│   │       ├── Privacy
+│   │       └── Terms
+│   │
+│   ├── DISCOVERY-VISUAL/
+│   │   ├── BOARDS/
+│   │   │   ├── CREATE
+│   │   │   ├── ORGANIZE
+│   │   │   ├── SECTIONS
+│   │   │   ├── SECRET
+│   │   │   ├── GROUP
+│   │   │   └── COVERS
+│   │   │
+│   │   ├── PINS/
+│   │   │   ├── TYPES/
+│   │   │   │   ├── Image
+│   │   │   │   ├── Video
+│   │   │   │   ├── Product
+│   │   │   │   ├── Article
+│   │   │   │   └── Idea
+│   │   │   ├── CREATION/
+│   │   │   │   ├── Upload
+│   │   │   │   ├── Save-from-Web
+│   │   │   │   ├── Create-Collage
+│   │   │   │   └── Add-Link
+│   │   │   └── METADATA/
+│   │   │       ├── Title
+│   │   │       ├── Description
+│   │   │       ├── Link
+│   │   │       ├── Price
+│   │   │       └── Availability
+│   │   │
+│   │   ├── SEARCH/
+│   │   │   ├── KEYWORD
+│   │   │   ├── VISUAL/
+│   │   │   │   ├── Upload-Image
+│   │   │   │   └── Lens-Camera
+│   │   │   ├── GUIDED/
+│   │   │   │   ├── Suggestions
+│   │   │   │   └── Refinements
+│   │   │   └── TRENDING
+│   │   │
+│   │   ├── SHOPPING/
+│   │   │   ├── PRODUCT-CATALOGS/
+│   │   │   │   ├── Upload
+│   │   │   │   ├── Integrations
+│   │   │   │   └── Diagnostics
+│   │   │   ├── PRODUCT-TAGGING/
+│   │   │   │   ├── Images
+│   │   │   │   └── Collages
+│   │   │   ├── CHECKOUT/
+│   │   │   │   ├── In-App
+│   │   │   │   └── Deep-Links
+│   │   │   └── ADS/
+│   │   │       ├── Shopping
+│   │   │       ├── Performance+
+│   │   │       └── Sales-Indicators
+│   │   │
+│   │   ├── DISCOVERY/
+│   │   │   ├── HOME-FEED
+│   │   │   ├── TODAY-TAB
+│   │   │   ├── WATCH-TAB
+│   │   │   └── EXPLORE
+│   │   │
+│   │   ├── BUSINESS-TOOLS/
+│   │   │   ├── CLAIMED-ACCOUNTS/
+│   │   │   │   ├── Website
+│   │   │   │   ├── Instagram
+│   │   │   │   ├── Etsy
+│   │   │   │   └── YouTube
+│   │   │   ├── ANALYTICS/
+│   │   │   │   ├── Audience
+│   │   │   │   ├── Conversion
+│   │   │   │   └── Video
+│   │   │   └── ADS/
+│   │   │       ├── Manager
+│   │   │       ├── Tag
+│   │   │       ├── Conversions-API
+│   │   │       └── A-B-Testing
+│   │   │
+│   │   ├── CREATOR-TOOLS/
+│   │   │   ├── IDEA-PINS
+│   │   │   ├── VIDEO
+│   │   │   ├── STORY-PINS
+│   │   │   └── COLLAGES
+│   │   │
+│   │   ├── INTEGRATIONS/
+│   │   │   ├── SHOPIFY
+│   │   │   ├── WOOCOMMERCE
+│   │   │   ├── ADOBE-COMMERCE
+│   │   │   └── SALESFORCE
+│   │   │
+│   │   ├── PRIVACY/
+│   │   │   ├── ACCOUNT-TYPE
+│   │   │   ├── PERSONALIZATION
+│   │   │   └── DATA-CONTROLS
+│   │   │
+│   │   └── LEGAL/
+│   │       ├── Merchant-Guidelines
+│   │       ├── Advertising-Policies
+│   │       └── Community-Guidelines
+│   │
+│   ├── LIVE-STREAMING/
+│   │   ├── BROADCAST/
+│   │   │   ├── START/
+│   │   │   │   ├── Title
+│   │   │   │   ├── Category
+│   │   │   │   ├── Tags
+│   │   │   │   └── Schedule
+│   │   │   ├── QUALITY/
+│   │   │   │   ├── 720p
+│   │   │   │   ├── 1080p
+│   │   │   │   ├── 4K
+│   │   │   │   └── 60fps
+│   │   │   ├── SOURCES/
+│   │   │   │   ├── Webcam
+│   │   │   │   ├── Mobile
+│   │   │   │   ├── Encoder
+│   │   │   │   └── Screen-Share
+│   │   │   └── GUESTS/
+│   │   │       ├── Invite
+│   │   │       ├── Manage
+│   │   │       └── Layouts
+│   │   │
+│   │   ├── INTERACTION/
+│   │   │   ├── CHAT/
+│   │   │   │   ├── Live
+│   │   │   │   ├── Moderation
+│   │   │   │   ├── Slow-Mode
+│   │   │   │   └── Sub-Only
+│   │   │   ├── DONATIONS/
+│   │   │   │   ├── Bits
+│   │   │   │   ├── Super-Chat
+│   │   │   │   ├── Gifts
+│   │   │   │   └── Alerts
+│   │   │   ├── POLLS-Q&A/
+│   │   │   │   ├── Live-Polls
+│   │   │   │   └── Q&A-Mode
+│   │   │   └── REACTIONS/
+│   │   │       ├── Emotes
+│   │   │       └── Hype-Train
+│   │   │
+│   │   ├── MONETIZATION/
+│   │   │   ├── SUBSCRIPTIONS/
+│   │   │   │   ├── Tiers
+│   │   │   │   ├── Benefits
+│   │   │   │   └── Revenue-Share
+│   │   │   ├── ADS/
+│   │   │   │   ├── Pre-Roll
+│   │   │   │   ├── Mid-Roll
+│   │   │   │   └── Display
+│   │   │   ├── SPONSORSHIPS/
+│   │   │   │   ├── Deals
+│   │   │   │   └── Integrations
+│   │   │   └── AFFILIATE/
+│   │   │       ├── Links
+│   │   │       └── Commissions
+│   │   │
+│   │   ├── COMMUNITY/
+│   │   │   ├── FOLLOWERS
+│   │   │   ├── SUBSCRIBERS
+│   │   │   ├── ROLES/
+│   │   │   │   ├── Mods
+│   │   │   │   ├── VIPS
+│   │   │   │   └── Regulars
+│   │   │   └── ACTIVITIES/
+│   │   │       ├── Watch-Parties
+│   │   │       └── Events
+│   │   │
+│   │   ├── ANALYTICS/
+│   │   │   ├── VIEWERS/
+│   │   │   │   ├── Peak
+│   │   │   │   ├── Average
+│   │   │   │   └── Unique
+│   │   │   ├── ENGAGEMENT/
+│   │   │   │   ├── Chat
+│   │   │   │   ├── Donations
+│   │   │   │   └── Subscriptions
+│   │   │   └── REVENUE/
+│   │   │       ├── Breakdown
+│   │   │       └── History
+│   │   │
+│   │   ├── DISCOVERY/
+│   │   │   ├── DIRECTORY/
+│   │   │   │   ├── Categories
+│   │   │   │   ├── Tags
+│   │   │   │   └── Languages
+│   │   │   ├── RECOMMENDATIONS/
+│   │   │   │   ├── For-You
+│   │   │   │   ├── Trending
+│   │   │   │   └── Recommended
+│   │   │   └── SEARCH/
+│   │   │       ├── Streamers
+│   │   │       ├── Games
+│   │   │       └── Tags
+│   │   │
+│   │   ├── DEVICES/
+│   │   │   ├── MOBILE/
+│   │   │   │   ├── Stream
+│   │   │   │   ├── Watch
+│   │   │   │   └── Chat
+│   │   │   ├── DESKTOP/
+│   │   │   │   ├── Stream-Software
+│   │   │   │   ├── Dashboard
+│   │   │   │   └── Multitasking
+│   │   │   └── TV/
+│   │   │       ├── Apps
+│   │   │       └── Casting
+│   │   │
+│   │   └── LEGAL/
+│   │       ├── Terms
+│   │       ├── DMCA
+│   │       └── Partner-Agreement
+│   │
+│   ├── PRIVATE-COMMUNITY-PLATFORM/
+│   │   ├── CORE-ARCHITECTURE/
+│   │   │   ├── INVITE-ONLY-ACCESS/
+│   │   │   │   ├── Permission-to-Join
+│   │   │   │   ├── Approval-Requests
+│   │   │   │   └── Joining-Questions
+│   │   │   ├── GATED-CONTENT/
+│   │   │   │   ├── Exclusive-Access
+│   │   │   │   ├── Early-Releases
+│   │   │   │   └── Bonus-Content
+│   │   │   └── LOYALTY-FRAMEWORK/
+│   │   │       ├── Membership-Tiers
+│   │   │       ├── Rewards
+│   │   │       └── Recognition-Badges
+│   │   │
+│   │   ├── CHANNEL-STRUCTURE/
+│   │   │   ├── TEXT-CHANNELS/
+│   │   │   │   ├── General-Discussion
+│   │   │   │   ├── Topic-Specific
+│   │   │   │   ├── Announcements
+│   │   │   │   └── Rules
+│   │   │   ├── VOICE-CHANNELS/
+│   │   │   │   ├── Always-On-Voice
+│   │   │   │   ├── Stage-Channels
+│   │   │   │   └── Events
+│   │   │   ├── THREADS/
+│   │   │   │   ├── Create-Thread
+│   │   │   │   ├── Archive
+│   │   │   │   └── Search-Within
+│   │   │   └── CATEGORIES/
+│   │   │       ├── Channel-Groups
+│   │   │       ├── Collapsible
+│   │   │       └── Permissions-Per-Category
+│   │   │
+│   │   ├── MEMBERSHIP-MANAGEMENT/
+│   │   │   ├── ROLES/
+│   │   │   │   ├── Admin
+│   │   │   │   ├── Moderator
+│   │   │   │   ├── Member
+│   │   │   │   ├── Guest
+│   │   │   │   └── Custom-Roles
+│   │   │   ├── PERMISSIONS/
+│   │   │   │   ├── Read
+│   │   │   │   ├── Write
+│   │   │   │   ├── Attach-Files
+│   │   │   │   ├── Mention-Everyone
+│   │   │   │   └── Moderate
+│   │   │   └── MEMBER-DIRECTORY/
+│   │   │       ├── List
+│   │   │       ├── Search
+│   │   │       └── Activity-Status
+│   │   │
+│   │   ├── COMMUNICATION-TOOLS/
+│   │   │   ├── TEXT-CHAT/
+│   │   │   │   ├── Rich-Text
+│   │   │   │   ├── Mentions
+│   │   │   │   ├── Replies
+│   │   │   │   └── Reactions
+│   │   │   ├── VOICE/
+│   │   │   │   ├── Push-to-Talk
+│   │   │   │   ├── Voice-Activity
+│   │   │   │   ├── Mute-Deafen
+│   │   │   │   └── Soundboard
+│   │   │   ├── VIDEO/
+│   │   │   │   ├── Go-Live
+│   │   │   │   ├── Screen-Share
+│   │   │   │   ├── Camera
+│   │   │   │   └── Watch-Together
+│   │   │   └── INTEGRATIONS/
+│   │   │       ├── Bots
+│   │   │       ├── Webhooks
+│   │   │       └── Games-Activities
+│   │   │
+│   │   ├── MODERATION-TOOLS/
+│   │   │   ├── AUTOMOD/
+│   │   │   │   ├── Keyword-Filter
+│   │   │   │   ├── Spam-Prevention
+│   │   │   │   └── Raid-Protection
+│   │   │   ├── AUDIT-LOGS/
+│   │   │   │   ├── Member-Joins
+│   │   │   │   ├── Messages-Deleted
+│   │   │   │   └── Permission-Changes
+│   │   │   └── ENFORCEMENT/
+│   │   │       ├── Warn
+│   │   │       ├── Mute
+│   │   │       ├── Kick
+│   │   │       └── Ban
+│   │   │
+│   │   ├── CUSTOMIZATION/
+│   │   │   ├── SERVER-ICON
+│   │   │   ├── BANNER
+│   │   │   ├── INVITE-BACKGROUND
+│   │   │   ├── EMOJI/
+│   │   │   │   ├── Custom
+│   │   │   │   ├── Animated
+│   │   │   │   └── Stickers
+│   │   │   └── THEMES/
+│   │   │       ├── Light-Dark
+│   │   │       └── Accent-Colors
+│   │   │
+│   │   └── ANALYTICS/
+│   │       ├── MEMBER-STATS/
+│   │       │   ├── Growth
+│   │       │   ├── Activity
+│   │       │   └── Retention
+│   │       └── ENGAGEMENT/
+│   │           ├── Message-Count
+│   │           ├── Voice-Minutes
+│   │           └── Top-Contributors
+│   │
+│   ├── DECENTRALIZED-PLATFORM/
+│   │   ├── CORE-ARCHITECTURE/
+│   │   │   ├── NO-CENTRAL-AUTHORITY/
+│   │   │   │   ├── Federated-Network
+│   │   │   │   ├── Instance-Choice
+│   │   │   │   └── Interoperability
+│   │   │   ├── USER-CONTROL/
+│   │   │   │   ├── Data-Ownership
+│   │   │   │   ├── Algorithm-Choice
+│   │   │   │   └── Moderation-Policies
+│   │   │   └── AD-FREE-EXPERIENCE/
+│   │   │       ├── No-Tracking
+│   │   │       └── Subscription-Supported
+│   │   │
+│   │   ├── IDENTITY-FEATURES/
+│   │   │   ├── CUSTOM-DOMAINS/
+│   │   │   │   ├── Handle-as-URL
+│   │   │   │   └── Verified-Identity
+│   │   │   ├── PORTABLE-IDENTITY/
+│   │   │   │   ├── Move-Instances
+│   │   │   │   └── Follow-Accounts-Anywhere
+│   │   │   └── LABELLING/
+│   │   │       ├── Self-Label-Content
+│   │   │       ├── Sensitive-Content-Warnings
+│   │   │       └── Account-Labels
+│   │   │
+│   │   ├── CONTENT-FEATURES/
+│   │   │   ├── POST-TYPES/
+│   │   │   │   ├── Text
+│   │   │   │   ├── Image
+│   │   │   │   ├── Video
+│   │   │   │   └── Polls
+│   │   │   ├── CUSTOM-FEEDS/
+│   │   │   │   ├── Create-Topic-Feed
+│   │   │   │   ├── Follow-Feeds
+│   │   │   │   └── Algorithmic-Options
+│   │   │   └── THREAD-CONTROLS/
+│   │   │       ├── Reply-Management
+│   │   │       ├── Hide-Show
+│   │   │       └── Mute-Threads
+│   │   │
+│   │   ├── MODERATION/
+│   │   │   ├── HUMAN-MODERATION/
+│   │   │   │   ├── Report-Review
+│   │   │   │   ├── Instance-Level-Mods
+│   │   │   │   └── Community-Guidelines
+│   │   │   └── USER-TOOLS/
+│   │   │       ├── Block
+│   │   │       ├── Mute
+│   │   │       ├── Report
+│   │   │       └── Domain-Blocking
+│   │   │
+│   │   └── DISCOVERY/
+│   │       ├── FEDERATED-TIMELINE
+│   │       ├── LOCAL-TIMELINE
+│   │       ├── TRENDING-HASHTAGS
+│   │       └── RECOMMENDATIONS
+│   │
+│   ├── SOCIAL-COMMERCE-PLATFORM/
+│   │   ├── STOREFRONT/
+│   │   │   ├── SHOP-TAB/
+│   │   │   │   ├── Profile-Shop
+│   │   │   │   ├── Collections
+│   │   │   │   └── Featured-Items
+│   │   │   ├── PRODUCT-CATALOG/
+│   │   │   │   ├── Upload-Feed
+│   │   │   │   ├── Sync-Platforms
+│   │   │   │   └── Inventory-Management
+│   │   │   └── CATEGORIES/
+│   │   │       ├── Browse
+│   │   │       ├── Filters
+│   │   │       └── Search
+│   │   │
+│   │   ├── PRODUCT-INTEGRATION/
+│   │   │   ├── TAGGING/
+│   │   │   │   ├── In-Posts
+│   │   │   │   ├── In-Stories
+│   │   │   │   ├── In-Reels
+│   │   │   │   └── In-Live
+│   │   │   ├── SHOPPABLE-COLLAGES/
+│   │   │   │   ├── Multi-Product
+│   │   │   │   ├── Price-Display
+│   │   │   │   └── Direct-Links
+│   │   │   └── PRODUCT-DETAILS/
+│   │   │       ├── Title
+│   │   │       ├── Description
+│   │   │       ├── Price
+│   │   │       ├── Availability
+│   │   │       └── Variations
+│   │   │
+│   │   ├── CHECKOUT/
+│   │   │   ├── IN-APP-PAYMENT/
+│   │   │   │   ├── Saved-Cards
+│   │   │   │   ├── One-Click
+│   │   │   │   └── Digital-Wallets
+│   │   │   ├── ORDER-MANAGEMENT/
+│   │   │   │   ├── Tracking
+│   │   │   │   ├── History
+│   │   │   │   └── Returns
+│   │   │   └── DEEP-LINKS/
+│   │   │       ├── Mobile-App
+│   │   │       └── Website-Redirect
+│   │   │
+│   │   ├── LIVE-SHOPPING/
+│   │   │   ├── PRODUCT-SHOWCASE/
+│   │   │   │   ├── Present-Items
+│   │   │   │   ├── Click-to-Buy
+│   │   │   │   └── Limited-Time
+│   │   │   ├── INTERACTION/
+│   │   │   │   ├── Real-Time-Chat
+│   │   │   │   ├── Q&A
+│   │   │   │   └── Polls
+│   │   │   └── HOST-TOOLS/
+│   │   │       ├── Guest-Hosts
+│   │   │       └── Analytics
+│   │   │
+│   │   ├── AFFILIATE-SYSTEM/
+│   │   │   ├── COMMISSION-STRUCTURE
+│   │   │   ├── TRACKING-LINKS
+│   │   │   └── CREATOR-PAYOUTS
+│   │   │
+│   │   ├── SELLER-TOOLS/
+│   │   │   ├── DASHBOARD/
+│   │   │   │   ├── Sales
+│   │   │   │   ├── Traffic
+│   │   │   │   └── Conversion
+│   │   │   ├── CATALOG-MANAGEMENT/
+│   │   │   │   ├── Bulk-Edit
+│   │   │   │   ├── Diagnostics
+│   │   │   │   └── Optimization-Tips
+│   │   │   └── CUSTOMER-SERVICE/
+│   │   │       ├── Messages
+│   │   │       ├── Returns
+│   │   │       └── Reviews
+│   │   │
+│   │   └── BUYER-EXPERIENCE/
+│   │       ├── WISHLIST
+│   │       ├── SAVED-ITEMS
+│   │       ├── RECOMMENDATIONS
+│   │       └── REVIEW-SYSTEM
+│   │
+│   ├── CONSUMER-REVIEW-NETWORK/
+│   │   ├── BUSINESS-PROFILES/
+│   │   │   ├── CLAIM-BUSINESS/
+│   │   │   │   ├── Verification-Process
+│   │   │   │   ├── Ownership-Proof
+│   │   │   │   └── Multi-Location
+│   │   │   ├── PROFILE-DETAILS/
+│   │   │   │   ├── Name
+│   │   │   │   ├── Address
+│   │   │   │   ├── Phone
+│   │   │   │   ├── Website
+│   │   │   │   ├── Hours
+│   │   │   │   └── Categories
+│   │   │   ├── PHOTOS/
+│   │   │   │   ├── Business-Uploaded
+│   │   │   │   ├── User-Uploaded
+│   │   │   │   └── Virtual-Tour
+│   │   │   └── Q&A/
+│   │   │       ├── Ask-Question
+│   │   │       ├── Answer
+│   │   │       └── Vote-Helpful
+│   │   │
+│   │   ├── REVIEW-SYSTEM/
+│   │   │   ├── STAR-RATING/
+│   │   │   │   ├── 1-5 Scale
+│   │   │   │   ├── Average
+│   │   │   │   └── Distribution
+│   │   │   ├── WRITTEN-REVIEWS/
+│   │   │   │   ├── Text
+│   │   │   │   ├── Photos
+│   │   │   │   ├── Videos
+│   │   │   │   └── Verified-Purchase
+│   │   │   ├── REVIEW-FILTERS/
+│   │   │   │   ├── Most-Recent
+│   │   │   │   ├── Highest-Rated
+│   │   │   │   ├── Lowest-Rated
+│   │   │   │   └── With-Photos
+│   │   │   └── HELPFULNESS/
+│   │   │       ├── Helpful-Vote
+│   │   │       ├── Report
+│   │   │       └── Highlight-Top-Review
+│   │   │
+│   │   ├── RESPONSE-MANAGEMENT/
+│   │   │   ├── PUBLIC-RESPONSES/
+│   │   │   │   ├── Owner-Reply
+│   │   │   │   ├── Thank-You
+│   │   │   │   └── Issue-Resolution
+│   │   │   └── PRIVATE-MESSAGING/
+│   │   │       ├── Contact-Reviewer
+│   │   │       └── Escalate-Support
+│   │   │
+│   │   ├── SEARCH-DISCOVERY/
+│   │   │   ├── SEARCH/
+│   │   │   │   ├── Business-Name
+│   │   │   │   ├── Category
+│   │   │   │   ├── Location
+│   │   │   │   └── Keywords
+│   │   │   ├── MAPS-INTEGRATION/
+│   │   │   │   ├── View-on-Map
+│   │   │   │   ├── Nearby
+│   │   │   │   └── Directions
+│   │   │   └── FILTERS/
+│   │   │       ├── Open-Now
+│   │   │       ├── Price-Range
+│   │   │       ├── Rating
+│   │   │       └── Amenities
+│   │   │
+│   │   ├── USER-CONTRIBUTIONS/
+│   │   │   ├── REVIEW-HISTORY/
+│   │   │   │   ├── My-Reviews
+│   │   │   │   ├── Edit-Delete
+│   │   │   │   └── Stats
+│   │   │   ├── PHOTO-UPLOADS/
+│   │   │   │   ├── Add-Photos
+│   │   │   │   └── Manage
+│   │   │   └── CHECK-INS/
+│   │   │       ├── Visit-Log
+│   │   │       └── Share
+│   │   │
+│   │   └── ANALYTICS-FOR-BUSINESS/
+│   │       ├── PROFILE-PERFORMANCE/
+│   │       │   ├── Views
+│   │       │   ├── Searches
+│   │       │   └── Actions
+│   │       ├── REVIEW-INSIGHTS/
+│   │       │   ├── Sentiment
+│   │       │   ├── Keywords
+│   │       │   └── Trends
+│   │       └── COMPETITOR-COMPARISON/
+│   │           ├── Rating-Comparison
+│   │           └── Review-Volume
+│   │
+│   ├── BOOKMARKING-CURATION/
+│   │   ├── BOARDS/
+│   │   │   ├── CREATE-BOARD
+│   │   │   ├── ORGANIZE
+│   │   │   ├── SECTIONS
+│   │   │   ├── SECRET-PRIVATE
+│   │   │   ├── GROUP-COLLABORATIVE
+│   │   │   └── COVER-IMAGE
+│   │   │
+│   │   ├── PINS/
+│   │   │   ├── TYPES/
+│   │   │   │   ├── Image
+│   │   │   │   ├── Video
+│   │   │   │   ├── Product
+│   │   │   │   ├── Article
+│   │   │   │   └── Idea
+│   │   │   ├── CREATION/
+│   │   │   │   ├── Upload
+│   │   │   │   ├── Save-from-Web
+│   │   │   │   ├── Browser-Extension
+│   │   │   │   └── Create-Collage
+│   │   │   └── METADATA/
+│   │   │       ├── Title
+│   │   │       ├── Description
+│   │   │       ├── Link
+│   │   │       ├── Price
+│   │   │       └── Availability
+│   │   │
+│   │   ├── SEARCH-DISCOVERY/
+│   │   │   ├── KEYWORD-SEARCH
+│   │   │   ├── VISUAL-SEARCH/
+│   │   │   │   ├── Upload-Image
+│   │   │   │   └── Lens-Camera
+│   │   │   ├── GUIDED-SEARCH/
+│   │   │   │   ├── Suggestions
+│   │   │   │   └── Refinements
+│   │   │   └── TRENDING/
+│   │   │       ├── Topics
+│   │   │       └── Searches
+│   │   │
+│   │   ├── SAVE-FEATURES/
+│   │   │   ├── SAVE-FROM-WEB
+│   │   │   ├── SAVE-TO-BOARD
+│   │   │   ├── SAVE-NOTE
+│   │   │   └── RECOMMENDED-PINS
+│   │   │
+│   │   └── DISCOVERY-FEEDS/
+│   │       ├── HOME-FEED
+│   │       ├── TODAY-TAB
+│   │       ├── WATCH-TAB
+│   │       └── EXPLORE
+│   │
+│   ├── BLOGGING-PUBLISHING/
+│   │   ├── ARTICLE-CREATION/
+│   │   │   ├── EDITOR/
+│   │   │   │   ├── Rich-Text
+│   │   │   │   ├── Markdown
+│   │   │   │   ├── Image-Embed
+│   │   │   │   ├── Video-Embed
+│   │   │   │   ├── Link-Embed
+│   │   │   │   └── Code-Blocks
+│   │   │   ├── FORMATTING/
+│   │   │   │   ├── Headers
+│   │   │   │   ├── Bold-Italic
+│   │   │   │   ├── Lists
+│   │   │   │   ├── Quotes
+│   │   │   │   └── Tables
+│   │   │   └── MEDIA/
+│   │   │       ├── Featured-Image
+│   │   │       ├── Gallery
+│   │   │       └── Audio-Embed
+│   │   │
+│   │   ├── PUBLISHING/
+│   │   │   ├── PUBLISH-NOW
+│   │   │   ├── SCHEDULE
+│   │   │   ├── DRAFT-SAVE
+│   │   │   ├── PRIVACY/
+│   │   │   │   ├── Public
+│   │   │   │   ├── Unlisted
+│   │   │   │   └── Members-Only
+│   │   │   └── SERIES/
+│   │   │       ├── Create-Series
+│   │   │       ├── Episode-Order
+│   │   │       └── Subscribe
+│   │   │
+│   │   ├── NEWSLETTER/
+│   │   │   ├── SUBSCRIBE-BUTTON
+│   │   │   ├── SUBSCRIBER-MANAGEMENT
+│   │   │   ├── EMAIL-DELIVERY
+│   │   │   └── ANALYTICS/
+│   │   │       ├── Open-Rate
+│   │   │       ├── Click-Rate
+│   │   │       └── Unsubscribes
+│   │   │
+│   │   ├── SOCIAL-FEATURES/
+│   │   │   ├── LIKES
+│   │   │   ├── COMMENTS
+│   │   │   ├── REPOSTS
+│   │   │   ├── FOLLOW-AUTHOR
+│   │   │   └── NOTIFICATIONS
+│   │   │
+│   │   ├── PUBLICATIONS/
+│   │   │   ├── CREATE-PUBLICATION
+│   │   │   ├── MULTIPLE-AUTHORS
+│   │   │   ├── CURATED-COLLECTIONS
+│   │   │   └── BRANDED-THEME
+│   │   │
+│   │   └── ANALYTICS/
+│   │       ├── VIEWS
+│   │       ├── READ-TIME
+│   │       ├── REFERRALS
+│   │       └── AUDIENCE-DEMOGRAPHICS
+│   │
+│   ├── NICHE-INTEREST-NETWORK/
+│   │   ├── HYPER-FOCUSED-COMMUNITY/
+│   │   │   ├── Specific-Passion
+│   │   │   ├── High-Engagement
+│   │   │   └── Expert-Users
+│   │   │
+│   │   ├── PLATFORM-SPECIFIC-FEATURES/
+│   │   │   ├── BOOK-TRACKING/
+│   │   │   │   ├── Reading-Progress
+│   │   │   │   ├── Reviews
+│   │   │   │   ├── Ratings
+│   │   │   │   ├── Shelves
+│   │   │   │   └── Recommendations
+│   │   │   ├── FITNESS-TRACKING/
+│   │   │   │   ├── Activity-Log
+│   │   │   │   ├── Routes
+│   │   │   │   ├── Challenges
+│   │   │   │   ├── Leaderboards
+│   │   │   │   └── Segments
+│   │   │   ├── MOVIE-TRACKING/
+│   │   │   │   ├── Watchlist
+│   │   │   │   ├── Diaries
+│   │   │   │   ├── Reviews
+│   │   │   │   └── Lists
+│   │   │   └── HOME-DESIGN/
+│   │   │       ├── Ideabooks
+│   │   │       ├── Products
+│   │   │       ├── Professionals
+│   │   │       └── Discussions
+│   │   │
+│   │   ├── SOCIAL-FEATURES/
+│   │   │   ├── FOLLOW
+│   │   │   ├── FRIENDS
+│   │   │   ├── GROUPS
+│   │   │   ├── COMMENTS
+│   │   │   └── SHARE
+│   │   │
+│   │   └── MONETIZATION/
+│   │       ├── PARTNERSHIPS
+│   │       ├── SPONSORSHIPS
+│   │       ├── CHALLENGES
+│   │       └── AFFILIATE
+│   │
+│   └── LOCATION-BASED-NETWORK/
+│       ├── LOCATION-SHARING/
+│       │   ├── REAL-TIME-LOCATION/
+│       │   │   ├── Share-with-Contacts
+│       │   │   ├── Duration-Control
+│       │   │   └── Emergency-Sharing
+│       │   ├── CHECK-INS/
+│       │   │   ├── Places
+│       │   │   ├── Tag-Friends
+│       │   │   └── Add-Photos
+│       │   └── HISTORY/
+│       │       ├── Timeline
+│       │       ├── Places-Visited
+│       │       └── Stats
+│       │
+│       ├── MAP-INTERFACE/
+│       │   ├── LIVE-MAP/
+│       │   │   ├── Friend-Locations
+│       │   │   ├── Public-Stories
+│       │   │   └── Heat-Map
+│       │   ├── LAYERS/
+│       │   │   ├── Friends
+│       │   │   ├── Events
+│       │   │   ├── Recommendations
+│       │   │   └── Trending
+│       │   └── EXPLORE/
+│       │       ├── Nearby-Places
+│       │       ├── Popular-Spots
+│       │       └── Local-Content
+│       │
+│       ├── SAFETY-FEATURES/
+│       │   ├── GHOST-MODE/
+│       │   │   ├── Hide-Location
+│       │   │   ├── Scheduled-Hide
+│       │   │   └── Auto-Enable
+│       │   ├── LOCATION-PERMISSIONS/
+│       │   │   ├── Always
+│       │   │   ├── While-Using
+│       │   │   ├── Never
+│       │   │   └── Precise-Toggle
+│       │   ├── SAFETY-CHECKS/
+│       │   │   ├── Drive-Alert
+│       │   │   ├── Arrival-Notification
+│       │   │   └── Check-In-Reminder
+│       │   └── EMERGENCY/
+│       │       ├── SOS
+│       │       ├── Emergency-Contacts
+│       │       └── Live-Share-with-Responders
+│       │
+│       └── DISCOVERY/
+│           ├── LOCAL-EVENTS
+│           ├── PLACE-RECOMMENDATIONS
+│           ├── FRIEND-SUGGESTIONS-Nearby
+│           └── OUR-STORY/
+│               ├── Event-Coverage
+│               └── Public-Submissions
+│
+├── CROSS-PLATFORM-FEATURES/
+│   ├── AI-INTEGRATION/
+│   │   ├── CONTENT-CREATION/
+│   │   │   ├── Text-Generation
+│   │   │   ├── Image-Generation
+│   │   │   ├── Video-Generation
+│   │   │   ├── Likeness-Models
+│   │   │   └── Summarization
+│   │   ├── DISCOVERY/
+│   │   │   ├── Recommendations
+│   │   │   ├── Personalization
+│   │   │   └── Trending-Prediction
+│   │   ├── MODERATION/
+│   │   │   ├── Content-Filtering
+│   │   │   ├── Spam-Detection
+│   │   │   └── Harmful-Content
+│   │   ├── ASSISTANTS/
+│   │   │   ├── Chatbots
+│   │   │   ├── Smart-Replies
+│   │   │   └── Task-Automation
+│   │   └── ADVERTISING/
+│   │       ├── Campaign-Optimization
+│   │       ├── Audience-Targeting
+│   │       └── Creative-Generation
+│   │
+│   ├── AUTHENTICATION/
+│   │   ├── METHODS/
+│   │   │   ├── Phone
+│   │   │   ├── Email
+│   │   │   ├── Username
+│   │   │   ├── Anonymous-ID
+│   │   │   ├── QR-Code
+│   │   │   ├── Biometric
+│   │   │   ├── Social-Login
+│   │   │   └── Single-Sign-On
+│   │   ├── SECURITY/
+│   │   │   ├── Two-Factor
+│   │   │   ├── Passkeys
+│   │   │   ├── Login-Alerts
+│   │   │   └── Device-Management
+│   │   └── RECOVERY/
+│   │       ├── Email
+│   │       ├── Phone
+│   │       ├── Backup-Codes
+│   │       └── Account-Appeals
+│   │
+│   ├── PAYMENTS-ECONOMY/
+│   │   ├── CURRENCIES/
+│   │   │   ├── Fiat
+│   │   │   ├── In-App-Tokens
+│   │   │   ├── Crypto
+│   │   │   └── Blockchain-Collectibles
+│   │   ├── TRANSACTIONS/
+│   │   │   ├── Send
+│   │   │   ├── Receive
+│   │   │   ├── Request
+│   │   │   ├── Split
+│   │   │   └── History
+│   │   ├── COMMERCE/
+│   │   │   ├── Checkout
+│   │   │   ├── Saved-Payments
+│   │   │   ├── Subscriptions
+│   │   │   ├── Donations
+│   │   │   └── Tipping
+│   │   └── COLLECTIBLES/
+│   │       ├── Gifts
+│   │       ├── Crafting
+│   │       ├── Trading
+│   │       └── Offers
+│   │
+│   ├── CONTENT-MODERATION/
+│   │   ├── AUTOMATED/
+│   │   │   ├── AI-Scanning
+│   │   │   ├── Keyword-Blocking
+│   │   │   ├── Image-Hashing
+│   │   │   └── Copyright-Matching
+│   │   ├── HUMAN/
+│   │   │   ├── Review-Teams
+│   │   │   ├── Appeals
+│   │   │   └── Escalation
+│   │   └── USER-TOOLS/
+│   │       ├── Report
+│   │       ├── Block
+│   │       ├── Mute
+│   │       ├── Restrict
+│   │       └── Hide
+│   │
+│   ├── ANALYTICS-INSIGHTS/
+│   │   ├── PERSONAL/
+│   │   │   ├── Activity-Summary
+│   │   │   ├── Engagement-Metrics
+│   │   │   └── Audience
+│   │   ├── CREATOR/
+│   │   │   ├── Content-Performance
+│   │   │   ├── Growth
+│   │   │   ├── Demographics
+│   │   │   └── Revenue
+│   │   └── BUSINESS/
+│   │       ├── Campaign-Performance
+│   │       ├── ROI
+│   │       ├── Attribution
+│   │       └── Competitor-Benchmarking
+│   │
+│   ├── ADVERTISING-ECOSYSTEM/
+│   │   ├── FORMATS/
+│   │   │   ├── Feed
+│   │   │   ├── Stories
+│   │   │   ├── Video
+│   │   │   ├── Search
+│   │   │   ├── Display
+│   │   │   ├── Messaging
+│   │   │   └── Branded-Effects
+│   │   ├── TARGETING/
+│   │   │   ├── Demographics
+│   │   │   ├── Interests
+│   │   │   ├── Behaviors
+│   │   │   ├── Location
+│   │   │   ├── Custom-Audiences
+│   │   │   └── Lookalikes
+│   │   ├── OPTIMIZATION/
+│   │   │   ├── AI-Powered
+│   │   │   ├── A-B-Testing
+│   │   │   └── Budget-Management
+│   │   └── MEASUREMENT/
+│   │       ├── Pixel
+│   │       ├── Conversions-API
+│   │       ├── Attribution
+│   │       └── Reporting
+│   │
+│   ├── NETWORK-MODEL/
+│   │   ├── DIRECT-INTERACTIONS/
+│   │   │   ├── Profile-to-Profile
+│   │   │   ├── Following
+│   │   │   ├── Friends
+│   │   │   ├── Connections
+│   │   │   └── Network-Visibility
+│   │   ├── RELATIONSHIP-FEATURES/
+│   │   │   ├── Mutual-Connections
+│   │   │   ├── Friend-Suggestions
+│   │   │   ├── Network-Updates
+│   │   │   └── Introductions
+│   │   └── TARGETING/
+│   │       ├── Demographic
+│   │       ├── Interest-Based
+│   │       └── Lookalike-Audiences
+│   │
+│   ├── MEDIA-MODEL/
+│   │   ├── VISUAL-STORYTELLING/
+│   │   │   ├── Image-First
+│   │   │   ├── Video-First
+│   │   │   └── Mixed-Media
+│   │   ├── SHOPPABLE-MEDIA/
+│   │   │   ├── In-App-Purchases
+│   │   │   ├── Product-Tags
+│   │   │   └── Seamless-Checkout
+│   │   └── USER-GENERATED-CONTENT/
+│   │       ├── Campaigns
+│   │       ├── Hashtag-Challenges
+│   │       └── Viral-Trends
+│   │
+│   ├── MESSAGING-MODEL/
+│   │   ├── REAL-TIME-COMMUNICATION/
+│   │   │   ├── Direct-Messaging
+│   │   │   ├── Group-Chat
+│   │   │   └── Typing-Indicators
+│   │   ├── ENCRYPTION/
+│   │   │   ├── End-to-End
+│   │   │   ├── In-Transit
+│   │   │   └── At-Rest
+│   │   └── ENHANCED-FEATURES/
+│   │       ├── Voice-Notes
+│   │       ├── Multimedia-Sharing
+│   │       ├── Read-Receipts
+│   │       └── Chatbots
+│   │
+│   ├── COMMUNITY-MODEL/
+│   │   ├── DEEPER-RELATIONSHIPS/
+│   │   │   ├── Shared-Interests
+│   │   │   ├── User-Generated-Content
+│   │   │   └── Collaborative-Engagement
+│   │   ├── ADVOCACY/
+│   │   │   ├── Brand-Advocates
+│   │   │   ├── Authentic-Engagement
+│   │   │   └── Trust-Building
+│   │   └── MANAGEMENT/
+│   │       ├── Strategic-Oversight
+│   │       ├── Vibe-Maintenance
+│   │       └── Contribution-Quality
+│   │
+│   ├── UTILITY-MODEL/
+│   │   ├── PRACTICAL-FUNCTIONALITIES/
+│   │   │   ├── Booking-Appointments
+│   │   │   ├── Ordering-Products
+│   │   │   └── Essential-Services
+│   │   ├── TRANSACTIONS/
+│   │   │   ├── Payment-Processing
+│   │   │   ├── Location-Services
+│   │   │   └── Personalized-Recommendations
+│   │   └── BUSINESS-BENEFITS/
+│   │       ├── Customer-Satisfaction
+│   │       ├── Brand-Loyalty
+│   │       └── Data-Driven-Strategy
+│   │
+│   ├── PRIVACY-COMPLIANCE/
+│   │   ├── DATA-CONTROLS/
+│   │   │   ├── Visibility-Settings
+│   │   │   ├── Data-Download
+│   │   │   ├── Data-Deletion
+│   │   │   └── Activity-Log
+│   │   ├── REGULATIONS/
+│   │   │   ├── GDPR
+│   │   │   ├── CCPA
+│   │   │   ├── COPPA
+│   │   │   └── Age-Gating
+│   │   └── TRANSPARENCY/
+│   │       ├── Data-Policies
+│   │       ├── Ad-Preferences
+│   │       └── Why-Youre-Seeing-This
+│   │
+│   └── DEVICE-SUPPORT/
+│       ├── MOBILE/
+│       │   ├── iOS
+│       │   ├── Android
+│       │   └── Gestures
+│       ├── DESKTOP/
+│       │   ├── Windows
+│       │   ├── Mac
+│       │   ├── Linux
+│       │   ├── Web
+│       │   └── Keyboard-Shortcuts
+│       ├── TV/
+│       │   ├── Smart-TV
+│       │   ├── Streaming-Sticks
+│       │   └── Consoles
+│       └── WEARABLES/
+│           ├── Watch
+│           └── AR-VR
+│
+└── LEGAL-FRAMEWORK/
+    ├── USER-AGREEMENTS/
+    │   ├── Terms-of-Service
+    │   ├── Acceptable-Use
+    │   └── Age-Requirements
+    ├── PRIVACY/
+    │   ├── Privacy-Policy
+    │   ├── Data-Processing
+    │   ├── Cookies
+    │   └── International-Transfers
+    ├── CONTENT/
+    │   ├── Community-Guidelines
+    │   ├── Copyright
+    │   ├── Trademark
+    │   └── Prohibited-Content
+    ├── COMMERCE/
+    │   ├── Merchant-Policies
+    │   ├── Advertising-Policies
+    │   ├── Payment-Terms
+    │   └── Refunds
+    └── ENFORCEMENT/
+        ├── Reporting
+        ├── Appeals
+        ├── Account-Suspension
+        └── Legal-Requests
+`;
+
+    })();
+  
+function parseTree(text) {
+        const lines = text.split('\n');
+        const root = { name: 'SOCIAL-MEDIA-ECOSYSTEM', children: [] };
+        const stack = [{ node: root, depth: 0 }];
+
+        for (let line of lines) {
+            // skip empty lines and lines that are only '│' (separators)
+            if (line.trim() === '' || line.trim() === '│') continue;
+
+            // detect if line contains a node (with '──')
+            const dashIndex = line.indexOf('──');
+            if (dashIndex === -1) continue;  // ignore lines like "│   │" without a name
+
+            // count the number of '│' before the dash to determine depth
+            const beforeDash = line.substring(0, dashIndex);
+            const depth = (beforeDash.match(/│/g) || []).length;
+
+            // extract the name after '──' (and optional space)
+            const afterDash = line.substring(dashIndex + 2).trim(); // skip '──'
+            // remove trailing slash if present (just for display)
+            let name = afterDash.replace(/\/$/, '').trim();
+
+            // create node
+            const newNode = { name: name, children: [] };
+
+            // pop stack until we reach the parent of this depth
+            while (stack.length > 0 && stack[stack.length - 1].depth >= depth) {
+                stack.pop();
+            }
+            // now the top of stack is the parent
+            if (stack.length === 0) {
+                console.warn('orphan node:', name);
+                continue;
+            }
+            const parent = stack[stack.length - 1].node;
+            parent.children.push(newNode);
+            stack.push({ node: newNode, depth: depth });
+        }
+
+        return root;
+    }
+</script>
+</body>
+</html>

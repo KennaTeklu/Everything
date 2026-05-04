@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>TTS text to speech. takes any document and converts from pdf, doc or such to fullscreen text, which becomes "Audible" Text</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+            transition: all 0.2s ease;
+        }
+
+        /* MAIN UI GROUPS (collapsible) */
+        .ui-collapsible {
+            transition: opacity 0.2s;
+        }
+
+        /* HIDDEN state for collapsed UI */
+        .collapsed-ui {
+            display: none !important;
+        }
+
+        /* The extracted text container gets special treatment in collapsed mode */
+        .text-only-mode .extracted-text-container {
+            margin: 0;
+            padding: 0;
+            box-shadow: none;
+            background: transparent;
+        }
+
+        .text-only-mode #extractedText {
+            min-height: 85vh;
+            font-size: 1.3rem;
+            line-height: 1.7;
+            border: none;
+            padding: 20px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        /* collapse toggle button style (only visible button in collapsed mode) */
+        .collapse-toggle-btn {
+            background: #1e2a3a;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.2s;
+            margin: 12px 0 20px 0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .collapse-toggle-btn:hover {
+            background: #0f1722;
+            transform: scale(0.98);
+        }
+
+        /* header and original design keep clean */
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .tab-container {
+            display: flex;
+            gap: 5px;
+            border-bottom: 2px solid #ddd;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background: #e0e0e0;
+            border: none;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .tab.active {
+            background: #3498db;
+            color: white;
+        }
+
+        .input-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .input-panel {
+            display: none;
+        }
+
+        .input-panel.active {
+            display: block;
+        }
+
+        .input-panel label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .input-panel input[type="file"],
+        .input-panel input[type="url"],
+        .input-panel textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1rem;
+            margin-bottom: 15px;
+        }
+
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        .extracted-text-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-top: 10px;
+        }
+
+        .extracted-text-container h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #extractedText {
+            width: 100%;
+            min-height: 320px;
+            padding: 18px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            font-family: 'Georgia', serif;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            overflow-y: auto;
+            resize: vertical;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background: #fff;
+            transition: all 0.2s;
+        }
+
+        .tts-controls {
+            background: #ecf0f1;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+            border: 1px solid #bdc3c7;
+        }
+
+        .status {
+            margin-top: 15px;
+            font-style: italic;
+            color: #7f8c8d;
+        }
+
+        /* rich content styles */
+        #extractedText h1, #extractedText h2, #extractedText h3 { margin-top: 1.2em; }
+        #extractedText p { margin: 1em 0; }
+        #extractedText img { max-width: 100%; }
+        
+        /* special focus: collapsed mode extra clean */
+        .text-only-mode .extracted-text-container h3,
+        .text-only-mode #wordCount,
+        .text-only-mode .extracted-text-container > h3 span:first-child {
+            display: none !important;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@zip.js/zip.js@2.7.52/dist/zip.min.js"></script>
+    <script src="https://unpkg.com/@mozilla/readability@0.4.4/Readability.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/2.6.1/jszip.min.js"></script>
+    <script>window.JSZip = JSZip;</script>
+</head>
+<body>
+
+    <!-- COLLAPSE TOGGLE BUTTON (the only persistent button in collapsed mode) -->
+    <div style="display: flex; justify-content: flex-end; margin-bottom: 8px;">
+        <button id="globalCollapseToggleBtn" class="collapse-toggle-btn">🧹 Collapse interface</button>
+    </div>
+
+    <!-- ========== ALL COLLAPSIBLE UI ELEMENTS (wrapped in groups) ========== -->
+    <div id="collapsibleUiWrapper">
+        <header class="ui-collapsible">
+            <h1>📖 Higgs Reader</h1>
+            <p>Upload, fetch, or paste content – then listen with Higgs Audio V2</p>
+        </header>
+
+        <div class="tab-container ui-collapsible">
+            <button class="tab active" data-tab="upload">📁 Upload</button>
+            <button class="tab" data-tab="url">🌐 URL</button>
+            <button class="tab" data-tab="paste">📋 Paste</button>
+        </div>
+
+        <div class="input-section ui-collapsible">
+            <div id="uploadPanel" class="input-panel active">
+                <label for="fileInput">Choose a file (PDF, TXT, DOCX, EPUB):</label>
+                <input type="file" id="fileInput" accept=".pdf,.txt,.docx,.epub,application/pdf,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/epub+zip">
+                <button id="extractFileBtn">Extract Text</button>
+            </div>
+            <div id="urlPanel" class="input-panel">
+                <label for="urlInput">Enter article URL:</label>
+                <input type="url" id="urlInput" placeholder="https://example.com/article">
+                <button id="fetchUrlBtn">Fetch & Extract</button>
+                <small style="display:block; color:#7f8c8d;">⚠️ Uses a public CORS proxy – may be rate‑limited.</small>
+            </div>
+            <div id="pastePanel" class="input-panel">
+                <label for="textInput">Paste your text:</label>
+                <textarea id="textInput" placeholder="Paste article, notes, or any text here..."></textarea>
+                <button id="useTextBtn">Use This Text</button>
+            </div>
+        </div>
+
+        <!-- Backend Settings (details) -->
+        <details class="ui-collapsible" style="margin-bottom: 10px; background: #f0f0f0; padding: 10px; border-radius: 6px;">
+            <summary style="cursor: pointer; font-weight: bold;">⚙️ Higgs Backend Settings</summary>
+            <div style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
+                <input type="url" id="backendUrl" value="https://tts-proxy.kennateklu.workers.dev/v1/audio/speech" style="flex: 2; padding: 8px;">
+                <input type="password" id="apiKey" value="sk-f13763f7-4ade-48a2-ba89-62bf86d3b204" placeholder="API Key" style="flex: 1; padding: 8px;">
+                <button id="testBackendBtn">Test Connection</button>
+            </div>
+            <div id="backendStatus" style="margin-top: 8px; font-size: 0.9rem; color: #666;"></div>
+            <small>Default: Cloudflare worker endpoint. Change if needed.</small>
+        </details>
+
+        <!-- TTS Controls -->
+        <div class="tts-controls ui-collapsible">
+            <select id="voiceSelect">
+                <option value="en-US-JennyNeural">Jenny (English US)</option>
+                <option value="en-US-GuyNeural">Guy (English US)</option>
+                <option value="en-US-AriaNeural">Aria (English US)</option>
+                <option value="en-GB-SoniaNeural">Sonia (English UK)</option>
+            </select>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span>⚡ Speed:</span>
+                <input type="range" id="speedRange" min="0.2" max="3.0" step="0.05" value="1.0" style="width: 150px;">
+                <input type="number" id="speedNumber" min="0.2" max="3.0" step="0.05" value="1.0" style="width: 70px;">
+                <span id="speedValue">1.00x</span>
+            </div>
+            <button id="playBtn">▶ Play</button>
+            <button id="playSelectedBtn">🔹 Play Selection</button>
+            <button id="pauseBtn">⏸️ Pause</button>
+            <button id="stopBtn">⏹️ Stop</button>
+        </div>
+
+        <div id="status" class="status ui-collapsible">Ready. Choose an input method above.</div>
+    </div>
+
+    <!-- EXTRACTED TEXT DISPLAY (always visible, core content) -->
+    <div class="extracted-text-container" id="extractedTextContainer">
+        <h3>
+            <span>📄 Extracted Text</span>
+            <span id="wordCount">0 words</span>
+        </h3>
+        <div id="extractedText" contenteditable="true" aria-label="Extracted text (editable, select portion to read)"></div>
+    </div>
+
+    <script>
+        // ==================== COLLAPSE ENGINE (ONLY TEXT VISIBLE) ====================
+        // Elements that should be hidden in "collapsed mode": everything except #extractedText and the collapse toggle button.
+        // Also the heading & wordCount inside extracted container must disappear.
+        let isCollapsed = false;
+        const toggleBtn = document.getElementById('globalCollapseToggleBtn');
+        const collapsibleWrapper = document.getElementById('collapsibleUiWrapper');
+        const extractedHeading = document.querySelector('#extractedTextContainer h3');
+        const wordCountSpan = document.getElementById('wordCount');
+        
+        // Function to apply collapse state (true = only text + collapse button)
+        function applyCollapseState(collapse) {
+            isCollapsed = collapse;
+            if (collapse) {
+                // Hide everything except the extracted text and toggle button itself
+                if (collapsibleWrapper) collapsibleWrapper.classList.add('collapsed-ui');
+                // Hide the heading and word count from extracted container
+                if (extractedHeading) extractedHeading.style.display = 'none';
+                if (wordCountSpan) wordCountSpan.style.display = 'none';
+                // Also hide any extra meta inside the container like borders/ extra text (but keep text div)
+                document.body.classList.add('text-only-mode');
+                // Update button label
+                toggleBtn.innerHTML = '🔓 Expand interface';
+                // Ensure extracted text div gets full visual prominence
+                document.getElementById('extractedText').style.minHeight = '75vh';
+                // Also set aria-hidden for screen readers on hidden UI
+                const allHidden = document.querySelectorAll('#collapsibleUiWrapper, .extracted-text-container h3');
+                allHidden.forEach(el => { if(el) el.setAttribute('aria-hidden', 'true'); });
+            } else {
+                // Restore full UI
+                if (collapsibleWrapper) collapsibleWrapper.classList.remove('collapsed-ui');
+                if (extractedHeading) extractedHeading.style.display = 'flex';
+                if (wordCountSpan) wordCountSpan.style.display = 'inline';
+                document.body.classList.remove('text-only-mode');
+                toggleBtn.innerHTML = '🧹 Collapse interface';
+                document.getElementById('extractedText').style.minHeight = '300px';
+                const allHidden = document.querySelectorAll('#collapsibleUiWrapper, .extracted-text-container h3');
+                allHidden.forEach(el => { if(el) el.removeAttribute('aria-hidden'); });
+            }
+        }
+
+        // Toggle function (manual)
+        function toggleCollapseMode() {
+            applyCollapseState(!isCollapsed);
+        }
+
+        // AUTO-COLLAPSE after any successful content upload (text becomes visible)
+        function autoCollapseAfterContentLoad() {
+            // Only collapse if there's actual meaningful text and we are not already collapsed
+            const textElem = document.getElementById('extractedText');
+            const hasContent = textElem.innerText.trim().length > 20;
+            if (hasContent && !isCollapsed) {
+                applyCollapseState(true);
+                // also show temporary subtle status (but status is hidden after collapse, but we can set a small flash)
+                const statusDiv = document.getElementById('status');
+                if (statusDiv && !isCollapsed) {
+                    statusDiv.innerHTML = '✨ Clean mode activated — only text remains ✨';
+                    setTimeout(() => { if(statusDiv && !isCollapsed) statusDiv.innerHTML = ''; }, 1500);
+                }
+            }
+        }
+
+        // Hook into any text extraction success: call this after setting extractedDiv content
+        function onTextExtractedSuccess() {
+            updateWordCount();
+            autoCollapseAfterContentLoad();
+        }
+
+        // Word count & observer remains
+        function updateWordCount() {
+            const text = extractedDiv.innerText || extractedDiv.textContent;
+            const words = text.trim().split(/\s+/).filter(w => w.length > 0).length;
+            if(wordCountSpan) wordCountSpan.textContent = words + ' word' + (words !== 1 ? 's' : '');
+        }
+
+        // ==================== ORIGINAL FUNCTIONALITY (TTS, Extraction) WITH COLLAPSE INTEGRATION ====================
+        const extractedDiv = document.getElementById('extractedText');
+        const statusDiv = document.getElementById('status');
+        const speedRange = document.getElementById('speedRange');
+        const speedNumber = document.getElementById('speedNumber');
+        const speedValueSpan = document.getElementById('speedValue');
+
+        // Tab switching (keep existing)
+        const tabs = document.querySelectorAll('.tab');
+        const panels = {
+            upload: document.getElementById('uploadPanel'),
+            url: document.getElementById('urlPanel'),
+            paste: document.getElementById('pastePanel')
+        };
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                Object.values(panels).forEach(p => p.classList.remove('active'));
+                tab.classList.add('active');
+                const target = tab.dataset.tab;
+                if(panels[target]) panels[target].classList.add('active');
+            });
+        });
+
+        extractedDiv.addEventListener('input', updateWordCount);
+        const observer = new MutationObserver(updateWordCount);
+        observer.observe(extractedDiv, { childList: true, subtree: true, characterData: true });
+        
+        // PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+        // ========= FILE EXTRACTION (PDF, TXT, DOCX, EPUB) ==========
+        document.getElementById('extractFileBtn').addEventListener('click', async () => {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            if (!file) { statusDiv.innerHTML = '❌ Please select a file first.'; return; }
+            statusDiv.innerHTML = '📄 Processing file...';
+            try {
+                if (file.type === 'application/pdf') {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                    let fullText = '';
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const textContent = await page.getTextContent();
+                        const pageText = textContent.items.map(item => item.str).join(' ').replace(/\s+/g, ' ');
+                        fullText += pageText + '\n\n';
+                        statusDiv.innerHTML = `📄 PDF page ${i}/${pdf.numPages}`;
+                    }
+                    extractedDiv.innerText = fullText.trim();
+                    statusDiv.innerHTML = `✅ PDF loaded (${pdf.numPages} pages).`;
+                    onTextExtractedSuccess();
+                } 
+                else if (file.type === 'text/plain') {
+                    const text = await file.text();
+                    extractedDiv.innerText = text;
+                    statusDiv.innerHTML = '✅ TXT file loaded.';
+                    onTextExtractedSuccess();
+                }
+                else if (file.name.endsWith('.docx')) {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const result = await mammoth.convertToHtml({ arrayBuffer });
+                    let html = DOMPurify.sanitize(result.value);
+                    extractedDiv.innerHTML = `<h2 style="border-bottom:1px solid #ccc;">📄 DOCX Content</h2>` + html;
+                    statusDiv.innerHTML = '✅ DOCX extracted with formatting.';
+                    onTextExtractedSuccess();
+                }
+                else if (file.name.endsWith('.epub')) {
+                    statusDiv.innerHTML = '📖 Extracting EPUB...';
+                    const arrayBuffer = await file.arrayBuffer();
+                    const { ZipReader, BlobReader, TextWriter } = zip;
+                    const zipReader = new ZipReader(new BlobReader(new Blob([arrayBuffer])));
+                    const entries = await zipReader.getEntries();
+                    const containerEntry = entries.find(e => e.filename === 'META-INF/container.xml');
+                    if (!containerEntry) throw new Error('Invalid EPUB');
+                    const containerXml = await containerEntry.getData(new TextWriter());
+                    const parser = new DOMParser();
+                    const containerDoc = parser.parseFromString(containerXml, 'application/xml');
+                    const rootfilePath = containerDoc.querySelector('rootfile').getAttribute('full-path');
+                    const opfEntry = entries.find(e => e.filename === rootfilePath);
+                    const opfXml = await opfEntry.getData(new TextWriter());
+                    const opfDoc = parser.parseFromString(opfXml, 'application/xml');
+                    const spineItems = opfDoc.querySelectorAll('spine itemref');
+                    const opfDir = rootfilePath.substring(0, rootfilePath.lastIndexOf('/') + 1);
+                    const itemMap = new Map();
+                    opfDoc.querySelectorAll('manifest item').forEach(item => {
+                        const id = item.getAttribute('id');
+                        const href = item.getAttribute('href');
+                        if(id && href) itemMap.set(id, opfDir + href);
+                    });
+                    let fullHTML = '';
+                    for(let i=0; i<spineItems.length; i++) {
+                        const idref = spineItems[i].getAttribute('idref');
+                        const itemPath = itemMap.get(idref);
+                        if(!itemPath) continue;
+                        const contentEntry = entries.find(e => e.filename === itemPath);
+                        if(contentEntry) {
+                            const contentXml = await contentEntry.getData(new TextWriter());
+                            const contentDoc = parser.parseFromString(contentXml, 'application/xhtml+xml');
+                            const body = contentDoc.querySelector('body');
+                            if(body) fullHTML += body.innerHTML + '\n\n';
+                        }
+                        statusDiv.innerHTML = `📖 EPUB section ${i+1}/${spineItems.length}`;
+                    }
+                    await zipReader.close();
+                    if(fullHTML.trim()) {
+                        extractedDiv.innerHTML = `<h2>📖 EPUB Content</h2>` + DOMPurify.sanitize(fullHTML);
+                        statusDiv.innerHTML = '✅ EPUB processed.';
+                        onTextExtractedSuccess();
+                    } else throw new Error('No content');
+                }
+                else { statusDiv.innerHTML = '❌ Unsupported file type.'; }
+            } catch(err) { statusDiv.innerHTML = `❌ Error: ${err.message}`; }
+        });
+
+        // ========= URL FETCH with readability ==========
+        document.getElementById('fetchUrlBtn').addEventListener('click', async () => {
+            let url = document.getElementById('urlInput').value.trim();
+            if (!url) { statusDiv.innerHTML = '❌ Enter URL'; return; }
+            if (!url.startsWith('http')) url = 'https://' + url;
+            statusDiv.innerHTML = '🌐 Fetching article...';
+            try {
+                const isWikipedia = url.includes('wikipedia.org');
+                let html;
+                if (isWikipedia) {
+                    const match = url.match(/wikipedia\.org\/wiki\/([^?#]+)/);
+                    if(match) {
+                        const articleTitle = decodeURIComponent(match[1]);
+                        const lang = url.includes('en.wikipedia') ? 'en' : 'en';
+                        const apiUrl = `https://${lang}.wikipedia.org/api/rest_v1/page/html/${encodeURIComponent(articleTitle)}`;
+                        const resp = await fetch(apiUrl, { headers: { 'User-Agent': 'HiggsReader/1.0' } });
+                        if(!resp.ok) throw new Error(`Wiki API ${resp.status}`);
+                        html = await resp.text();
+                    } else throw new Error('Invalid Wikipedia URL');
+                } else {
+                    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
+                    const resp = await fetch(proxyUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+                    if(!resp.ok) throw new Error(`Proxy error ${resp.status}`);
+                    html = await resp.text();
+                }
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const reader = new Readability(doc);
+                const article = reader.parse();
+                if(!article) throw new Error('Could not extract main content.');
+                let cleanHtml = DOMPurify.sanitize(article.content);
+                const titleHtml = `<h2 style="border-bottom:1px solid #ccc;">📰 ${escapeHtml(article.title)}</h2>`;
+                extractedDiv.innerHTML = titleHtml + cleanHtml;
+                statusDiv.innerHTML = `✅ Article: "${article.title.substring(0,70)}"`;
+                onTextExtractedSuccess();
+            } catch(err) { statusDiv.innerHTML = `❌ Fetch error: ${err.message}`; }
+        });
+
+        function escapeHtml(str) { return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;});}
+
+        // ========= PASTE TEXT ==========
+        document.getElementById('useTextBtn').addEventListener('click', () => {
+            const text = document.getElementById('textInput').value;
+            if(text.trim()) {
+                extractedDiv.innerText = text;
+                statusDiv.innerHTML = '✅ Text pasted. Ready.';
+                onTextExtractedSuccess();
+            } else { statusDiv.innerHTML = '❌ Paste some text first.'; }
+        });
+
+        // ========= TTS Queue & Backend ==========
+        let ttsQueue = {
+            chunks: [], currentIndex: 0, isPlaying: false, isPaused: false, audio: null, utterance: null,
+            stop() { if(this.audio) { this.audio.pause(); this.audio.src = ''; this.audio = null; } if(window.speechSynthesis) window.speechSynthesis.cancel(); this.isPlaying = false; this.isPaused = false; statusDiv.innerHTML = '⏹️ Stopped'; },
+            pause() { if(this.audio && !this.audio.paused) { this.audio.pause(); this.isPaused = true; statusDiv.innerHTML = '⏸️ Paused'; } else if(window.speechSynthesis && window.speechSynthesis.speaking && !window.speechSynthesis.paused) { window.speechSynthesis.pause(); this.isPaused = true; } },
+            resume() { if(this.audio && this.isPaused) { this.audio.play(); this.isPaused = false; statusDiv.innerHTML = '🔊 Resumed'; } else if(window.speechSynthesis && window.speechSynthesis.paused) { window.speechSynthesis.resume(); this.isPaused = false; } },
+            async start(chunks, useFallback=true) { this.stop(); this.chunks = chunks; this.currentIndex = 0; this.useFallback = useFallback; this.isPlaying = true; await this.playNext(); },
+            async playNext() { if(this.currentIndex >= this.chunks.length) { this.isPlaying = false; statusDiv.innerHTML = '✅ Finished reading.'; return; } const chunk = this.chunks[this.currentIndex++]; statusDiv.innerHTML = `🔊 Reading ${this.currentIndex}/${this.chunks.length}`; if(this.useFallback) await this.playChunkFallback(chunk); else await this.playChunkHiggs(chunk); },
+            playChunkFallback(chunk) { return new Promise((resolve) => { const utter = new SpeechSynthesisUtterance(chunk); const voiceName = document.getElementById('voiceSelect').value; const voices = window.speechSynthesis.getVoices(); const selected = voices.find(v=>v.name === voiceName); if(selected) utter.voice = selected; utter.rate = parseFloat(speedRange.value); utter.onend = () => { resolve(); this.playNext(); }; utter.onerror = () => { resolve(); this.playNext(); }; window.speechSynthesis.speak(utter); }); },
+            async playChunkHiggs(chunk) { try { const blob = await callHiggsTTS(chunk, document.getElementById('voiceSelect').value, parseFloat(speedRange.value)); const url = URL.createObjectURL(blob); const audio = new Audio(url); this.audio = audio; audio.onended = () => { URL.revokeObjectURL(url); this.playNext(); }; audio.play(); } catch(e) { console.warn("Higgs fail, fallback"); await this.playChunkFallback(chunk); } }
+        };
+
+        async function callHiggsTTS(text, voice, speed) {
+            const backendUrl = document.getElementById('backendUrl').value.trim();
+            const apiKey = document.getElementById('apiKey').value.trim();
+            if(!backendUrl) throw new Error('No backend URL');
+            const headers = { 'Content-Type': 'application/json' };
+            if(apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+            const resp = await fetch(backendUrl, { method: 'POST', headers, body: JSON.stringify({ input: text, voice, speed, response_format: 'mp3' }) });
+            if(!resp.ok) throw new Error(`Backend ${resp.status}`);
+            return await resp.blob();
+        }
+
+        function splitTextIntoChunks(text, maxLen=1000) { const sentences = text.match(/[^.!?]+[.!?]+/g) || [text]; let chunks = [], cur = ''; for(let s of sentences) { if((cur+s).length > maxLen && cur.length) { chunks.push(cur.trim()); cur = s; } else cur += s; } if(cur.trim()) chunks.push(cur.trim()); return chunks; }
+        async function speakText(text) { if(!text.trim()) { statusDiv.innerHTML = '❌ No text'; return; } ttsQueue.stop(); const useBackend = !!document.getElementById('backendUrl').value.trim(); const chunks = splitTextIntoChunks(text, 1000); if(useBackend) { try { const firstChunk = chunks[0]; const blob = await callHiggsTTS(firstChunk, document.getElementById('voiceSelect').value, parseFloat(speedRange.value)); const audio = new Audio(URL.createObjectURL(blob)); audio.play(); audio.onended = () => { if(chunks.length>1) ttsQueue.start(chunks.slice(1), false); }; ttsQueue.audio = audio; } catch(e) { ttsQueue.start(chunks, true); } } else { ttsQueue.start(chunks, true); } }
+
+        document.getElementById('playBtn').addEventListener('click', () => { const txt = extractedDiv.innerText.trim(); if(txt) speakText(txt); else statusDiv.innerHTML = '❌ No text to read'; });
+        document.getElementById('playSelectedBtn').addEventListener('click', () => { const sel = window.getSelection().toString().trim(); if(sel) speakText(sel); else statusDiv.innerHTML = '❌ Select text first'; });
+        document.getElementById('pauseBtn').addEventListener('click', () => { if(ttsQueue.isPlaying) ttsQueue.pause(); else statusDiv.innerHTML = '⏸️ Nothing playing'; });
+        document.getElementById('stopBtn').addEventListener('click', () => ttsQueue.stop());
+        document.getElementById('testBackendBtn').addEventListener('click', async () => { const statusSpan = document.getElementById('backendStatus'); statusSpan.textContent = 'Testing...'; try { await callHiggsTTS('test', 'en-US-JennyNeural', 1.0); statusSpan.textContent = '✅ Connected!'; } catch(e) { statusSpan.textContent = `❌ ${e.message}`; } });
+        
+        function syncSpeed() { let val = parseFloat(speedRange.value); speedNumber.value = val.toFixed(2); speedValueSpan.innerText = val.toFixed(2)+'x'; }
+        speedRange.addEventListener('input', () => { syncSpeed(); });
+        speedNumber.addEventListener('input', () => { let v = parseFloat(speedNumber.value); if(isNaN(v)) v=1; v = Math.min(3, Math.max(0.2, v)); speedRange.value = v; syncSpeed(); });
+        syncSpeed();
+
+        // Initialize collapse button
+        toggleBtn.addEventListener('click', toggleCollapseMode);
+        // Ensure initial state fully expanded
+        applyCollapseState(false);
+        updateWordCount();
+    </script>
+</body>
+</html>

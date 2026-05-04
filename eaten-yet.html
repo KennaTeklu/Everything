@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+    <title>Clean Food Coach | Adaptive Nutrition</title>
+
+    <style>
+
+        * {
+
+            margin: 0;
+
+            padding: 0;
+
+            box-sizing: border-box;
+
+        }
+
+        body {
+
+            background: #f5f7fa;
+
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+            padding: 20px;
+
+            line-height: 1.4;
+
+        }
+
+        .container {
+
+            max-width: 580px;
+
+            margin: 0 auto;
+
+        }
+
+        /* main card */
+
+        .card {
+
+            background: white;
+
+            border-radius: 28px;
+
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+
+            padding: 1.8rem;
+
+            margin-bottom: 1rem;
+
+        }
+
+        h1 {
+
+            font-size: 1.6rem;
+
+            font-weight: 600;
+
+            margin-bottom: 0.25rem;
+
+            color: #1e293b;
+
+        }
+
+        .badge {
+
+            font-size: 0.75rem;
+
+            color: #475569;
+
+            margin-bottom: 1rem;
+
+            border-bottom: 1px solid #e2e8f0;
+
+            padding-bottom: 0.5rem;
+
+        }
+
+        /* recommendation block */
+
+        .rec-block {
+
+            margin: 1rem 0;
+
+        }
+
+        .rec-title {
+
+            font-size: 0.85rem;
+
+            text-transform: uppercase;
+
+            letter-spacing: 0.5px;
+
+            color: #3b82f6;
+
+            font-weight: 500;
+
+        }
+
+        .rec-calories {
+
+            font-size: 2.5rem;
+
+            font-weight: 700;
+
+            color: #0f172a;
+
+            line-height: 1;
+
+        }
+
+        .rec-macros {
+
+            display: flex;
+
+            gap: 1rem;
+
+            margin: 0.5rem 0;
+
+            font-size: 0.85rem;
+
+            color: #334155;
+
+        }
+
+        .food-example {
+
+            background: #f8fafc;
+
+            border-left: 3px solid #cbd5e1;
+
+            padding: 0.5rem 0.8rem;
+
+            font-size: 0.8rem;
+
+            margin: 0.5rem 0;
+
+            border-radius: 12px;
+
+        }
+
+        details {
+
+            margin: 0.5rem 0;
+
+        }
+
+        summary {
+
+            font-size: 0.8rem;
+
+            color: #3b82f6;
+
+            cursor: pointer;
+
+        }
+
+        .btn-group {
+
+            display: flex;
+
+            gap: 8px;
+
+            margin: 1rem 0;
+
+            flex-wrap: wrap;
+
+        }
+
+        button {
+
+            background: #f1f5f9;
+
+            border: none;
+
+            padding: 8px 16px;
+
+            border-radius: 40px;
+
+            font-size: 0.9rem;
+
+            font-weight: 500;
+
+            cursor: pointer;
+
+            transition: 0.1s;
+
+            color: #1e293b;
+
+        }
+
+        button.primary {
+
+            background: #3b82f6;
+
+            color: white;
+
+        }
+
+        button.secondary {
+
+            background: #e2e8f0;
+
+        }
+
+        .action-row {
+
+            display: flex;
+
+            gap: 12px;
+
+            margin: 0.8rem 0;
+
+            justify-content: flex-start;
+
+        }
+
+        .action-row button {
+
+            background: none;
+
+            border: 1px solid #cbd5e1;
+
+            padding: 6px 12px;
+
+            font-size: 0.8rem;
+
+        }
+
+        hr {
+
+            margin: 1rem 0;
+
+            border: none;
+
+            border-top: 1px solid #e2e8f0;
+
+        }
+
+        .banner {
+
+            background: #fef9e3;
+
+            border-left: 4px solid #eab308;
+
+            padding: 0.6rem 1rem;
+
+            font-size: 0.75rem;
+
+            border-radius: 12px;
+
+            margin: 0.8rem 0;
+
+        }
+
+        .small-text {
+
+            font-size: 0.7rem;
+
+            color: #64748b;
+
+        }
+
+        .flex-between {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+        }
+
+        .collapsible-section {
+
+            margin-top: 1rem;
+
+            border-top: 1px solid #e2e8f0;
+
+            padding-top: 0.8rem;
+
+        }
+
+        .link-btn {
+
+            background: none;
+
+            border: none;
+
+            color: #3b82f6;
+
+            font-size: 0.8rem;
+
+            cursor: pointer;
+
+            padding: 0;
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container" id="app"></div>
+
+<script>
+
+    // ---------- DATA MODEL (same as before, all features intact) ----------
+
+    let user = {
+
+        age: 28, gender: 'male', heightCm: 175, weightKg: 70, bodyFat: null,
+
+        activityLevel: 1.55, goal: 'gain', dietPreference: 'omnivore', phase: 'bulk',
+
+        lastWeightUpdate: null, lastActivityUpdate: null, lastStaticUpdate: null,
+
+        workouts: [], weightEntries: [], mealResponses: [],
+
+        mealMultiplier: { breakfast: 1.0, lunch: 1.0, dinner: 1.0 },
+
+        focusMode: false,  // not used in clean version; we use separate views
+
+        lastDate: new Date().toISOString().slice(0,10)
+
+    };
+
+    function todayStr() { return new Date().toISOString().slice(0,10); }
+
+    function daysAgoStr(days) { let d = new Date(); d.setDate(d.getDate()-days); return d.toISOString().slice(0,10); }
+
+    function loadData() {
+
+        const raw = localStorage.getItem('cleanCoach');
+
+        if (raw) {
+
+            const parsed = JSON.parse(raw);
+
+            Object.assign(user, parsed);
+
+            if (!user.workouts) user.workouts = [];
+
+            if (!user.weightEntries) user.weightEntries = [];
+
+            if (!user.mealResponses) user.mealResponses = [];
+
+            if (!user.mealMultiplier) user.mealMultiplier = { breakfast:1, lunch:1, dinner:1 };
+
+            if (user.lastDate !== todayStr()) {
+
+                for (let m of ['breakfast','lunch','dinner']) {
+
+                    user.mealMultiplier[m] = user.mealMultiplier[m] * 0.9 + 0.1;
+
+                    user.mealMultiplier[m] = Math.min(1.4, Math.max(0.7, user.mealMultiplier[m]));
+
+                }
+
+                user.lastDate = todayStr();
+
+                saveData();
+
+            }
+
+        } else {
+
+            const now = todayStr();
+
+            user.lastWeightUpdate = now;
+
+            user.lastActivityUpdate = now;
+
+            user.lastStaticUpdate = now;
+
+            saveData();
+
+        }
+
+    }
+
+    function saveData() { localStorage.setItem('cleanCoach', JSON.stringify(user)); }
+
+    function computeTDEE() {
+
+        let bmr;
+
+        if (user.bodyFat && user.bodyFat > 0 && user.weightKg) {
+
+            let leanMass = user.weightKg * (1 - user.bodyFat/100);
+
+            bmr = 370 + (21.6 * leanMass);
+
+        } else {
+
+            if (user.gender === 'male')
+
+                bmr = 10 * user.weightKg + 6.25 * user.heightCm - 5 * user.age + 5;
+
+            else
+
+                bmr = 10 * user.weightKg + 6.25 * user.heightCm - 5 * user.age - 161;
+
+        }
+
+        let tdee = bmr * user.activityLevel;
+
+        if (user.goal === 'gain') tdee *= 1.10;
+
+        if (user.goal === 'lose') tdee *= 0.85;
+
+        if (user.phase === 'bulk') tdee *= 1.05;
+
+        if (user.phase === 'cut') tdee *= 0.92;
+
+        return Math.round(tdee);
+
+    }
+
+    function baseRecommended(meal) {
+
+        let tdee = computeTDEE();
+
+        let factor = { breakfast:0.25, lunch:0.35, dinner:0.3 }[meal];
+
+        return Math.round(tdee * factor);
+
+    }
+
+    function workoutAdjustment() {
+
+        let lastWorkout = user.workouts.slice(-1)[0];
+
+        if (!lastWorkout) return 1.0;
+
+        let wDate = lastWorkout.date;
+
+        let today = todayStr();
+
+        let yesterday = daysAgoStr(1);
+
+        if (wDate === today || wDate === yesterday) {
+
+            let volumeFactor = 1 + Math.min(0.2, (lastWorkout.volume || 0) / 10000);
+
+            let intensityFactor = 1 + (lastWorkout.intensity - 5) * 0.02;
+
+            return volumeFactor * intensityFactor;
+
+        }
+
+        return 1.0;
+
+    }
+
+    function getRecommended(meal) {
+
+        let base = baseRecommended(meal);
+
+        let multiplier = user.mealMultiplier[meal] * workoutAdjustment();
+
+        multiplier = Math.min(1.5, Math.max(0.7, multiplier));
+
+        let cal = Math.round(base * multiplier);
+
+        let proteinPerKg = (user.workouts.length > 0 ? 1.6 : 1.2);
+
+        let totalProtein = Math.round(user.weightKg * proteinPerKg);
+
+        let proteinPerMeal = Math.round(totalProtein / 3);
+
+        let carbs = Math.round(cal * 0.45 / 4);
+
+        let fat = Math.round(cal * 0.3 / 9);
+
+        let example = getExampleFoods(meal, cal, proteinPerMeal);
+
+        return { calories: cal, protein: proteinPerMeal, carbs, fat, example, multiplier: multiplier.toFixed(2) };
+
+    }
+
+    function getExampleFoods(meal, cal, protein) {
+
+        let pref = user.dietPreference;
+
+        if (meal === 'breakfast') {
+
+            if (pref === 'vegan') return `Tofu scramble + oatmeal → ~${cal} kcal, ${protein}g protein`;
+
+            if (pref === 'vegetarian') return `3 eggs + Greek yogurt → ~${cal} kcal, ${protein}g protein`;
+
+            if (pref === 'keto') return `3 eggs + avocado → ~${cal} kcal, ${protein}g protein`;
+
+            return `3 eggs + oats + whey → ~${cal} kcal, ${protein}g protein`;
+
+        } else if (meal === 'lunch') {
+
+            if (pref === 'vegan') return `Lentil bowl + quinoa → ~${cal} kcal, ${protein}g protein`;
+
+            if (pref === 'vegetarian') return `Chickpea salad + feta → ~${cal} kcal, ${protein}g protein`;
+
+            if (pref === 'keto') return `Chicken thigh + avocado → ~${cal} kcal, ${protein}g protein`;
+
+            return `Chicken breast + rice → ~${cal} kcal, ${protein}g protein`;
+
+        } else {
+
+            if (pref === 'vegan') return `Tempeh stir-fry → ~${cal} kcal, ${protein}g protein`;
+
+            if (pref === 'vegetarian') return `Paneer curry → ~${cal} kcal, ${protein}g protein`;
+
+            if (pref === 'keto') return `Salmon + asparagus → ~${cal} kcal, ${protein}g protein`;
+
+            return `Salmon + quinoa → ~${cal} kcal, ${protein}g protein`;
+
+        }
+
+    }
+
+    function getNextMeal() {
+
+        const today = todayStr();
+
+        const order = ['breakfast', 'lunch', 'dinner'];
+
+        for (let meal of order) {
+
+            let existing = user.mealResponses.find(r => r.date === today && r.meal === meal);
+
+            if (!existing) return meal;
+
+        }
+
+        return null;
+
+    }
+
+    function reportCompliance(meal, ateRecommended, actualCalories = null) {
+
+        let rec = getRecommended(meal);
+
+        let target = rec.calories;
+
+        let actual = actualCalories !== null ? actualCalories : (ateRecommended === 'yes' ? target : (ateRecommended === 'less' ? target * 0.7 : target * 1.3));
+
+        actual = Math.round(actual);
+
+        user.mealResponses.push({ date: todayStr(), meal, ateRecommended, actualCalories: actual, targetCalories: target });
+
+        let ratio = actual / target;
+
+        if (user.goal === 'gain') {
+
+            if (ratio < 0.9) user.mealMultiplier[meal] = Math.min(1.5, user.mealMultiplier[meal] * 1.12);
+
+            else if (ratio > 1.1) user.mealMultiplier[meal] = Math.max(0.8, user.mealMultiplier[meal] * 0.97);
+
+        } else if (user.goal === 'lose') {
+
+            if (ratio > 1.1) user.mealMultiplier[meal] = Math.max(0.7, user.mealMultiplier[meal] * 0.94);
+
+            else if (ratio < 0.9) user.mealMultiplier[meal] = Math.min(1.2, user.mealMultiplier[meal] * 1.03);
+
+        } else {
+
+            if (ratio > 1.15) user.mealMultiplier[meal] = Math.max(0.8, user.mealMultiplier[meal] * 0.96);
+
+            if (ratio < 0.85) user.mealMultiplier[meal] = Math.min(1.2, user.mealMultiplier[meal] * 1.04);
+
+        }
+
+        saveData();
+
+        render();
+
+    }
+
+    function logWorkout(type, duration, intensity, volume) {
+
+        user.workouts.push({ date: todayStr(), type, duration, intensity, volume, phase: user.phase });
+
+        saveData();
+
+        render();
+
+    }
+
+    function logWeight(kg) {
+
+        user.weightEntries.push({ date: todayStr(), kg });
+
+        user.weightKg = kg;
+
+        user.lastWeightUpdate = todayStr();
+
+        saveData();
+
+        render();
+
+    }
+
+    // progress & charts (moved to separate modal-like expandable)
+
+    let showProgress = false;
+
+    function toggleProgress() { showProgress = !showProgress; render(); }
+
+    function render() {
+
+        const app = document.getElementById('app');
+
+        const nextMeal = getNextMeal();
+
+        const today = todayStr();
+
+        const needsWeightUpdate = (new Date() - new Date(user.lastWeightUpdate)) > 28*24*3600*1000;
+
+        const needsActivityUpdate = (new Date() - new Date(user.lastActivityUpdate)) > 28*24*3600*1000;
+
+        const bmi = (user.weightKg / ((user.heightCm/100)**2)).toFixed(1);
+
+        const bmiWarning = (bmi < 16 || bmi > 40);
+
+        
+
+        let html = `<div class="card"><h1>🥗 Food Coach</h1><div class="badge">${user.goal} · ${user.phase} · ${user.dietPreference}</div>`;
+
+        if (nextMeal) {
+
+            const rec = getRecommended(nextMeal);
+
+            html += `
+
+                <div class="rec-block">
+
+                    <div class="rec-title">Recommended ${nextMeal}</div>
+
+                    <div class="rec-calories">${rec.calories} kcal</div>
+
+                    <div class="rec-macros"><span>🥩 ${rec.protein}g protein</span> <span>🍚 ${rec.carbs}g carbs</span> <span>🧈 ${rec.fat}g fat</span></div>
+
+                    <details><summary>📋 Show food ideas</summary><div class="food-example">${rec.example}</div></details>
+
+                    <details><summary>🔍 Why this?</summary><div class="small-text">Multiplier: ${rec.multiplier} (past compliance + workout effect)</div></details>
+
+                </div>
+
+                <div class="btn-group">
+
+                    <button class="primary" id="yesBtn">✅ Ate as recommended</button>
+
+                    <button class="secondary" id="lessBtn">⚠️ Ate less</button>
+
+                    <button class="warning" id="moreBtn" style="background:#f1f5f9;">📈 Ate more</button>
+
+                </div>
+
+            `;
+
+        } else {
+
+            html += `<div class="rec-block">🎉 All meals logged today! <button id="newDayBtn" class="link-btn">Start new day</button></div>`;
+
+        }
+
+        // subtle action row
+
+        html += `<div class="action-row"><button id="logWorkoutBtn">🏋️ Log workout</button><button id="logWeightBtn">⚖️ Log weight</button></div>`;
+
+        // banners for reminders (only if needed)
+
+        if (needsWeightUpdate) html += `<div class="banner">📅 It's been 4+ weeks since last weight update. <button id="updateWeightBtn" class="link-btn">Update now</button></div>`;
+
+        if (needsActivityUpdate) html += `<div class="banner">📅 Activity level not updated in 4 weeks. <button id="updateActivityBtn" class="link-btn">Update</button></div>`;
+
+        if (bmiWarning) html += `<div class="banner" style="border-left-color:#ef4444;">⚠️ BMI extreme (${bmi}) – please consult a doctor before making dietary changes.</div>`;
+
+        // progress toggle (clean, simple)
+
+        html += `<hr><button id="toggleProgressBtn" class="link-btn">📈 ${showProgress ? 'Hide' : 'Show'} progress & history</button>`;
+
+        if (showProgress) {
+
+            // compliance 7-day chart (simple text, no colors)
+
+            let last7 = [];
+
+            for (let i=6; i>=0; i--) {
+
+                let date = daysAgoStr(i);
+
+                let dayResponses = user.mealResponses.filter(r => r.date === date);
+
+                let met = dayResponses.filter(r => r.actualCalories >= r.targetCalories*0.8).length;
+
+                let total = dayResponses.length;
+
+                let pct = total ? Math.round(met/total*100) : null;
+
+                last7.push({ date, pct });
+
+            }
+
+            html += `<div class="collapsible-section"><div><strong>Last 7 days compliance</strong> (meals meeting ≥80% target)</div><div style="display:flex; gap:6px; margin:8px 0;">`;
+
+            for (let d of last7) {
+
+                let pct = d.pct === null ? 0 : d.pct;
+
+                let height = Math.max(4, pct/100*40);
+
+                let color = pct >= 80 ? '#22c55e' : (pct >= 50 ? '#eab308' : '#ef4444');
+
+                html += `<div style="flex:1; background:#e2e8f0; border-radius:4px; height:40px; position:relative;"><div style="background:${color}; width:100%; height:${height}px; border-radius:4px 4px 0 0; position:absolute; bottom:0;"></div><div class="small-text" style="text-align:center;">${d.date.slice(5)}</div></div>`;
+
+            }
+
+            html += `</div><div class="small-text">Green=high, yellow=medium, red=low</div>`;
+
+            // weight trend text
+
+            let lastWeights = user.weightEntries.slice(-7).map(w=>w.kg);
+
+            if (lastWeights.length) html += `<div><strong>Weight trend</strong> (kg): ${lastWeights.join(' → ')}</div>`;
+
+            // strength progress
+
+            let lifts = user.workouts.filter(w=>w.type.includes('lifting')).slice(-5);
+
+            if (lifts.length) html += `<div><strong>Strength progress</strong> (volume lbs): ${lifts.map(l=>l.volume).join(' → ')}</div>`;
+
+            // summary text
+
+            let totalMeals = user.mealResponses.filter(r => new Date(r.date) > new Date(Date.now()-7*86400000)).length;
+
+            let metMeals = user.mealResponses.filter(r => new Date(r.date) > new Date(Date.now()-7*86400000) && r.actualCalories >= r.targetCalories*0.8).length;
+
+            let pctWeek = totalMeals ? Math.round(metMeals/totalMeals*100) : 0;
+
+            html += `<div class="small-text" style="margin-top:8px;">📊 Last 7 days: you met ${pctWeek}% of meal targets.</div>`;
+
+            html += `<hr><button id="exportBtn" class="link-btn">📎 Export all data (JSON)</button> <button id="clearDataBtn" class="link-btn" style="color:#b91c1c;">🗑️ Clear all data</button>`;
+
+            html += `<div class="small-text" style="margin-top:6px;"><a href="#" id="feedbackLink">Send feedback</a> | Data stored locally</div>`;
+
+            html += `</div>`;
+
+        } else {
+
+            // minimal footer
+
+            html += `<div class="small-text" style="margin-top:12px;">⚙️ <button id="settingsBtn" class="link-btn">Profile & goals</button> | <button id="exportBtnSmall" class="link-btn">Export</button></div>`;
+
+        }
+
+        html += `</div>`;
+
+        app.innerHTML = html;
+
+        // event bindings
+
+        if (nextMeal) {
+
+            document.getElementById('yesBtn')?.addEventListener('click', () => reportCompliance(nextMeal, 'yes'));
+
+            document.getElementById('lessBtn')?.addEventListener('click', () => {
+
+                let val = prompt("How many calories did you eat?", Math.round(getRecommended(nextMeal).calories * 0.7));
+
+                if (val) reportCompliance(nextMeal, 'less', parseInt(val));
+
+            });
+
+            document.getElementById('moreBtn')?.addEventListener('click', () => {
+
+                let val = prompt("How many calories did you eat?", Math.round(getRecommended(nextMeal).calories * 1.2));
+
+                if (val) reportCompliance(nextMeal, 'more', parseInt(val));
+
+            });
+
+        }
+
+        document.getElementById('logWorkoutBtn')?.addEventListener('click', () => {
+
+            let type = prompt("Workout type (lifting/cardio/both)", "lifting");
+
+            let duration = prompt("Duration (min)", "45");
+
+            let intensity = prompt("Intensity (1-10)", "7");
+
+            let volume = prompt("Volume (lbs × reps × sets)", "0");
+
+            if (type && duration && intensity) logWorkout(type, parseInt(duration), parseInt(intensity), parseInt(volume)||0);
+
+        });
+
+        document.getElementById('logWeightBtn')?.addEventListener('click', () => {
+
+            let w = prompt("Weight in kg", user.weightKg);
+
+            if (w) logWeight(parseFloat(w));
+
+        });
+
+        document.getElementById('toggleProgressBtn')?.addEventListener('click', toggleProgress);
+
+        document.getElementById('settingsBtn')?.addEventListener('click', () => showProfileModal());
+
+        document.getElementById('exportBtn')?.addEventListener('click', exportData);
+
+        document.getElementById('exportBtnSmall')?.addEventListener('click', exportData);
+
+        document.getElementById('clearDataBtn')?.addEventListener('click', () => { if(confirm("Delete all data?")) { localStorage.clear(); location.reload(); } });
+
+        document.getElementById('feedbackLink')?.addEventListener('click', (e) => { e.preventDefault(); alert("Send feedback to coach@example.com"); });
+
+        document.getElementById('updateWeightBtn')?.addEventListener('click', () => { let w = prompt("Update weight", user.weightKg); if(w) logWeight(parseFloat(w)); });
+
+        document.getElementById('updateActivityBtn')?.addEventListener('click', () => showProfileModal());
+
+        if (document.getElementById('newDayBtn')) document.getElementById('newDayBtn').addEventListener('click', () => location.reload());
+
+    }
+
+    function showProfileModal() {
+
+        let newAge = prompt("Age", user.age);
+
+        let newGender = prompt("Gender (male/female)", user.gender);
+
+        let newHeight = prompt("Height (cm)", user.heightCm);
+
+        let newWeight = prompt("Weight (kg)", user.weightKg);
+
+        let newActivity = prompt("Activity (1.2-1.9)", user.activityLevel);
+
+        let newGoal = prompt("Goal (gain/maintain/lose)", user.goal);
+
+        let newDiet = prompt("Diet (omnivore/vegetarian/vegan/keto)", user.dietPreference);
+
+        let newPhase = prompt("Phase (bulk/cut/maintenance/strength)", user.phase);
+
+        if (newAge) user.age = parseInt(newAge);
+
+        if (newGender) user.gender = newGender;
+
+        if (newHeight) user.heightCm = parseInt(newHeight);
+
+        if (newWeight) logWeight(parseFloat(newWeight));
+
+        if (newActivity) user.activityLevel = parseFloat(newActivity);
+
+        if (newGoal) user.goal = newGoal;
+
+        if (newDiet) user.dietPreference = newDiet;
+
+        if (newPhase) user.phase = newPhase;
+
+        user.lastStaticUpdate = todayStr();
+
+        user.lastActivityUpdate = todayStr();
+
+        saveData();
+
+        render();
+
+    }
+
+    function exportData() {
+
+        let exportObj = {
+
+            profile: { age: user.age, gender: user.gender, heightCm: user.heightCm, weightKg: user.weightKg, activityLevel: user.activityLevel, goal: user.goal, dietPreference: user.dietPreference, phase: user.phase },
+
+            mealResponses: user.mealResponses,
+
+            workouts: user.workouts,
+
+            weightEntries: user.weightEntries
+
+        };
+
+        let dataStr = JSON.stringify(exportObj, null, 2);
+
+        let blob = new Blob([dataStr], {type: 'application/json'});
+
+        let url = URL.createObjectURL(blob);
+
+        let a = document.createElement('a');
+
+        a.href = url;
+
+        a.download = `coach_data_${todayStr()}.json`;
+
+        a.click();
+
+        URL.revokeObjectURL(url);
+
+    }
+
+    loadData();
+
+    render();
+
+</script>
+
+</body>
+
+</html>

@@ -1,0 +1,2563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sunday School Attendance Manager</title>
+    <!-- Font Awesome for icons (will be used by all rounds) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+/* ========== ROUND 3 – PERFECT CSS ========== */
+
+/* ----- RESET & BASE ----- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+}
+
+:root {
+    --primary: #2c6e49;
+    --secondary: #4c956c;
+    --accent: #fefee3;
+    --light: #f9f9f9;
+    --dark: #1d3557;
+    --warning: #e63946;
+    --gold: #d4af37;
+    --text: #333;
+    --border-radius: 12px;
+    --box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+    --transition: all 0.2s ease;
+}
+
+body {
+    background-color: var(--light);
+    color: var(--text);
+    min-height: 100vh;
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    padding-bottom: 80px; /* space for mobile bottom nav */
+    line-height: 1.5;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 16px;
+}
+
+/* ----- HEADER ----- */
+header {
+    background: var(--primary);
+    color: white;
+    padding: 16px 20px;
+    border-radius: var(--border-radius);
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    box-shadow: var(--box-shadow);
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.logo {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    color: var(--primary);
+    border: 3px solid white;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.header-title h1 {
+    font-size: 1.4rem;
+    margin-bottom: 4px;
+    font-weight: 600;
+}
+
+.header-title p {
+    opacity: 0.9;
+    font-size: 0.85rem;
+}
+
+.header-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* ----- NAVIGATION (mobile‑friendly bottom bar) ----- */
+nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 8px 4px;
+    box-shadow: 0 -2px 15px rgba(0,0,0,0.1);
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+    background: rgba(255,255,255,0.95);
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+
+.nav-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 8px 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #888;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    transition: var(--transition);
+    border-radius: 30px;
+    cursor: pointer;
+}
+
+.nav-btn i {
+    font-size: 1.3rem;
+}
+
+.nav-btn.active {
+    color: var(--primary);
+    background: rgba(44,110,73,0.1);
+}
+
+.nav-btn:hover {
+    color: var(--primary);
+}
+
+/* desktop adjustment */
+@media (min-width: 768px) {
+    body { padding-bottom: 0; }
+    nav {
+        position: static;
+        flex-direction: row;
+        background: white;
+        padding: 15px;
+        border-radius: var(--border-radius);
+        margin-bottom: 25px;
+        box-shadow: var(--box-shadow);
+        backdrop-filter: none;
+    }
+    .nav-btn {
+        flex: 0 1 auto;
+        flex-direction: row;
+        padding: 10px 18px;
+        font-size: 0.9rem;
+        background: var(--light);
+        border: 2px solid var(--secondary);
+    }
+    .nav-btn i { font-size: 1rem; }
+    .nav-btn.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+}
+
+/* ----- MAIN CONTENT ----- */
+.main-content {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 20px;
+    box-shadow: var(--box-shadow);
+    min-height: 500px;
+    margin-bottom: 20px;
+}
+
+.page { display: none; animation: fade 0.3s; }
+.page.active { display: block; }
+@keyframes fade { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
+
+/* ----- HOME PAGE ----- */
+.slideshow-container {
+    height: 220px;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    margin-bottom: 25px;
+    position: relative;
+}
+.slideshow-inner { display: flex; height:100%; transition: transform 0.7s; }
+.slide { min-width:100%; background-size:cover; background-position:center; display:flex; align-items:flex-end; padding:20px; }
+.slide-info { background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); padding:12px 18px; border-radius:30px; color:white; width:100%; }
+.slide-info h3 { font-size:1.2rem; margin-bottom:4px; }
+.slideshow-dots { position:absolute; bottom:12px; right:15px; display:flex; gap:8px; }
+.dot { width:10px; height:10px; border-radius:50%; background:rgba(255,255,255,0.5); cursor:pointer; }
+.dot.active { background:white; transform:scale(1.2); }
+
+.homepage-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+}
+.action-card {
+    background: var(--light);
+    border-radius: var(--border-radius);
+    padding: 20px 12px;
+    text-align: center;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.03);
+    transition: var(--transition);
+    cursor: pointer;
+    border: 2px solid transparent;
+}
+.action-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--secondary);
+    box-shadow: 0 12px 25px rgba(0,0,0,0.1);
+}
+.action-icon { font-size: 2.5rem; color: var(--primary); margin-bottom: 10px; }
+.action-card h3 { font-size: 1.1rem; margin-bottom: 6px; }
+.action-card p { font-size: 0.85rem; color: #666; }
+
+.stats-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 15px;
+}
+.stat-card {
+    background: var(--primary);
+    color: white;
+    padding: 18px;
+    border-radius: var(--border-radius);
+    text-align: center;
+}
+.stat-card h3 { font-size: 2rem; margin-bottom: 5px; }
+
+/* ----- FORMS & INPUTS ----- */
+.form-container { max-width: 700px; margin: 0 auto; }
+.form-row { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 18px; }
+.form-group { flex: 1 1 240px; }
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--dark);
+}
+.form-control {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 14px;
+    font-size: 1rem;
+    transition: var(--transition);
+    background: white;
+}
+.form-control:focus {
+    outline: none;
+    border-color: var(--secondary);
+    box-shadow: 0 0 0 3px rgba(76,149,108,0.15);
+}
+textarea.form-control { min-height: 90px; resize: vertical; }
+
+.btn {
+    padding: 12px 22px;
+    border: none;
+    border-radius: 40px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: var(--transition);
+    background: #f0f0f0;
+    color: #333;
+}
+.btn-primary { background: var(--primary); color: white; }
+.btn-secondary { background: var(--secondary); color: white; }
+.btn-warning { background: var(--warning); color: white; }
+.btn-gold { background: var(--gold); color: var(--dark); }
+.btn-sm { padding: 8px 16px; font-size: 0.85rem; }
+
+.btn-primary:hover { background: #1e4d35; transform: scale(0.98); }
+.btn-secondary:hover { background: #3a7a57; }
+.btn-warning:hover { background: #c1121f; }
+.btn-gold:hover { background: #b8941f; }
+
+/* ----- REGISTER TYPE CARDS ----- */
+.register-type-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 18px;
+    margin: 20px 0;
+}
+
+/* ----- STUDENT TABLE (responsive) ----- */
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    background: var(--light);
+    padding: 18px;
+    border-radius: var(--border-radius);
+    margin-bottom: 20px;
+}
+.search-box { flex: 2; min-width: 220px; }
+
+.student-list-container { overflow-x: auto; margin-bottom: 20px; border-radius: 16px; border: 1px solid #eee; }
+.student-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px;
+}
+.student-table th {
+    background: var(--primary);
+    color: white;
+    padding: 14px 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+.student-table td {
+    padding: 12px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 0.9rem;
+}
+.student-table tr:hover td { background: #f8fff8; }
+
+.student-id { font-weight: 700; color: var(--primary); }
+.actions-cell { display: flex; gap: 6px; flex-wrap: wrap; }
+.action-btn {
+    padding: 6px 10px;
+    border-radius: 30px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+}
+.action-btn.view { background: #e7ffe7; color: #2e7d32; }
+.action-btn.edit { background: #e7f4ff; color: var(--dark); }
+.action-btn.delete { background: #ffe7e7; color: var(--warning); }
+
+.progress-bar-container { display: flex; align-items: center; gap: 8px; }
+.progress-bar { flex:1; height: 8px; background: #e9ecef; border-radius: 20px; overflow: hidden; }
+.progress-fill { height:100%; border-radius: 20px; transition: width 0.3s; }
+
+/* ----- ATTENDANCE CARDS ----- */
+.attendance-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 15px;
+}
+.attendance-card {
+    background: var(--light);
+    border-radius: 18px;
+    padding: 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 2px solid transparent;
+    transition: 0.2s;
+}
+.attendance-card.present { border-color: var(--secondary); background: #f0fff4; }
+.attendance-card.absent { border-color: #ffcdd2; background: #fff5f5; }
+.attendance-info h4 { font-size: 1rem; margin-bottom: 4px; }
+.attendance-info p { font-size: 0.8rem; color: #666; }
+
+.toggle-wrapper {
+    position: relative;
+    width: 56px;
+    height: 28px;
+    flex-shrink: 0;
+}
+.toggle-wrapper input { opacity:0; width:0; height:0; position:absolute; }
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top:0; left:0; right:0; bottom:0;
+    background: #ccc;
+    transition: 0.3s;
+    border-radius: 28px;
+}
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    bottom: 4px;
+    background: white;
+    transition: 0.3s;
+    border-radius: 50%;
+}
+input:checked + .toggle-slider { background: var(--secondary); }
+input:checked + .toggle-slider:before { transform: translateX(28px); }
+
+.att-edu-row { margin-top: 8px; display: none; }
+.att-edu-row.open { display: flex; gap: 6px; }
+
+/* ----- PROFILE PAGE ----- */
+.profile-header { display: flex; align-items: flex-start; gap: 25px; flex-wrap: wrap; margin-bottom: 20px; }
+.profile-pic {
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid var(--secondary);
+    background: #eee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #aaa;
+    font-size: 3rem;
+}
+.profile-pic img { width: 100%; height: 100%; border-radius: 50%; }
+.profile-details { flex:1; }
+.profile-id { color: var(--primary); font-weight: 600; margin-bottom: 5px; }
+.profile-name { font-size: 2rem; margin-bottom: 5px; }
+.profile-meta { color: #666; margin-bottom: 10px; }
+.profile-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.profile-tabs {
+    display: flex;
+    gap: 8px;
+    border-bottom: 2px solid #eee;
+    margin: 20px 0;
+    flex-wrap: wrap;
+}
+.profile-tab {
+    padding: 10px 20px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    font-weight: 600;
+    color: #888;
+    cursor: pointer;
+}
+.profile-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+.profile-section { display: none; }
+.profile-section.active { display: block; }
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+.info-grid label { font-size: 0.8rem; color: #888; text-transform: uppercase; display: block; margin-bottom: 2px; }
+.info-grid div { font-weight: 600; }
+
+.att-percent-bar { background: var(--light); padding: 15px; border-radius: 20px; margin: 20px 0; }
+.attendance-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+.badge-present { background: #e8f5e9; color: #2e7d32; }
+.badge-absent { background: #ffebee; color: #c62828; }
+.badge-excused { background: #fff3e0; color: #e65100; }
+
+.history-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+.history-row:last-child { border-bottom: none; }
+
+.learning-item { background: #f5f5f5; padding: 8px; border-radius: 12px; margin-bottom: 6px; display: flex; justify-content: space-between; }
+.item-btn { background: none; border: none; cursor: pointer; font-size: 1rem; padding: 2px 5px; }
+
+/* ----- GALLERY ----- */
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 15px;
+}
+.gallery-card {
+    border-radius: 16px;
+    overflow: hidden;
+    background: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    cursor: pointer;
+    transition: 0.2s;
+    border: 2px solid transparent;
+}
+.gallery-card:hover { border-color: var(--secondary); transform: translateY(-4px); }
+.gallery-img { width:100%; height:140px; object-fit:cover; background:#eee; }
+.gallery-img-placeholder { width:100%; height:140px; background:linear-gradient(135deg,#f0f0f0,#e0e0e0); display:flex; align-items:center; justify-content:center; color:#aaa; font-size:2rem; }
+.gallery-card-body { padding: 10px; }
+.gallery-card-title { font-weight:600; font-size:0.9rem; }
+.gallery-card-date { font-size:0.7rem; color:#aaa; margin:4px 0; }
+.gallery-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
+.gallery-tag { background: #e8f5e9; color:#2e7d32; padding:2px 8px; border-radius:30px; font-size:0.7rem; font-weight:600; }
+
+.gallery-upload-zone {
+    border: 2px dashed var(--secondary);
+    border-radius: 28px;
+    padding: 30px;
+    text-align: center;
+    background: #f9fff9;
+    cursor: pointer;
+    margin-bottom: 15px;
+    transition: background 0.2s;
+}
+.gallery-upload-zone:hover { background: #e8f5e9; }
+.gallery-upload-zone i { font-size: 2.5rem; color: var(--secondary); margin-bottom: 8px; }
+
+.gallery-filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+.tag-suggestions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.tag-suggestion { background: var(--light); padding: 5px 12px; border-radius: 30px; font-size:0.85rem; cursor: pointer; border:1px solid #ddd; }
+.tag-suggestion:hover { background: var(--secondary); color: white; border-color: var(--secondary); }
+
+/* ----- MODALS ----- */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 16px;
+}
+.modal-overlay.hidden { display: none; }
+.modal {
+    background: white;
+    border-radius: 28px;
+    padding: 28px;
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+}
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.modal-close { background: none; border: none; font-size: 1.8rem; cursor: pointer; color: #888; }
+.modal-close:hover { color: var(--warning); }
+.modal-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 25px; padding-top: 15px; border-top: 2px solid #eee; }
+
+/* ----- TOAST ----- */
+.toast-container {
+    position: fixed;
+    bottom: 100px;
+    right: 20px;
+    z-index: 3000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.toast {
+    background: var(--dark);
+    color: white;
+    padding: 14px 22px;
+    border-radius: 50px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    animation: slideIn 0.3s;
+}
+.toast.success { background: var(--primary); }
+.toast.error { background: var(--warning); }
+.toast.warning { background: #e67e22; }
+@keyframes slideIn { from { transform: translateX(30px); opacity:0; } to { transform:translateX(0); opacity:1; } }
+@keyframes toastOut { from { transform:translateX(0); opacity:1; } to { transform:translateX(30px); opacity:0; } }
+
+/* ----- VOICE RECORDER ----- */
+.voice-recorder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--light);
+    border-radius: 30px;
+    padding: 15px;
+}
+.recorder-btn {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+.recorder-btn.record { background: var(--warning); color: white; }
+.recorder-btn.stop { background: var(--primary); color: white; }
+.recording-indicator { display: none; align-items: center; gap: 8px; color: var(--warning); }
+.recording-indicator.active { display: flex; }
+.rec-dot { width: 12px; height:12px; border-radius:50%; background:var(--warning); animation: blink 1s infinite; }
+@keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0;} }
+
+/* ----- PHOTO PREVIEW ----- */
+.photo-input-group { display: flex; flex-direction: column; gap: 8px; }
+.photo-btn-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.photo-preview { width: 100px; height:100px; border-radius: 16px; object-fit:cover; border:2px solid #ddd; display:none; margin-top:8px; }
+
+/* ----- SETTINGS ----- */
+.settings-layout {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 20px;
+}
+@media (max-width:700px){ .settings-layout{ grid-template-columns:1fr; } }
+.settings-menu { background: var(--light); border-radius: 20px; padding: 15px; }
+.settings-menu-item {
+    padding: 12px 16px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: 600;
+    margin-bottom: 6px;
+    transition: background 0.2s;
+}
+.settings-menu-item:hover { background: #e9ecef; }
+.settings-menu-item.active { background: var(--primary); color: white; }
+.settings-section { display: none; }
+.settings-section.active { display: block; }
+
+.color-palette { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
+.color-swatch {
+    width: 48px; height: 48px;
+    border-radius: 16px;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: transform 0.2s;
+}
+.color-swatch:hover { transform: scale(1.1); }
+.color-swatch.selected { border-color: var(--dark); transform: scale(1.1); }
+.color-swatch.selected::after {
+    content: '✓';
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height:100%;
+    font-size: 1.5rem;
+    text-shadow: 0 2px 5px black;
+}
+
+.storage-bar-bg { height: 12px; background: #e9ecef; border-radius: 6px; overflow: hidden; margin-top: 8px; }
+.storage-bar-fill { height: 100%; background: var(--primary); border-radius: 6px; transition: width 0.5s; }
+
+/* ----- MISC ----- */
+.empty-state { text-align: center; padding: 50px 20px; color: #aaa; }
+.empty-state i { font-size: 4rem; margin-bottom: 15px; opacity: 0.4; }
+.divider { height: 1px; background: #eee; margin: 25px 0; }
+.section-title { font-size: 1.8rem; color: var(--dark); margin-bottom: 5px; }
+.section-subtitle { color: #888; font-size: 0.95rem; margin-bottom: 25px; }
+small { font-size: 0.75rem; color: #888; display: block; margin-top: 4px; }
+
+/* ----- CAMERA MODAL ----- */
+.camera-modal-inner { display: flex; flex-direction: column; align-items: center; gap: 15px; }
+#cameraVideo { width: 100%; max-width: 480px; border-radius: 20px; background: #000; }
+#cameraCanvas { display: none; }
+
+/* ----- ATTENDANCE HISTORY TABLE ----- */
+.att-history-section { margin-top: 30px; }
+.att-history-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+.att-history-table th { background: var(--primary); color: white; padding: 8px; }
+.att-history-table td { padding: 8px; border-bottom: 1px solid #eee; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- Header -->
+    <header>
+        <div class="logo-container">
+            <div class="logo" id="appLogo"><i class="fas fa-church"></i></div>
+            <div class="header-title">
+                <h1 id="appTitle">Sunday School Attendance Manager</h1>
+                <p>Tracking and managing student attendance with care</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-secondary" id="exportAllBtn"><i class="fas fa-download"></i> Export All</button>
+            <button class="btn btn-gold" id="settingsBtn"><i class="fas fa-cog"></i> Settings</button>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav>
+    <button class="nav-btn active" data-page="home"><i class="fas fa-home"></i> Home</button>
+    <button class="nav-btn" data-page="register"><i class="fas fa-user-plus"></i> Register New</button>
+    <button class="nav-btn" data-page="students"><i class="fas fa-users"></i> Find Student</button>
+    <button class="nav-btn" data-page="attendance"><i class="fas fa-clipboard-check"></i> Attendance</button>
+    <button class="nav-btn" data-page="export"><i class="fas fa-file-export"></i> Export Data</button>
+    <button class="nav-btn" id="importBtn"><i class="fas fa-file-import"></i> Import</button>
+    <button class="nav-btn" data-page="photos"><i class="fas fa-images"></i> Photos</button>
+    <button class="nav-btn" data-page="settings"><i class="fas fa-cog"></i> Settings</button>
+    <!-- Hidden file input for import -->
+    <input type="file" id="importFileInput" accept=".json" style="display:none">
+</nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <!-- HOME PAGE -->
+        <div class="page active" id="home-page">
+            <div class="slideshow-container">
+                <div class="slideshow-inner" id="slideshowInner">
+                    <div class="slide" style="background:linear-gradient(135deg,#1a4731,#2c6e49)">
+                        <div class="slide-info"><h3>Welcome to Sunday School Manager</h3><p>Nurturing young hearts in faith and community</p></div>
+                    </div>
+                    <div class="slide" style="background:linear-gradient(135deg,#1d3557,#457b9d)">
+                        <div class="slide-info"><h3>Track Attendance Easily</h3><p>Mark and monitor attendance for every session</p></div>
+                    </div>
+                    <div class="slide" style="background:linear-gradient(135deg,#6a0572,#9d4edd)">
+                        <div class="slide-info"><h3>Growing Together in Faith</h3><p>Building a strong spiritual foundation for our children</p></div>
+                    </div>
+                </div>
+                <div class="slideshow-dots" id="slideshowDots">
+                    <div class="dot active" onclick="goToSlide(0)"></div>
+                    <div class="dot" onclick="goToSlide(1)"></div>
+                    <div class="dot" onclick="goToSlide(2)"></div>
+                </div>
+            </div>
+            <div class="homepage-actions">
+                <div class="action-card" onclick="navigateTo('register')">
+                    <div class="action-icon"><i class="fas fa-user-plus"></i></div>
+                    <h3>Register New Student</h3>
+                    <p>Add a new student to the database with detailed information</p>
+                </div>
+                <div class="action-card" onclick="navigateTo('students')">
+                    <div class="action-icon"><i class="fas fa-search"></i></div>
+                    <h3>Find Student</h3>
+                    <p>Search and view student profiles and manage records</p>
+                </div>
+                <div class="action-card" onclick="navigateTo('attendance')">
+                    <div class="action-icon"><i class="fas fa-clipboard-check"></i></div>
+                    <h3>Check Attendance</h3>
+                    <p>Mark attendance for today's session and view history</p>
+                </div>
+                <div class="action-card" onclick="navigateTo('export')">
+                    <div class="action-icon"><i class="fas fa-file-export"></i></div>
+                    <h3>Export Data</h3>
+                    <p>Export student data in CSV, JSON, and other formats</p>
+                </div>
+            </div>
+            <div class="stats-container">
+                <div class="stat-card"><h3 id="statTotal">0</h3><p>Total Students</p></div>
+                <div class="stat-card"><h3 id="statPresent">0</h3><p>Present Today</p></div>
+                <div class="stat-card"><h3 id="statAgeGroups">0</h3><p>Age Groups</p></div>
+                <div class="stat-card"><h3 id="statAttPct">0%</h3><p>Avg Attendance</p></div>
+            </div>
+        </div>
+
+        <!-- REGISTER PAGE -->
+        <div class="page" id="register-page">
+            <h2 class="section-title">Register New Person</h2>
+            <p class="section-subtitle">Select the type of person you want to register</p>
+            <div class="register-type-grid" id="registerTypeGrid">
+                <div class="action-card" onclick="showRegisterForm('student')">
+                    <div class="action-icon"><i class="fas fa-child"></i></div>
+                    <h3>Student</h3>
+                    <p>Register a new Sunday School student with full profile information</p>
+                </div>
+                <div class="action-card" onclick="showRegisterForm('teacher')">
+                    <div class="action-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                    <h3>Teacher</h3>
+                    <p>Register a Sunday School teacher or volunteer</p>
+                </div>
+                <div class="action-card" onclick="showRegisterForm('parent')">
+                    <div class="action-icon"><i class="fas fa-user-friends"></i></div>
+                    <h3>Parent / Guardian</h3>
+                    <p>Register a parent or guardian with contact information</p>
+                </div>
+            </div>
+
+            <!-- Student Registration Form (hidden initially) -->
+            <div id="studentRegForm" style="display:none" class="form-container">
+                <div class="divider"></div>
+                <h3 style="margin-bottom:20px">Student Registration Form</h3>
+                <form id="studentForm" novalidate>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>First Name *</label>
+                            <input type="text" id="sf_first" class="form-control" placeholder="Min 2 characters" required minlength="2">
+                        </div>
+                        <div class="form-group">
+                            <label>Last Name *</label>
+                            <input type="text" id="sf_last" class="form-control" placeholder="Min 2 characters" required minlength="2">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Birthday *</label>
+                            <input type="date" id="sf_birthday" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Gender</label>
+                            <select id="sf_gender" class="form-control">
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Guardian 1 *</label>
+                            <input type="text" id="sf_guardian1" class="form-control" placeholder="Full name of first guardian" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Guardian 2</label>
+                            <input type="text" id="sf_guardian2" class="form-control" placeholder="Optional second guardian">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Contact Phone *</label>
+                            <input type="tel" id="sf_phone" class="form-control" placeholder="Emergency contact number" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Contact Email</label>
+                            <input type="email" id="sf_email" class="form-control" placeholder="Optional email address">
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom:20px">
+                        <label>Allergies & Medical Notes</label>
+                        <textarea id="sf_allergies" class="form-control" rows="3" placeholder="Any allergies, medical conditions, or special needs"></textarea>
+                    </div>
+                    <div class="form-group" style="margin-bottom:20px">
+                        <label>Additional Notes</label>
+                        <textarea id="sf_notes" class="form-control" rows="3" placeholder="Any other important information"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Profile Picture</label>
+                            <div class="photo-input-group">
+                                <div class="photo-btn-row">
+                                    <label class="btn btn-secondary btn-sm" style="cursor:pointer"><i class="fas fa-upload"></i> Upload <input type="file" id="sf_photo" accept="image/*" style="display:none" onchange="previewPhoto(this,'sf_photoPreview')"></label>
+                                    <button type="button" class="btn btn-secondary btn-sm" onclick="openCamera('sf_photo','sf_photoPreview')"><i class="fas fa-camera"></i> Take Photo</button>
+                                </div>
+                                <img id="sf_photoPreview" class="photo-preview" alt="Preview">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Name Pronunciation (Audio)</label>
+                            <div class="voice-recorder" data-recorder="sf">
+                                <div class="recording-indicator" id="recIndicator_sf"><div class="rec-dot"></div> Recording…</div>
+                                <button type="button" class="recorder-btn record" id="recBtn_sf" onclick="toggleRecording('sf')"><i class="fas fa-microphone"></i></button>
+                                <audio id="recAudio_sf" controls style="display:none;width:100%;margin-top:5px"></audio>
+                                <small>Click mic to record pronunciation</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row" style="justify-content:flex-end;margin-top:10px">
+                        <button type="button" class="btn btn-secondary" onclick="hideRegisterForm()">Cancel</button>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-user-plus"></i> Register Student</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Simple (Teacher/Parent) Registration Form -->
+            <div id="simpleRegForm" style="display:none" class="form-container">
+                <div class="divider"></div>
+                <h3 id="simpleFormTitle" style="margin-bottom:20px">Register</h3>
+                <form id="simpleForm" novalidate>
+                    <input type="hidden" id="sf2_role">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>First Name *</label>
+                            <input type="text" id="sf2_first" class="form-control" placeholder="Min 2 characters" required minlength="2">
+                        </div>
+                        <div class="form-group">
+                            <label>Last Name *</label>
+                            <input type="text" id="sf2_last" class="form-control" placeholder="Min 2 characters" required minlength="2">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Gender</label>
+                            <select id="sf2_gender" class="form-control">
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Contact Phone</label>
+                            <input type="tel" id="sf2_phone" class="form-control" placeholder="Phone number">
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom:20px">
+                        <label>Email</label>
+                        <input type="email" id="sf2_email" class="form-control" placeholder="Email address">
+                    </div>
+                    <div class="form-group" style="margin-bottom:20px">
+                        <label>Notes</label>
+                        <textarea id="sf2_notes" class="form-control" rows="3" placeholder="Additional notes"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Profile Picture</label>
+                            <div class="photo-input-group">
+                                <div class="photo-btn-row">
+                                    <label class="btn btn-secondary btn-sm" style="cursor:pointer"><i class="fas fa-upload"></i> Upload <input type="file" id="sf2_photo" accept="image/*" style="display:none" onchange="previewPhoto(this,'sf2_photoPreview')"></label>
+                                    <button type="button" class="btn btn-secondary btn-sm" onclick="openCamera('sf2_photo','sf2_photoPreview')"><i class="fas fa-camera"></i> Take Photo</button>
+                                </div>
+                                <img id="sf2_photoPreview" class="photo-preview" alt="Preview">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Name Pronunciation (Audio)</label>
+                            <div class="voice-recorder" data-recorder="sf2">
+                                <div class="recording-indicator" id="recIndicator_sf2"><div class="rec-dot"></div> Recording…</div>
+                                <button type="button" class="recorder-btn record" id="recBtn_sf2" onclick="toggleRecording('sf2')"><i class="fas fa-microphone"></i></button>
+                                <audio id="recAudio_sf2" controls style="display:none;width:100%;margin-top:5px"></audio>
+                                <small>Click mic to record pronunciation</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row" style="justify-content:flex-end;margin-top:10px">
+                        <button type="button" class="btn btn-secondary" onclick="hideRegisterForm()">Cancel</button>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-user-plus"></i> Register</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- STUDENTS PAGE (Find Student) -->
+        <div class="page" id="students-page">
+            <h2 class="section-title">Find Student</h2>
+            <p class="section-subtitle">Search and manage student records</p>
+            <div class="filters">
+                <div class="search-box">
+                    <input type="text" id="searchInput" class="form-control" placeholder="Search by name, ID, or guardian…" oninput="renderStudentTable()">
+                </div>
+                <select id="filterGender" class="form-control" style="width:150px" onchange="renderStudentTable()">
+                    <option value="">All Genders</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+                <select id="filterAge" class="form-control" style="width:180px" onchange="renderStudentTable()">
+                    <option value="">All Age Groups</option>
+                    <option value="0-3">0–3 years</option>
+                    <option value="4-6">4–6 years</option>
+                    <option value="7-10">7–10 years</option>
+                    <option value="11-13">11–13 years</option>
+                    <option value="14+">14+ years</option>
+                </select>
+                <button class="btn btn-secondary" onclick="clearStudentFilters()"><i class="fas fa-times"></i> Clear</button>
+            </div>
+            <div class="student-list-container">
+                <table class="student-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th><th>Full Name</th><th>Age</th><th>Gender</th><th>Guardian</th><th>Last Attended</th><th>Attendance %</th><th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentTableBody"></tbody>
+                </table>
+            </div>
+            <div id="studentsEmpty" class="empty-state" style="display:none">
+                <i class="fas fa-users"></i>
+                <h3>No students found</h3>
+                <p>Try adjusting your search, or <a href="#" onclick="navigateTo('register');return false" style="color:var(--primary-color)">register new students</a>.</p>
+            </div>
+        </div>
+
+        <!-- ATTENDANCE PAGE -->
+        <div class="page" id="attendance-page">
+            <h2 class="section-title">Check Attendance</h2>
+            <p class="section-subtitle">Mark and save attendance for a session</p>
+            <div class="attendance-controls">
+                <div class="date-selector">
+                    <label style="font-weight:600">Date:</label>
+                    <input type="date" id="attDate" class="form-control" style="width:190px" onchange="renderAttendance()">
+                    <button class="btn btn-secondary" onclick="setAttToday()"><i class="fas fa-calendar-day"></i> Today</button>
+                </div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap">
+                    <button class="btn btn-primary" onclick="markAll(true)"><i class="fas fa-check-circle"></i> All Present</button>
+                    <button class="btn btn-warning" onclick="markAll(false)"><i class="fas fa-times-circle"></i> All Absent</button>
+                    <button class="btn btn-secondary" onclick="saveAttendance()"><i class="fas fa-save"></i> Save</button>
+                </div>
+            </div>
+            <div class="attendance-summary" id="attSummary" style="display:none">
+                <div class="att-stat"><div class="num" id="attTotal">0</div><div class="lbl">Total</div></div>
+                <div class="att-stat"><div class="num" style="color:var(--primary-color)" id="attPresent">0</div><div class="lbl">Present</div></div>
+                <div class="att-stat"><div class="num" style="color:var(--warning-color)" id="attAbsent">0</div><div class="lbl">Absent</div></div>
+                <div class="att-stat"><div class="num" id="attPct">0%</div><div class="lbl">Rate</div></div>
+            </div>
+            <div class="attendance-list" id="attendanceList"></div>
+            <div id="attEmpty" class="empty-state" style="display:none">
+                <i class="fas fa-clipboard-check"></i>
+                <h3>No students to mark</h3>
+                <p><a href="#" onclick="navigateTo('register');return false" style="color:var(--primary-color)">Register students</a> first to take attendance.</p>
+            </div>
+            <!-- Attendance History Section (v1 feature) -->
+            <div class="att-history-section" id="attHistorySection" style="display:none">
+                <h3 style="margin-bottom:15px"><i class="fas fa-history"></i> Attendance History – All Sessions</h3>
+                <div style="overflow-x:auto">
+                    <table class="att-history-table" id="attHistoryTable">
+                        <thead><tr id="attHistoryHead"></tr></thead>
+                        <tbody id="attHistoryBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- EXPORT PAGE -->
+        <div class="page" id="export-page">
+            <h2 class="section-title">Export Data</h2>
+            <p class="section-subtitle">Download student data in various formats</p>
+            <div class="filters">
+                <div class="search-box">
+                    <input type="text" id="exportSearch" class="form-control" placeholder="Filter students for export…" oninput="renderExportPreview()">
+                </div>
+                <select id="exportGenderFilter" class="form-control" style="width:160px" onchange="renderExportPreview()">
+                    <option value="">All Genders</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                </select>
+            </div>
+            <div id="exportPreviewInfo" style="margin-bottom:15px;font-size:14px;color:#666"></div>
+            <div class="export-options">
+                <button class="export-btn" onclick="exportCSV()"><i class="fas fa-file-csv" style="color:#217346"></i> Export CSV</button>
+                <button class="export-btn" onclick="exportJSON()"><i class="fas fa-file-code" style="color:#f0a500"></i> Export JSON</button>
+                <button class="export-btn" onclick="exportPDF()"><i class="fas fa-file-pdf" style="color:#e53935"></i> Print / PDF</button>
+            </div>
+            <div class="export-info-box">
+                <h4>Export Formats</h4>
+                <ul>
+                    <li><strong>CSV:</strong> Basic student info – opens in Excel / Google Sheets</li>
+                    <li><strong>JSON:</strong> All data including attendance history and notes</li>
+                    <li><strong>Print / PDF:</strong> Opens a printable report in a new tab</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- PHOTOS PAGE (Gallery) -->
+        <div class="page" id="photos-page">
+            <h2 class="section-title">Photo Gallery</h2>
+            <p class="section-subtitle">Upload group or event photos and tag people — tagged photos appear in their profiles</p>
+            <!-- Upload zone -->
+            <div class="gallery-upload-zone" onclick="document.getElementById('galleryUploadInput').click()">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <div style="font-size:17px;font-weight:700;margin-bottom:5px">Click to upload a photo</div>
+                <div style="color:#888;font-size:14px">or drag and drop</div>
+                <input type="file" id="galleryUploadInput" accept="image/*" style="display:none" onchange="handleGalleryUpload(this)">
+            </div>
+            <div style="text-align:center;margin:12px 0;color:#aaa;font-size:14px">— or —</div>
+            <div style="text-align:center;margin-bottom:25px">
+                <button class="btn btn-secondary" onclick="openGalleryCamera()"><i class="fas fa-camera"></i> Take Photo with Camera</button>
+            </div>
+            <!-- Filters -->
+            <div class="gallery-filters">
+                <input type="text" id="gallerySearch" class="form-control" style="flex:1;min-width:200px" placeholder="Search by caption or tagged name…" oninput="renderGallery()">
+                <select id="galleryPersonFilter" class="form-control" style="width:200px" onchange="renderGallery()">
+                    <option value="">All People</option>
+                </select>
+                <button class="btn btn-secondary btn-sm" onclick="document.getElementById('gallerySearch').value='';document.getElementById('galleryPersonFilter').value='';renderGallery()"><i class="fas fa-times"></i> Clear</button>
+            </div>
+            <div id="galleryGrid" class="gallery-grid"></div>
+            <div id="galleryEmpty" class="empty-state" style="display:none">
+                <i class="fas fa-images"></i>
+                <h3>No photos yet</h3>
+                <p>Upload a photo above to get started.</p>
+            </div>
+        </div>
+
+        <!-- SETTINGS PAGE -->
+        <div class="page" id="settings-page">
+            <h2 class="section-title">Settings</h2>
+            <p class="section-subtitle">Customize appearance and manage data</p>
+            <div class="settings-layout">
+                <div class="settings-menu">
+                    <div class="settings-menu-item active" onclick="showSettingsSection('appearance')"><i class="fas fa-palette"></i> Appearance</div>
+                    <div class="settings-menu-item" onclick="showSettingsSection('data')"><i class="fas fa-database"></i> Data Management</div>
+                    <div class="settings-menu-item" onclick="showSettingsSection('about')"><i class="fas fa-info-circle"></i> About</div>
+                </div>
+                <div class="settings-content">
+                    <!-- Appearance -->
+                    <div class="settings-section active" id="appearance-settings">
+                        <h3>Appearance</h3>
+                        <p>Customize the look of the application</p>
+                        <div class="form-group" style="margin-bottom:20px">
+                            <label>Primary Color</label>
+                            <div class="color-palette" id="primaryPalette">
+                                <div class="color-swatch selected" style="background:#2c6e49" data-color="#2c6e49" onclick="setPrimaryColor(this)"></div>
+                                <div class="color-swatch" style="background:#1d3557" data-color="#1d3557" onclick="setPrimaryColor(this)"></div>
+                                <div class="color-swatch" style="background:#6a0572" data-color="#6a0572" onclick="setPrimaryColor(this)"></div>
+                                <div class="color-swatch" style="background:#b23a48" data-color="#b23a48" onclick="setPrimaryColor(this)"></div>
+                                <div class="color-swatch" style="background:#d4af37" data-color="#d4af37" onclick="setPrimaryColor(this)"></div>
+                                <div class="color-swatch" style="background:#333" data-color="#333333" onclick="setPrimaryColor(this)"></div>
+                                <div class="color-swatch" style="background:#0077b6" data-color="#0077b6" onclick="setPrimaryColor(this)"></div>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-bottom:20px">
+                            <label>Accent Color</label>
+                            <div class="color-palette" id="secondaryPalette">
+                                <div class="color-swatch selected" style="background:#4c956c" data-color="#4c956c" onclick="setSecondaryColor(this)"></div>
+                                <div class="color-swatch" style="background:#457b9d" data-color="#457b9d" onclick="setSecondaryColor(this)"></div>
+                                <div class="color-swatch" style="background:#9d4edd" data-color="#9d4edd" onclick="setSecondaryColor(this)"></div>
+                                <div class="color-swatch" style="background:#ff6b6b" data-color="#ff6b6b" onclick="setSecondaryColor(this)"></div>
+                                <div class="color-swatch" style="background:#ffd166" data-color="#ffd166" onclick="setSecondaryColor(this)"></div>
+                                <div class="color-swatch" style="background:#e67e22" data-color="#e67e22" onclick="setSecondaryColor(this)"></div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Custom Background Image</label>
+                                <input type="file" id="bgImageInput" class="form-control" accept="image/*" onchange="handleBgUpload(this)">
+                                <small>Upload an image to use as background</small>
+                            </div>
+                            <div class="form-group">
+                                <label>Custom Logo</label>
+                                <input type="file" id="logoInput" class="form-control" accept="image/*" onchange="handleLogoUpload(this)">
+                                <small>Upload a custom logo for the header</small>
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:12px;margin-top:10px;flex-wrap:wrap">
+                            <button class="btn btn-primary" onclick="saveAppearance()"><i class="fas fa-save"></i> Save</button>
+                            <button class="btn btn-secondary" onclick="resetAppearance()"><i class="fas fa-undo"></i> Reset Defaults</button>
+                            <button class="btn btn-warning" onclick="clearBackground()"><i class="fas fa-image"></i> Clear Background</button>
+                        </div>
+                    </div>
+                    <!-- Data Management -->
+                    <div class="settings-section" id="data-settings">
+                        <h3>Data Management</h3>
+                        <p>Manage application data stored in your browser</p>
+                        <div style="background:var(--light-color);padding:18px;border-radius:var(--border-radius);margin-bottom:20px">
+                            <h4 style="margin-bottom:8px">Storage Usage</h4>
+                            <div id="storageText" style="font-size:14px;color:#555">Calculating…</div>
+                            <div class="storage-bar-bg"><div class="storage-bar-fill" id="storageBarFill" style="width:0%"></div></div>
+                        </div>
+                        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:25px">
+                            <button class="btn btn-secondary" onclick="backupData()"><i class="fas fa-download"></i> Backup All Data</button>
+                            <button class="btn btn-secondary" onclick="document.getElementById('restoreInput').click()"><i class="fas fa-upload"></i> Restore Backup</button>
+                            <input type="file" id="restoreInput" accept=".json" style="display:none" onchange="restoreData(this)">
+                        </div>
+                        <div class="divider"></div>
+                        <div>
+                            <h4 style="margin-bottom:8px;color:var(--warning-color)">Danger Zone</h4>
+                            <p style="font-size:14px;color:#888;margin-bottom:12px">These actions cannot be undone.</p>
+                            <button class="btn btn-warning" onclick="clearAllData()"><i class="fas fa-trash-alt"></i> Clear All Data</button>
+                        </div>
+                    </div>
+                    <!-- About -->
+                    <div class="settings-section" id="about-settings">
+                        <h3>About Sunday School Attendance Manager</h3>
+                        <p>Version 2.0.0 – Fully functional release</p>
+                        <div style="background:var(--light-color);padding:20px;border-radius:var(--border-radius);margin-top:20px">
+                            <h4 style="margin-bottom:10px">Features</h4>
+                            <ul style="padding-left:20px;line-height:2;color:#555;font-size:14px">
+                                <li>Student, teacher & parent registration with unique IDs</li>
+                                <li>Attendance tracking with per-student history</li>
+                                <li>Search & filter students by name, gender, and age group</li>
+                                <li>Export data as CSV, JSON, or printable PDF</li>
+                                <li>Full student profile view with attendance history</li>
+                                <li>Customizable color themes and background</li>
+                                <li>Voice recording for name pronunciation</li>
+                                <li>Profile photo support</li>
+                                <li>Photo gallery with tagging</li>
+                                <li>Learning levels (mastered, learning, future)</li>
+                                <li>Data backup & restore</li>
+                                <li>All data stored locally in your browser</li>
+                            </ul>
+                        </div>
+                        <div style="margin-top:20px;text-align:center;color:#aaa;font-size:13px">Made with ❤️ for Sunday School management</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PROFILE PAGE (dynamically injected) -->
+        <div class="page" id="profile-page"></div>
+    </main>
+</div>
+
+<!-- Camera Modal -->
+<div class="modal-overlay hidden" id="cameraModal">
+    <div class="modal" style="max-width:560px">
+        <div class="modal-header">
+            <h3><i class="fas fa-camera"></i> Take Photo</h3>
+            <button class="modal-close" onclick="closeCamera()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="camera-modal-inner">
+            <video id="cameraVideo" autoplay playsinline></video>
+            <canvas id="cameraCanvas"></canvas>
+            <img id="cameraCaptured" style="display:none;max-width:100%;border-radius:10px;max-height:300px;object-fit:contain" alt="Captured">
+            <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center">
+                <button class="btn btn-primary" id="cameraSnapBtn" onclick="snapPhoto()"><i class="fas fa-circle"></i> Capture</button>
+                <button class="btn btn-secondary" id="cameraRetakeBtn" onclick="retakePhoto()" style="display:none"><i class="fas fa-redo"></i> Retake</button>
+                <button class="btn btn-primary" id="cameraUseBtn" onclick="usePhoto()" style="display:none"><i class="fas fa-check"></i> Use This Photo</button>
+                <button class="btn btn-secondary" onclick="closeCamera()">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gallery Photo Modal (view/tag) -->
+<div class="modal-overlay hidden" id="galleryModal">
+    <div class="modal" style="max-width:700px">
+        <div class="modal-header">
+            <h3 id="galleryModalTitle">Photo</h3>
+            <button class="modal-close" onclick="closeGalleryModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <img id="galleryModalImg" style="width:100%;max-height:380px;object-fit:contain;border-radius:10px;background:#eee" alt="">
+        <div style="margin-top:18px">
+            <div class="form-group" style="margin-bottom:15px">
+                <label>Caption</label>
+                <input type="text" id="galleryModalCaption" class="form-control" placeholder="Add a caption…">
+            </div>
+            <div class="form-group">
+                <label>Tag People</label>
+                <div class="tag-input-area">
+                    <input type="text" id="tagSearchInput" class="form-control" placeholder="Type a name to search…" oninput="updateTagSuggestions()">
+                </div>
+                <div class="tag-suggestions" id="tagSuggestions"></div>
+                <div style="margin-top:12px">
+                    <label style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px">Tagged</label>
+                    <div id="currentTags" class="gallery-tags" style="margin-top:6px;min-height:28px"></div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-warning btn-sm" onclick="deleteGalleryPhoto()"><i class="fas fa-trash"></i> Delete</button>
+            <button class="btn btn-secondary" onclick="closeGalleryModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveGalleryPhoto()"><i class="fas fa-save"></i> Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Student Modal -->
+<div class="modal-overlay hidden" id="editModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Edit Student</h3>
+            <button class="modal-close" onclick="closeEditModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <form id="editForm" novalidate>
+            <input type="hidden" id="edit_id">
+            <div class="form-row">
+                <div class="form-group"><label>First Name *</label><input type="text" id="edit_first" class="form-control" required minlength="2"></div>
+                <div class="form-group"><label>Last Name *</label><input type="text" id="edit_last" class="form-control" required minlength="2"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Birthday</label><input type="date" id="edit_birthday" class="form-control"></div>
+                <div class="form-group">
+                    <label>Gender</label>
+                    <select id="edit_gender" class="form-control">
+                        <option value="">Select</option><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Guardian 1</label><input type="text" id="edit_guardian1" class="form-control"></div>
+                <div class="form-group"><label>Guardian 2</label><input type="text" id="edit_guardian2" class="form-control"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Contact Phone</label><input type="tel" id="edit_phone" class="form-control"></div>
+                <div class="form-group"><label>Contact Email</label><input type="email" id="edit_email" class="form-control"></div>
+            </div>
+            <div class="form-group" style="margin-bottom:15px"><label>Allergies & Medical Notes</label><textarea id="edit_allergies" class="form-control" rows="3"></textarea></div>
+            <div class="form-group" style="margin-bottom:15px"><label>Additional Notes</label><textarea id="edit_notes" class="form-control" rows="3"></textarea></div>
+            <div class="form-group" style="margin-bottom:15px">
+                <label>Profile Picture</label>
+                <div class="photo-input-group">
+                    <div class="photo-btn-row">
+                        <label class="btn btn-secondary btn-sm" style="cursor:pointer"><i class="fas fa-upload"></i> Upload <input type="file" id="edit_photo" accept="image/*" style="display:none" onchange="previewPhoto(this,'edit_photoPreview')"></label>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="openCamera('edit_photo','edit_photoPreview')"><i class="fas fa-camera"></i> Take Photo</button>
+                    </div>
+                    <img id="edit_photoPreview" class="photo-preview" alt="Preview">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Add Learning Item Modal -->
+<div class="modal-overlay hidden" id="learnModal">
+    <div class="modal" style="max-width:480px">
+        <div class="modal-header">
+            <h3><i class="fas fa-book-open"></i> Add Learning Topic</h3>
+            <button class="modal-close" onclick="closeLearnModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="form-group" style="margin-bottom:18px">
+            <label>Topic / Subject *</label>
+            <input type="text" id="learnModalTopic" class="form-control" placeholder="e.g. The Lord's Prayer, Genesis 1, Baptism…" onkeydown="if(event.key==='Enter')saveLearnItem()">
+        </div>
+        <div class="form-group" style="margin-bottom:18px">
+            <label>Status</label>
+            <select id="learnModalStatus" class="form-control">
+                <option value="learning">📖 Currently Learning</option>
+                <option value="mastered">✅ Mastered</option>
+                <option value="future">🔮 Future / Planned</option>
+            </select>
+        </div>
+        <div style="background:#f0f9ff;border-radius:8px;padding:12px;margin-bottom:18px;font-size:13px;color:#1d3557">
+            <strong>Tip:</strong> Use <em>Future / Planned</em> to add upcoming lessons. You can also bulk-add a future topic to <strong>all students</strong> using the button below.
+        </div>
+        <div class="form-group" style="margin-bottom:18px">
+            <label>Or add a future topic to ALL students at once:</label>
+            <div style="display:flex;gap:8px">
+                <input type="text" id="globalFutureTopic" class="form-control" placeholder="Topic for everyone…">
+                <button class="btn btn-secondary" style="white-space:nowrap" onclick="addFutureTopicToAll(document.getElementById('globalFutureTopic').value.trim());document.getElementById('globalFutureTopic').value=''"><i class="fas fa-users"></i> Add to All</button>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeLearnModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveLearnItem()"><i class="fas fa-plus"></i> Add Topic</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+<script>
+  // ===== ROUND 2 – JAVASCRIPT (ALL FUNCTIONALITY) =====
+(function() {
+    // ---------- STATE (single source of truth) ----------
+    let state = {
+        students: [],
+        photos: [],
+        settings: {
+            primaryColor: '#2c6e49',
+            secondaryColor: '#4c956c',
+            backgroundImage: null,
+            logoImage: null
+        }
+    };
+
+    // Voice recorders map: { recorderId: { mediaRecorder, chunks, blob, recording } }
+    const recorders = {};
+
+    // Temporary attendance map (for unsaved changes)
+    const tempAtt = {};
+
+    // ---------- PERSISTENCE ----------
+    function loadState() {
+        try {
+            const s = localStorage.getItem('ssStudents');
+            const p = localStorage.getItem('ssPhotos');
+            const set = localStorage.getItem('ssSettings');
+            if (s) state.students = JSON.parse(s);
+            if (p) state.photos = JSON.parse(p);
+            if (set) state.settings = { ...state.settings, ...JSON.parse(set) };
+        } catch (e) { console.warn('load error', e); }
+    }
+
+    function saveState() {
+        try {
+            localStorage.setItem('ssStudents', JSON.stringify(state.students));
+            localStorage.setItem('ssPhotos', JSON.stringify(state.photos));
+            localStorage.setItem('ssSettings', JSON.stringify(state.settings));
+            updateStats();
+            updateStorageDisplay();
+        } catch (e) {
+            showToast('Storage limit reached. Export data to free space.', 'error');
+        }
+    }
+
+    // ---------- HELPER FUNCTIONS (optimized) ----------
+    function generateId(prefix) {
+        const ts = Date.now().toString().slice(-5);
+        const r = Math.floor(Math.random() * 900 + 100);
+        return `${prefix}${ts}${r}`;
+    }
+
+    function calcAge(birthday) {
+        if (!birthday) return 0;
+        const b = new Date(birthday);
+        const t = new Date();
+        let age = t.getFullYear() - b.getFullYear();
+        if (t.getMonth() < b.getMonth() || (t.getMonth() === b.getMonth() && t.getDate() < b.getDate())) age--;
+        return Math.max(0, age);
+    }
+
+    function getAgeGroup(age) {
+        if (age <= 3) return '0-3';
+        if (age <= 6) return '4-6';
+        if (age <= 10) return '7-10';
+        if (age <= 13) return '11-13';
+        return '14+';
+    }
+
+    function calcAttPct(s) {
+        const records = Object.values(s.attendance || {});
+        return records.length ? Math.round((records.filter(r => r.status === 'present').length / records.length) * 100) : 0;
+    }
+
+    function countPresent(s) {
+        return Object.values(s.attendance || {}).filter(r => r.status === 'present').length;
+    }
+
+    function getLastAttended(s) {
+        const dates = Object.keys(s.attendance || {}).sort();
+        if (!dates.length) return 'Never';
+        const last = dates[dates.length - 1];
+        return s.attendance[last].status === 'present' ? formatDate(last) : 'Absent ' + formatDate(last);
+    }
+
+    function formatDate(str) {
+        if (!str) return '—';
+        const d = new Date(str + 'T00:00:00');
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function cap(str) {
+        return str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
+    }
+
+    // ---------- UI UPDATES ----------
+    function updateStats() {
+        const students = state.students.filter(s => s.type === 'student');
+        const today = new Date().toISOString().split('T')[0];
+        let presentToday = 0, totalPct = 0;
+        const ageSet = new Set();
+        students.forEach(s => {
+            if (s.attendance?.[today]?.status === 'present') presentToday++;
+            if (s.ageGroup) ageSet.add(s.ageGroup);
+            totalPct += calcAttPct(s);
+        });
+        document.getElementById('statTotal').textContent = students.length;
+        document.getElementById('statPresent').textContent = presentToday;
+        document.getElementById('statAgeGroups').textContent = ageSet.size;
+        document.getElementById('statAttPct').textContent = students.length ? Math.round(totalPct / students.length) + '%' : '0%';
+    }
+
+    function updateStorageDisplay() {
+        try {
+            let total = 0;
+            for (let k in localStorage) if (localStorage.hasOwnProperty(k)) total += (localStorage[k].length + k.length) * 2;
+            const kb = Math.round(total / 1024);
+            const max = 5120;
+            const pct = Math.min(100, Math.round((kb / max) * 100));
+            document.getElementById('storageText').textContent = `Using ~${kb} KB of ~${max} KB`;
+            document.getElementById('storageBarFill').style.width = pct + '%';
+            document.getElementById('storageBarFill').style.background = pct > 80 ? '#e63946' : '#2c6e49';
+        } catch (e) {}
+    }
+
+    // ---------- NAVIGATION ----------
+    window.navigateTo = function(page) {
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.page === page));
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        const el = document.getElementById(page + '-page');
+        if (el) {
+            el.classList.add('active');
+            if (page === 'students') renderStudentTable();
+            if (page === 'attendance') renderAttendance();
+            if (page === 'export') renderExportPreview();
+            if (page === 'photos') { renderGallery(); populatePersonFilter(); }
+            if (page === 'settings') updateStorageDisplay();
+        }
+    };
+
+    // ---------- REGISTER FORMS ----------
+    window.showRegisterForm = function(type) {
+        hideRegisterForm();
+        if (type === 'student') {
+            document.getElementById('studentRegForm').style.display = 'block';
+        } else {
+            document.getElementById('simpleRegForm').style.display = 'block';
+            document.getElementById('simpleFormTitle').textContent = type === 'teacher' ? 'Register Teacher' : 'Register Parent / Guardian';
+            document.getElementById('sf2_role').value = type;
+        }
+    };
+
+    window.hideRegisterForm = function() {
+        document.getElementById('studentRegForm').style.display = 'none';
+        document.getElementById('simpleRegForm').style.display = 'none';
+    };
+
+    // Student registration
+    document.getElementById('studentForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const first = document.getElementById('sf_first').value.trim();
+        const last = document.getElementById('sf_last').value.trim();
+        const birthday = document.getElementById('sf_birthday').value;
+        const phone = document.getElementById('sf_phone').value.trim();
+        const guardian1 = document.getElementById('sf_guardian1').value.trim();
+        if (!first || first.length < 2 || !last || last.length < 2) return showToast('Names require at least 2 characters', 'error');
+        if (!birthday) return showToast('Birthday required', 'error');
+        if (!phone) return showToast('Phone required', 'error');
+        if (!guardian1) return showToast('Guardian 1 required', 'error');
+
+        const student = {
+            id: generateId('SS'),
+            type: 'student',
+            firstName: first,
+            lastName: last,
+            fullName: `${first} ${last}`,
+            birthday,
+            age: calcAge(birthday),
+            ageGroup: getAgeGroup(calcAge(birthday)),
+            gender: document.getElementById('sf_gender').value,
+            guardians: [guardian1, document.getElementById('sf_guardian2').value.trim()].filter(Boolean),
+            phone,
+            email: document.getElementById('sf_email').value.trim(),
+            allergies: document.getElementById('sf_allergies').value.trim(),
+            notes: document.getElementById('sf_notes').value.trim(),
+            attendance: {},
+            registeredOn: new Date().toISOString().split('T')[0],
+            photo: null,
+            audio: null
+        };
+
+        const photoPreview = document.getElementById('sf_photoPreview');
+        if (photoPreview && photoPreview.src && photoPreview.style.display !== 'none') student.photo = photoPreview.src;
+
+        const rec = recorders['sf'];
+        if (rec && rec.blob) {
+            const reader = new FileReader();
+            reader.onload = (ev) => { student.audio = ev.target.result; finalizeStudentAdd(student); };
+            reader.readAsDataURL(rec.blob);
+        } else finalizeStudentAdd(student);
+    });
+
+    function finalizeStudentAdd(s) {
+        state.students.push(s);
+        saveState();
+        document.getElementById('studentForm').reset();
+        document.getElementById('sf_photoPreview').style.display = 'none';
+        if (recorders['sf']) recorders['sf'] = null;
+        document.getElementById('recAudio_sf').style.display = 'none';
+        hideRegisterForm();
+        showToast(`✅ ${s.fullName} registered (${s.id})`);
+        renderStudentTable();
+    }
+
+    // Simple (teacher/parent) registration
+    document.getElementById('simpleForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const first = document.getElementById('sf2_first').value.trim();
+        const last = document.getElementById('sf2_last').value.trim();
+        const role = document.getElementById('sf2_role').value;
+        if (!first || first.length < 2 || !last || last.length < 2) return showToast('Names too short', 'error');
+        const person = {
+            id: generateId(role[0].toUpperCase()),
+            type: role,
+            firstName: first,
+            lastName: last,
+            fullName: `${first} ${last}`,
+            gender: document.getElementById('sf2_gender').value,
+            phone: document.getElementById('sf2_phone').value.trim(),
+            email: document.getElementById('sf2_email').value.trim(),
+            notes: document.getElementById('sf2_notes').value.trim(),
+            registeredOn: new Date().toISOString().split('T')[0],
+            photo: null,
+            audio: null
+        };
+        const preview = document.getElementById('sf2_photoPreview');
+        if (preview && preview.src && preview.style.display !== 'none') person.photo = preview.src;
+        const rec2 = recorders['sf2'];
+        if (rec2 && rec2.blob) {
+            const reader = new FileReader();
+            reader.onload = (ev) => { person.audio = ev.target.result; finalizeSimple(person); };
+            reader.readAsDataURL(rec2.blob);
+        } else finalizeSimple(person);
+    });
+
+    function finalizeSimple(p) {
+        state.students.push(p);
+        saveState();
+        document.getElementById('simpleForm').reset();
+        document.getElementById('sf2_photoPreview').style.display = 'none';
+        if (recorders['sf2']) recorders['sf2'] = null;
+        document.getElementById('recAudio_sf2').style.display = 'none';
+        hideRegisterForm();
+        showToast(`✅ ${p.fullName} (${p.type}) registered`);
+    }
+
+    // ---------- VOICE RECORDER (multi‑instance) ----------
+    window.toggleRecording = async function(instance) {
+        const btnId = `recBtn_${instance}`;
+        const indicatorId = `recIndicator_${instance}`;
+        const audioId = `recAudio_${instance}`;
+        if (!recorders[instance]) recorders[instance] = { mediaRecorder: null, chunks: [], blob: null, recording: false };
+        const rec = recorders[instance];
+        if (rec.recording) {
+            rec.mediaRecorder.stop();
+            rec.recording = false;
+            document.getElementById(btnId).className = 'recorder-btn record';
+            document.getElementById(btnId).innerHTML = '<i class="fas fa-microphone"></i>';
+            document.getElementById(indicatorId).classList.remove('active');
+        } else {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                rec.chunks = [];
+                const mime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/ogg', 'audio/mp4', ''].find(t => !t || MediaRecorder.isTypeSupported(t));
+                rec.mediaRecorder = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+                rec.mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) rec.chunks.push(e.data); };
+                rec.mediaRecorder.onstop = () => {
+                    rec.blob = new Blob(rec.chunks, { type: rec.mediaRecorder.mimeType || 'audio/webm' });
+                    const url = URL.createObjectURL(rec.blob);
+                    const audio = document.getElementById(audioId);
+                    if (audio) { audio.src = url; audio.style.display = 'block'; }
+                    stream.getTracks().forEach(t => t.stop());
+                };
+                rec.mediaRecorder.start();
+                rec.recording = true;
+                document.getElementById(btnId).className = 'recorder-btn stop';
+                document.getElementById(btnId).innerHTML = '<i class="fas fa-stop"></i>';
+                document.getElementById(indicatorId).classList.add('active');
+            } catch (e) {
+                showToast('Microphone access denied', 'error');
+            }
+        }
+    };
+
+    // ---------- PHOTO PREVIEW & CAMERA ----------
+    window.previewPhoto = function(input, previewId) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = document.getElementById(previewId);
+            img.src = e.target.result;
+            img.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    };
+
+    // Camera handling
+    let cameraStream = null;
+    let cameraTargetInput = null;
+    let cameraTargetPreview = null;
+    let cameraForGallery = false;
+    let capturedDataURL = null;
+
+    window.openCamera = function(inputId, previewId) {
+        cameraTargetInput = inputId;
+        cameraTargetPreview = previewId;
+        cameraForGallery = false;
+        capturedDataURL = null;
+        startCameraStream();
+    };
+
+    window.openGalleryCamera = function() {
+        cameraTargetInput = null;
+        cameraTargetPreview = null;
+        cameraForGallery = true;
+        capturedDataURL = null;
+        startCameraStream();
+    };
+
+    async function startCameraStream() {
+        document.getElementById('cameraModal').classList.remove('hidden');
+        document.getElementById('cameraCaptured').style.display = 'none';
+        document.getElementById('cameraVideo').style.display = 'block';
+        document.getElementById('cameraSnapBtn').style.display = 'inline-flex';
+        document.getElementById('cameraRetakeBtn').style.display = 'none';
+        document.getElementById('cameraUseBtn').style.display = 'none';
+        try {
+            cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+            document.getElementById('cameraVideo').srcObject = cameraStream;
+        } catch (e) {
+            showToast('Camera not available', 'error');
+            closeCamera();
+        }
+    }
+
+    window.snapPhoto = function() {
+        const video = document.getElementById('cameraVideo');
+        const canvas = document.getElementById('cameraCanvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        capturedDataURL = canvas.toDataURL('image/jpeg', 0.9);
+        document.getElementById('cameraCaptured').src = capturedDataURL;
+        document.getElementById('cameraCaptured').style.display = 'block';
+        document.getElementById('cameraVideo').style.display = 'none';
+        document.getElementById('cameraSnapBtn').style.display = 'none';
+        document.getElementById('cameraRetakeBtn').style.display = 'inline-flex';
+        document.getElementById('cameraUseBtn').style.display = 'inline-flex';
+    };
+
+    window.retakePhoto = function() {
+        capturedDataURL = null;
+        document.getElementById('cameraCaptured').style.display = 'none';
+        document.getElementById('cameraVideo').style.display = 'block';
+        document.getElementById('cameraSnapBtn').style.display = 'inline-flex';
+        document.getElementById('cameraRetakeBtn').style.display = 'none';
+        document.getElementById('cameraUseBtn').style.display = 'none';
+    };
+
+    window.usePhoto = function() {
+        if (!capturedDataURL) return;
+        if (cameraForGallery) {
+            closeCamera();
+            openGalleryModalNew(capturedDataURL);
+        } else {
+            const img = document.getElementById(cameraTargetPreview);
+            if (img) { img.src = capturedDataURL; img.style.display = 'block'; }
+            closeCamera();
+        }
+    };
+
+    window.closeCamera = function() {
+        if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
+        document.getElementById('cameraModal').classList.add('hidden');
+    };
+
+    // ---------- STUDENT TABLE ----------
+    function getFilteredStudents() {
+        const q = (document.getElementById('searchInput')?.value || '').toLowerCase();
+        const gender = document.getElementById('filterGender')?.value || '';
+        const ageGroup = document.getElementById('filterAge')?.value || '';
+        return state.students.filter(s => {
+            if (s.type !== 'student') return false;
+            if (gender && s.gender !== gender) return false;
+            if (ageGroup && s.ageGroup !== ageGroup) return false;
+            if (q) {
+                const haystack = [s.fullName, s.id, ...(s.guardians || [])].join(' ').toLowerCase();
+                if (!haystack.includes(q)) return false;
+            }
+            return true;
+        });
+    }
+
+    window.renderStudentTable = function() {
+        const students = getFilteredStudents();
+        const tbody = document.getElementById('studentTableBody');
+        const empty = document.getElementById('studentsEmpty');
+        if (!students.length) {
+            tbody.innerHTML = '';
+            empty.style.display = 'block';
+            return;
+        }
+        empty.style.display = 'none';
+        tbody.innerHTML = students.map(s => {
+            const pct = calcAttPct(s);
+            const color = pct >= 80 ? '#4caf50' : pct >= 50 ? '#ff9800' : '#f44336';
+            const last = getLastAttended(s);
+            return `<tr>
+                <td class="student-id">${s.id}</td>
+                <td><strong>${s.fullName}</strong></td>
+                <td>${s.age}</td>
+                <td>${s.gender || '—'}</td>
+                <td>${s.guardians?.[0] || '—'}</td>
+                <td>${last}</td>
+                <td><div class="progress-bar-container"><span style="min-width:36px;color:${color}">${pct}%</span><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${color}"></div></div></div></td>
+                <td class="actions-cell">
+                    <button class="action-btn view" onclick="viewProfile('${s.id}')"><i class="fas fa-eye"></i> View</button>
+                    <button class="action-btn edit" onclick="openEditModal('${s.id}')"><i class="fas fa-edit"></i> Edit</button>
+                    <button class="action-btn delete" onclick="deleteStudent('${s.id}')"><i class="fas fa-trash"></i> Del</button>
+                </td>
+            </tr>`;
+        }).join('');
+    };
+
+    window.clearStudentFilters = function() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('filterGender').value = '';
+        document.getElementById('filterAge').value = '';
+        renderStudentTable();
+    };
+
+    window.deleteStudent = function(id) {
+        const s = state.students.find(x => x.id === id);
+        if (!s || !confirm(`Delete ${s.fullName}?`)) return;
+        state.students = state.students.filter(x => x.id !== id);
+        saveState();
+        renderStudentTable();
+        showToast('🗑 Deleted');
+    };
+
+    // ---------- PROFILE ----------
+    window.viewProfile = function(id) {
+        const s = state.students.find(x => x.id === id);
+        if (!s) return;
+        const pct = calcAttPct(s);
+        const color = pct >= 80 ? '#4caf50' : pct >= 50 ? '#ff9800' : '#f44336';
+        const attDates = Object.keys(s.attendance || {}).sort().reverse();
+        const historyRows = attDates.length ? attDates.map(d => {
+            const rec = s.attendance[d];
+            const badge = rec.status === 'present' ? 'badge-present' : rec.status === 'excused' ? 'badge-excused' : 'badge-absent';
+            return `<div class="history-row"><span>${formatDate(d)}</span><span class="attendance-badge ${badge}">${cap(rec.status)}</span></div>`;
+        }).join('') : '<p class="empty-state" style="padding:20px">No attendance yet</p>';
+
+        const photoHtml = s.photo ? `<div class="profile-pic"><img src="${s.photo}"></div>` : `<div class="profile-pic"><i class="fas fa-user"></i></div>`;
+        const audioHtml = s.audio ? `<div style="margin-top:10px"><audio controls src="${s.audio}" style="width:100%"></audio></div>` : '';
+
+        // learning items
+        const learning = s.learning || [];
+        const mastered = learning.filter(l => l.status === 'mastered');
+        const inProgress = learning.filter(l => l.status === 'learning');
+        const future = learning.filter(l => l.status === 'future');
+
+        const renderLearning = (items, status, sid) => items.length ? items.map(l => `
+            <div class="learning-item" id="li_${l.id}" style="display:flex; justify-content:space-between; background:#f5f5f5; padding:8px; border-radius:12px; margin-bottom:6px">
+                <span>${l.topic}</span>
+                <div>
+                    ${status !== 'mastered' ? `<button class="item-btn" onclick="changeLearnStatus('${sid}','${l.id}','mastered')">✅</button>` : ''}
+                    ${status !== 'learning' ? `<button class="item-btn" onclick="changeLearnStatus('${sid}','${l.id}','learning')">📖</button>` : ''}
+                    ${status !== 'future' ? `<button class="item-btn" onclick="changeLearnStatus('${sid}','${l.id}','future')">🔮</button>` : ''}
+                    <button class="item-btn" onclick="deleteLearningItem('${sid}','${l.id}')">🗑</button>
+                </div>
+            </div>`).join('') : '<p style="color:#aaa;">None</p>';
+
+        const taggedPhotos = state.photos.filter(p => (p.taggedIds || []).includes(s.id));
+        const photosHtml = taggedPhotos.length ? taggedPhotos.map(p => `
+            <div class="gallery-card" onclick="openGalleryModalEdit('${p.id}')">
+                <img class="gallery-img" src="${p.src}" style="height:100px">
+                <div class="gallery-card-body">${p.caption || ''}</div>
+            </div>`).join('') : '<p>No tagged photos</p>';
+
+        const profileHTML = `
+        <button class="btn btn-secondary btn-sm" onclick="navigateTo('students')"><i class="fas fa-arrow-left"></i> Back</button>
+        <div class="profile-header">
+            ${photoHtml}
+            <div class="profile-details">
+                <div class="profile-id">${s.id} • Registered ${formatDate(s.registeredOn)}</div>
+                <div class="profile-name">${s.fullName}</div>
+                <div class="profile-meta">${s.age} years • ${s.ageGroup} • ${s.gender || '—'}</div>
+                ${audioHtml}
+                <div class="profile-actions">
+                    <button class="btn btn-primary btn-sm" onclick="openEditModal('${s.id}')"><i class="fas fa-edit"></i> Edit</button>
+                    <button class="btn btn-secondary btn-sm" onclick="exportStudentJSON('${s.id}')"><i class="fas fa-download"></i> Export</button>
+                    <button class="btn btn-warning btn-sm" onclick="deleteStudent('${s.id}');navigateTo('students')"><i class="fas fa-trash"></i> Delete</button>
+                </div>
+            </div>
+        </div>
+        <div class="profile-tabs">
+            <button class="profile-tab active" onclick="switchTab('info',this)">Info</button>
+            <button class="profile-tab" onclick="switchTab('att',this)">Attendance</button>
+            <button class="profile-tab" onclick="switchTab('learning',this)">Learning (${learning.length})</button>
+            <button class="profile-tab" onclick="switchTab('photos',this)">Photos (${taggedPhotos.length})</button>
+            <button class="profile-tab" onclick="switchTab('notes',this)">Notes</button>
+        </div>
+        <div class="profile-section active" id="tab-info">
+            <div class="info-grid">
+                <div><label>Birthday</label><div>${formatDate(s.birthday)}</div></div>
+                <div><label>Guardian 1</label><div>${s.guardians?.[0] || '—'}</div></div>
+                <div><label>Guardian 2</label><div>${s.guardians?.[1] || '—'}</div></div>
+                <div><label>Phone</label><div>${s.phone || '—'}</div></div>
+                <div><label>Email</label><div>${s.email || '—'}</div></div>
+            </div>
+            <div class="att-percent-bar" style="display:flex; gap:15px; background:var(--light); padding:15px; border-radius:20px;">
+                <span style="font-size:2rem; color:${color}">${pct}%</span>
+                <div style="flex:1"><div class="progress-bar" style="height:14px"><div class="progress-fill" style="width:${pct}%; background:${color}"></div></div></div>
+                <span>${countPresent(s)}/${attDates.length} sessions</span>
+            </div>
+        </div>
+        <div class="profile-section" id="tab-att">
+            <h4>Attendance History (${attDates.length})</h4>
+            <div style="max-height:300px; overflow-y:auto">${historyRows}</div>
+        </div>
+        <div class="profile-section" id="tab-learning">
+            <button class="btn btn-primary btn-sm" onclick="openAddLearningModal('${s.id}')"><i class="fas fa-plus"></i> Add Topic</button>
+            <div style="margin-top:15px">
+                <h5>✅ Mastered</h5>${renderLearning(mastered, 'mastered', s.id)}
+                <h5>📖 Learning</h5>${renderLearning(inProgress, 'learning', s.id)}
+                <h5>🔮 Future</h5>${renderLearning(future, 'future', s.id)}
+            </div>
+        </div>
+        <div class="profile-section" id="tab-photos"><div class="gallery-grid">${photosHtml}</div></div>
+        <div class="profile-section" id="tab-notes">
+            <h5>Allergies</h5><div class="form-control" style="background:#f9f9f9">${s.allergies || 'None'}</div>
+            <h5>Notes</h5><div class="form-control" style="background:#f9f9f9">${s.notes || 'None'}</div>
+        </div>`;
+        document.getElementById('profile-page').innerHTML = profileHTML;
+        navigateTo('profile');
+    };
+
+    window.switchTab = function(name, btn) {
+        document.querySelectorAll('.profile-section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.profile-tab').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + name).classList.add('active');
+        btn.classList.add('active');
+    };
+
+    // ---------- EDIT MODAL ----------
+    window.openEditModal = function(id) {
+        const s = state.students.find(x => x.id === id);
+        if (!s) return;
+        document.getElementById('edit_id').value = id;
+        document.getElementById('edit_first').value = s.firstName || '';
+        document.getElementById('edit_last').value = s.lastName || '';
+        document.getElementById('edit_birthday').value = s.birthday || '';
+        document.getElementById('edit_gender').value = s.gender || '';
+        document.getElementById('edit_guardian1').value = s.guardians?.[0] || '';
+        document.getElementById('edit_guardian2').value = s.guardians?.[1] || '';
+        document.getElementById('edit_phone').value = s.phone || '';
+        document.getElementById('edit_email').value = s.email || '';
+        document.getElementById('edit_allergies').value = s.allergies || '';
+        document.getElementById('edit_notes').value = s.notes || '';
+        document.getElementById('edit_photoPreview').style.display = 'none';
+        document.getElementById('editModal').classList.remove('hidden');
+    };
+
+    window.closeEditModal = function() {
+        document.getElementById('editModal').classList.add('hidden');
+    };
+
+    document.getElementById('editForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const id = document.getElementById('edit_id').value;
+        const idx = state.students.findIndex(x => x.id === id);
+        if (idx === -1) return;
+        const s = state.students[idx];
+        s.firstName = document.getElementById('edit_first').value.trim();
+        s.lastName = document.getElementById('edit_last').value.trim();
+        s.fullName = `${s.firstName} ${s.lastName}`;
+        s.birthday = document.getElementById('edit_birthday').value;
+        s.age = calcAge(s.birthday);
+        s.ageGroup = getAgeGroup(s.age);
+        s.gender = document.getElementById('edit_gender').value;
+        const g1 = document.getElementById('edit_guardian1').value.trim();
+        const g2 = document.getElementById('edit_guardian2').value.trim();
+        s.guardians = [g1, g2].filter(Boolean);
+        s.phone = document.getElementById('edit_phone').value.trim();
+        s.email = document.getElementById('edit_email').value.trim();
+        s.allergies = document.getElementById('edit_allergies').value.trim();
+        s.notes = document.getElementById('edit_notes').value.trim();
+        const preview = document.getElementById('edit_photoPreview');
+        if (preview && preview.src && preview.style.display !== 'none') s.photo = preview.src;
+        saveState();
+        closeEditModal();
+        showToast('✅ Updated');
+        renderStudentTable();
+        if (document.getElementById('profile-page').classList.contains('active')) viewProfile(id);
+    });
+
+    // ---------- ATTENDANCE ----------
+    window.setAttToday = function() {
+        document.getElementById('attDate').value = new Date().toISOString().split('T')[0];
+        renderAttendance();
+    };
+
+    window.renderAttendance = function() {
+        const date = document.getElementById('attDate').value;
+        const students = state.students.filter(s => s.type === 'student');
+        const container = document.getElementById('attendanceList');
+        const empty = document.getElementById('attEmpty');
+        const summary = document.getElementById('attSummary');
+        if (!students.length) {
+            container.innerHTML = '';
+            empty.style.display = 'block';
+            summary.style.display = 'none';
+            document.getElementById('attHistorySection').style.display = 'none';
+            return;
+        }
+        empty.style.display = 'none';
+        summary.style.display = 'flex';
+        students.forEach(s => {
+            if (!(s.id in tempAtt)) {
+                const saved = s.attendance?.[date];
+                tempAtt[s.id] = saved ? saved.status === 'present' : false;
+            }
+        });
+        container.innerHTML = students.map(s => {
+            const present = tempAtt[s.id];
+            const savedEdu = s.attendance?.[date]?.education || '';
+            return `<div class="attendance-card ${present ? 'present' : 'absent'}" id="attCard_${s.id}">
+                <div class="attendance-info">
+                    <h4>${s.fullName}</h4>
+                    <p>${s.id} • ${s.ageGroup}</p>
+                    <div class="att-edu-row ${savedEdu ? 'open' : ''}" id="eduRow_${s.id}">
+                        <input type="text" class="form-control" style="font-size:0.8rem" placeholder="What did they learn?" id="eduInput_${s.id}" value="${savedEdu}">
+                        <button class="btn btn-primary btn-sm" onclick="saveEduNote('${s.id}')"><i class="fas fa-check"></i></button>
+                    </div>
+                </div>
+                <div style="display:flex; flex-direction:column; align-items:center">
+                    <label class="toggle-wrapper">
+                        <input type="checkbox" ${present ? 'checked' : ''} onchange="toggleAttendance('${s.id}',this.checked,'${date}')">
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <button class="btn btn-sm" style="background:#f0f4ff; margin-top:5px;" onclick="document.getElementById('eduRow_${s.id}').classList.toggle('open')">📘</button>
+                </div>
+            </div>`;
+        }).join('');
+        updateAttSummary(students, date);
+        renderAttendanceHistory(students);
+    };
+
+    window.toggleAttendance = function(id, checked, date) {
+        tempAtt[id] = checked;
+        const card = document.getElementById('attCard_' + id);
+        if (card) { card.classList.toggle('present', checked); card.classList.toggle('absent', !checked); }
+        updateAttSummary(state.students.filter(s => s.type === 'student'), date);
+    };
+
+    function updateAttSummary(students, date) {
+        const total = students.length;
+        let present = 0;
+        students.forEach(s => {
+            const val = tempAtt[s.id];
+            if (val === true) present++;
+            else if (val === undefined && s.attendance?.[date]?.status === 'present') present++;
+        });
+        document.getElementById('attTotal').textContent = total;
+        document.getElementById('attPresent').textContent = present;
+        document.getElementById('attAbsent').textContent = total - present;
+        document.getElementById('attPct').textContent = total ? Math.round(present / total * 100) + '%' : '0%';
+    }
+
+    window.markAll = function(present) {
+        const date = document.getElementById('attDate').value;
+        state.students.filter(s => s.type === 'student').forEach(s => tempAtt[s.id] = present);
+        renderAttendance();
+    };
+
+    window.saveAttendance = function() {
+        const date = document.getElementById('attDate').value;
+        if (!date) return showToast('Select date', 'error');
+        state.students.filter(s => s.type === 'student').forEach(s => {
+            if (!s.attendance) s.attendance = {};
+            if (tempAtt[s.id] !== undefined) {
+                s.attendance[date] = { status: tempAtt[s.id] ? 'present' : 'absent', markedAt: new Date().toISOString() };
+            }
+        });
+        // clear temp
+        state.students.filter(s => s.type === 'student').forEach(s => delete tempAtt[s.id]);
+        saveState();
+        renderAttendance();
+        showToast('✅ Attendance saved');
+    };
+
+    window.saveEduNote = function(id) {
+        const date = document.getElementById('attDate').value;
+        const input = document.getElementById('eduInput_' + id);
+        if (!input || !input.value.trim()) return;
+        const s = state.students.find(x => x.id === id);
+        if (!s) return;
+        if (!s.attendance) s.attendance = {};
+        if (!s.attendance[date]) s.attendance[date] = { status: tempAtt[id] ? 'present' : 'absent' };
+        s.attendance[date].education = input.value.trim();
+        // also add to learning
+        if (!s.learning) s.learning = [];
+        if (!s.learning.find(l => l.topic === input.value.trim() && l.date === date)) {
+            s.learning.push({ id: generateId('L'), topic: input.value.trim(), status: 'learning', date });
+        }
+        saveState();
+        showToast('📘 Lesson noted');
+    };
+
+    function renderAttendanceHistory(students) {
+        const allDates = new Set();
+        students.forEach(s => { Object.keys(s.attendance || {}).forEach(d => allDates.add(d)); });
+        const sorted = [...allDates].sort().reverse().slice(0, 20);
+        const head = document.getElementById('attHistoryHead');
+        const body = document.getElementById('attHistoryBody');
+        if (!sorted.length) { document.getElementById('attHistorySection').style.display = 'none'; return; }
+        document.getElementById('attHistorySection').style.display = 'block';
+        head.innerHTML = '<th>Student</th>' + sorted.map(d => `<th style="font-size:0.7rem">${formatDate(d)}</th>`).join('');
+        body.innerHTML = students.map(s => {
+            const cells = sorted.map(d => {
+                const rec = s.attendance?.[d];
+                if (!rec) return '<td style="color:#ccc;text-align:center">–</td>';
+                return `<td style="text-align:center; color:${rec.status === 'present' ? '#4caf50' : '#f44336'}; font-weight:700">${rec.status === 'present' ? '✓' : '✗'}${rec.education ? '📚' : ''}</td>`;
+            }).join('');
+            return `<tr><td><strong>${s.fullName}</strong></td>${cells}</tr>`;
+        }).join('');
+    }
+
+    // ---------- EXPORT ----------
+    window.renderExportPreview = function() {
+        const q = (document.getElementById('exportSearch')?.value || '').toLowerCase();
+        const gender = document.getElementById('exportGenderFilter')?.value || '';
+        const filtered = state.students.filter(s => s.type === 'student' && (!gender || s.gender === gender) && (!q || s.fullName.toLowerCase().includes(q)));
+        document.getElementById('exportPreviewInfo').textContent = `${filtered.length} student(s) will be exported`;
+    };
+
+    function getExportFiltered() {
+        const q = (document.getElementById('exportSearch')?.value || '').toLowerCase();
+        const gender = document.getElementById('exportGenderFilter')?.value || '';
+        return state.students.filter(s => s.type === 'student' && (!gender || s.gender === gender) && (!q || s.fullName.toLowerCase().includes(q)));
+    }
+
+    function download(content, name, type) {
+        const a = document.createElement('a');
+        const blob = new Blob([content], { type });
+        a.href = URL.createObjectURL(blob);
+        a.download = name;
+        a.click();
+        URL.revokeObjectURL(a.href);
+    }
+
+    window.exportCSV = function() {
+        const students = getExportFiltered();
+        if (!students.length) return showToast('No students to export', 'warning');
+        const header = 'ID,Full Name,First,Last,Birthday,Age,Age Group,Gender,Guardian 1,Guardian 2,Phone,Email,Registered,Attendance %\n';
+        const rows = students.map(s => {
+            const pct = calcAttPct(s);
+            return [s.id, s.fullName, s.firstName, s.lastName, s.birthday, s.age, s.ageGroup, s.gender,
+                s.guardians?.[0] || '', s.guardians?.[1] || '', s.phone || '', s.email || '', s.registeredOn || '', pct + '%']
+                .map(v => `"${(v || '').toString().replace(/"/g, '""')}"`).join(',');
+        }).join('\n');
+        download(header + rows, 'students.csv', 'text/csv');
+        showToast('CSV exported');
+    };
+
+    window.exportJSON = function() {
+        const students = getExportFiltered();
+        if (!students.length) return showToast('No students', 'warning');
+        const data = { exportDate: new Date().toISOString(), count: students.length, students: students.map(s => ({ ...s, photo: s.photo ? '[photo]' : null, audio: s.audio ? '[audio]' : null })) };
+        download(JSON.stringify(data, null, 2), 'students.json', 'application/json');
+        showToast('JSON exported');
+    };
+
+    window.exportPDF = function() {
+        const students = getExportFiltered();
+        if (!students.length) return showToast('No students', 'warning');
+        const w = window.open('', '_blank');
+        const rows = students.map(s => `<tr><td>${s.id}</td><td>${s.fullName}</td><td>${s.age}</td><td>${s.gender || '—'}</td><td>${s.ageGroup}</td><td>${s.phone || '—'}</td><td>${s.guardians?.[0] || '—'}</td><td>${calcAttPct(s)}%</td></tr>`).join('');
+        w.document.write(`<html><head><title>Sunday School</title><style>body{font-family:Arial;padding:20px} table{border-collapse:collapse;width:100%} th{background:#2c6e49;color:white;padding:8px} td{padding:8px;border-bottom:1px solid #eee}</style></head>
+        <body><h1>Student List</h1><p>${new Date().toLocaleDateString()} – ${students.length} students</p><button onclick="window.print()">Print / PDF</button><table><tr><th>ID</th><th>Name</th><th>Age</th><th>Gender</th><th>Group</th><th>Phone</th><th>Guardian</th><th>Att%</th></tr>${rows}</table></body></html>`);
+        w.document.close();
+        showToast('Print window opened');
+    };
+
+    window.exportAllData = function() {
+        const data = { exportDate: new Date().toISOString(), students: state.students, photos: state.photos, settings: state.settings };
+        download(JSON.stringify(data, null, 2), 'full-backup.json', 'application/json');
+        showToast('Full backup downloaded');
+    };
+
+    window.exportStudentJSON = function(id) {
+        const s = state.students.find(x => x.id === id);
+        if (!s) return;
+        download(JSON.stringify({ ...s, photo: s.photo ? '[photo]' : null, audio: s.audio ? '[audio]' : null }, null, 2), `student-${id}.json`, 'application/json');
+    };
+
+    // ---------- SETTINGS ----------
+    window.showSettingsSection = function(section) {
+        document.querySelectorAll('.settings-menu-item').forEach(el => el.classList.toggle('active', el.getAttribute('onclick').includes(section)));
+        document.querySelectorAll('.settings-section').forEach(el => el.classList.remove('active'));
+        document.getElementById(section + '-settings').classList.add('active');
+    };
+
+    window.setPrimaryColor = function(el) {
+        document.querySelectorAll('#primaryPalette .color-swatch').forEach(s => s.classList.remove('selected'));
+        el.classList.add('selected');
+        state.settings.primaryColor = el.dataset.color;
+        document.documentElement.style.setProperty('--primary-color', state.settings.primaryColor);
+    };
+
+    window.setSecondaryColor = function(el) {
+        document.querySelectorAll('#secondaryPalette .color-swatch').forEach(s => s.classList.remove('selected'));
+        el.classList.add('selected');
+        state.settings.secondaryColor = el.dataset.color;
+        document.documentElement.style.setProperty('--secondary-color', state.settings.secondaryColor);
+    };
+
+    window.handleBgUpload = function(input) {
+        if (!input.files[0]) return;
+        const reader = new FileReader();
+        reader.onload = e => { state.settings.backgroundImage = e.target.result; document.body.style.backgroundImage = `url(${e.target.result})`; };
+        reader.readAsDataURL(input.files[0]);
+    };
+
+    window.handleLogoUpload = function(input) {
+        if (!input.files[0]) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+            state.settings.logoImage = e.target.result;
+            document.getElementById('appLogo').innerHTML = `<img src="${e.target.result}" alt="Logo">`;
+        };
+        reader.readAsDataURL(input.files[0]);
+    };
+
+    window.clearBackground = function() {
+        state.settings.backgroundImage = null;
+        document.body.style.backgroundImage = '';
+        document.getElementById('bgImageInput').value = '';
+        showToast('Background cleared');
+    };
+
+    window.saveAppearance = function() { saveState(); showToast('Appearance saved'); };
+
+    window.resetAppearance = function() {
+        if (!confirm('Reset to defaults?')) return;
+        state.settings.primaryColor = '#2c6e49';
+        state.settings.secondaryColor = '#4c956c';
+        state.settings.backgroundImage = null;
+        state.settings.logoImage = null;
+        applySettings();
+        document.getElementById('bgImageInput').value = '';
+        document.getElementById('logoInput').value = '';
+        document.querySelectorAll('#primaryPalette .color-swatch').forEach((s, i) => s.classList.toggle('selected', i === 0));
+        document.querySelectorAll('#secondaryPalette .color-swatch').forEach((s, i) => s.classList.toggle('selected', i === 0));
+        saveState();
+        showToast('Defaults restored');
+    };
+
+    function applySettings() {
+        document.documentElement.style.setProperty('--primary-color', state.settings.primaryColor);
+        document.documentElement.style.setProperty('--secondary-color', state.settings.secondaryColor);
+        if (state.settings.backgroundImage) document.body.style.backgroundImage = `url(${state.settings.backgroundImage})`;
+        if (state.settings.logoImage) document.getElementById('appLogo').innerHTML = `<img src="${state.settings.logoImage}" alt="Logo">`;
+    }
+
+    window.backupData = function() {
+        const data = { exportDate: new Date().toISOString(), students: state.students, photos: state.photos, settings: state.settings };
+        download(JSON.stringify(data, null, 2), 'backup.json', 'application/json');
+        showToast('Backup saved');
+    };
+
+    window.restoreData = function(input) {
+        if (!input.files[0]) return;
+        if (!confirm('Restore will overwrite current data. Continue?')) { input.value = ''; return; }
+        const reader = new FileReader();
+        reader.onload = e => {
+            try {
+                const data = JSON.parse(e.target.result);
+                if (data.students) state.students = data.students;
+                if (data.photos) state.photos = data.photos;
+                if (data.settings) state.settings = { ...state.settings, ...data.settings };
+                saveState();
+                applySettings();
+                renderStudentTable();
+                showToast('✅ Restore complete');
+            } catch (err) { showToast('Invalid backup file', 'error'); }
+            input.value = '';
+        };
+        reader.readAsText(input.files[0]);
+    };
+
+    window.clearAllData = function() {
+        if (!confirm('Delete ALL data? This cannot be undone.')) return;
+        state = { students: [], photos: [], settings: { primaryColor: '#2c6e49', secondaryColor: '#4c956c', backgroundImage: null, logoImage: null } };
+        localStorage.clear();
+        applySettings();
+        renderStudentTable();
+        updateStats();
+        showToast('All data cleared', 'warning');
+    };
+
+    // ---------- GALLERY ----------
+    window.renderGallery = function() {
+        const q = (document.getElementById('gallerySearch')?.value || '').toLowerCase();
+        const personFilter = document.getElementById('galleryPersonFilter')?.value || '';
+        let photos = state.photos.filter(p => {
+            if (personFilter && !(p.taggedIds || []).includes(personFilter)) return false;
+            if (q) {
+                const cap = (p.caption || '').toLowerCase();
+                const tagNames = (p.taggedIds || []).map(id => state.students.find(s => s.id === id)?.fullName.toLowerCase() || '').join(' ');
+                return cap.includes(q) || tagNames.includes(q);
+            }
+            return true;
+        });
+        const grid = document.getElementById('galleryGrid');
+        const empty = document.getElementById('galleryEmpty');
+        if (!photos.length) {
+            grid.innerHTML = '';
+            empty.style.display = 'block';
+            return;
+        }
+        empty.style.display = 'none';
+        grid.innerHTML = photos.map(p => {
+            const tagNames = (p.taggedIds || []).map(id => state.students.find(s => s.id === id)?.fullName).filter(Boolean);
+            return `<div class="gallery-card" onclick="openGalleryModalEdit('${p.id}')">
+                <img class="gallery-img" src="${p.src}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                <div class="gallery-img-placeholder" style="display:none"><i class="fas fa-image"></i></div>
+                <div class="gallery-card-body">
+                    <div class="gallery-card-title">${p.caption || 'Untitled'}</div>
+                    <div class="gallery-card-date">${formatDate(p.addedOn)}</div>
+                    <div class="gallery-tags">${tagNames.map(n => `<span class="gallery-tag">${n}</span>`).join('') || '<span style="color:#ccc">No tags</span>'}</div>
+                </div>
+            </div>`;
+        }).join('');
+    };
+
+    window.populatePersonFilter = function() {
+        const sel = document.getElementById('galleryPersonFilter');
+        sel.innerHTML = '<option value="">All People</option>' + state.students.map(s => `<option value="${s.id}">${s.fullName} (${s.type})</option>`).join('');
+    };
+
+    let galleryModalPhotoId = null;
+
+    window.openGalleryModalEdit = function(id) {
+        const photo = state.photos.find(p => p.id === id);
+        if (!photo) return;
+        galleryModalPhotoId = id;
+        document.getElementById('galleryModalImg').src = photo.src;
+        document.getElementById('galleryModalTitle').textContent = 'Edit Photo';
+        document.getElementById('galleryModalCaption').value = photo.caption || '';
+        renderCurrentTags(photo.taggedIds || []);
+        document.getElementById('galleryModal').classList.remove('hidden');
+    };
+
+    function openGalleryModalNew(src) {
+        galleryModalPhotoId = null;
+        document.getElementById('galleryModalImg').src = src;
+        document.getElementById('galleryModalTitle').textContent = 'Add Photo';
+        document.getElementById('galleryModalCaption').value = '';
+        renderCurrentTags([]);
+        document.getElementById('galleryModal').dataset.newSrc = src;
+        document.getElementById('galleryModal').classList.remove('hidden');
+    }
+
+    window.closeGalleryModal = function() {
+        document.getElementById('galleryModal').classList.add('hidden');
+        galleryModalPhotoId = null;
+    };
+
+    function renderCurrentTags(ids) {
+        const container = document.getElementById('currentTags');
+        container.innerHTML = ids.map(id => {
+            const person = state.students.find(s => s.id === id);
+            return person ? `<span class="gallery-tag">${person.fullName} <span style="cursor:pointer" onclick="removeTag('${id}')">×</span></span>` : '';
+        }).join('');
+    }
+
+    function getCurrentTagIds() {
+        const tags = [...document.querySelectorAll('#currentTags .gallery-tag')];
+        return tags.map(t => {
+            const name = t.textContent.replace('×', '').trim();
+            const p = state.students.find(s => s.fullName === name);
+            return p ? p.id : null;
+        }).filter(Boolean);
+    }
+
+    window.updateTagSuggestions = function() {
+        const q = document.getElementById('tagSearchInput').value.toLowerCase().trim();
+        const container = document.getElementById('tagSuggestions');
+        if (!q) { container.innerHTML = ''; return; }
+        const current = getCurrentTagIds();
+        const matches = state.students.filter(s => s.fullName.toLowerCase().includes(q) && !current.includes(s.id)).slice(0, 8);
+        container.innerHTML = matches.map(s => `<div class="tag-suggestion" onclick="addTag('${s.id}')">${s.fullName}</div>`).join('');
+    };
+
+    window.addTag = function(id) {
+        const current = getCurrentTagIds();
+        if (!current.includes(id)) renderCurrentTags([...current, id]);
+        document.getElementById('tagSearchInput').value = '';
+        document.getElementById('tagSuggestions').innerHTML = '';
+    };
+
+    window.removeTag = function(id) {
+        const current = getCurrentTagIds().filter(x => x !== id);
+        renderCurrentTags(current);
+    };
+
+    window.saveGalleryPhoto = function() {
+        const caption = document.getElementById('galleryModalCaption').value.trim();
+        const taggedIds = getCurrentTagIds();
+        if (galleryModalPhotoId) {
+            const photo = state.photos.find(p => p.id === galleryModalPhotoId);
+            if (photo) { photo.caption = caption; photo.taggedIds = taggedIds; }
+        } else {
+            const newSrc = document.getElementById('galleryModal').dataset.newSrc;
+            if (!newSrc) return;
+            state.photos.push({ id: generateId('PH'), src: newSrc, caption, taggedIds, addedOn: new Date().toISOString().split('T')[0] });
+        }
+        saveState();
+        closeGalleryModal();
+        renderGallery();
+        showToast('Photo saved');
+    };
+
+    window.deleteGalleryPhoto = function() {
+        if (!galleryModalPhotoId) { closeGalleryModal(); return; }
+        if (!confirm('Delete this photo?')) return;
+        state.photos = state.photos.filter(p => p.id !== galleryModalPhotoId);
+        saveState();
+        closeGalleryModal();
+        renderGallery();
+        showToast('Photo deleted');
+    };
+
+    window.handleGalleryUpload = function(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = e => openGalleryModalNew(e.target.result);
+        reader.readAsDataURL(file);
+    };
+
+    // ---------- SLIDESHOW ----------
+    let slideIndex = 0, slideTimer;
+    window.goToSlide = function(idx) {
+        slideIndex = idx;
+        updateSlideshow();
+        clearInterval(slideTimer); startSlideshow();
+    };
+
+    function updateSlideshow() {
+        const inner = document.getElementById('slideshowInner');
+        if (inner) inner.style.transform = `translateX(-${slideIndex * 100}%)`;
+        document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === slideIndex));
+    }
+
+    function startSlideshow() {
+        slideTimer = setInterval(() => { slideIndex = (slideIndex + 1) % 3; updateSlideshow(); }, 5000);
+    }
+
+    // ---------- TOAST ----------
+    function showToast(msg, type = 'success') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-times-circle' : 'fa-exclamation-triangle'}"></i> ${msg}`;
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.style.animation = 'toastOut 0.3s forwards';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    // ---------- LEARNING MODAL ----------
+    let addLearningStudentId = null;
+
+    window.openAddLearningModal = function(id) {
+        addLearningStudentId = id;
+        document.getElementById('learnModal').classList.remove('hidden');
+    };
+
+    window.closeLearnModal = function() {
+        document.getElementById('learnModal').classList.add('hidden');
+        addLearningStudentId = null;
+    };
+
+    window.saveLearnItem = function() {
+        const topic = document.getElementById('learnModalTopic').value.trim();
+        const status = document.getElementById('learnModalStatus').value;
+        if (!topic) return showToast('Enter a topic', 'error');
+        const s = state.students.find(x => x.id === addLearningStudentId);
+        if (!s) return;
+        if (!s.learning) s.learning = [];
+        s.learning.push({ id: generateId('L'), topic, status, date: new Date().toISOString().split('T')[0] });
+        saveState();
+        closeLearnModal();
+        viewProfile(addLearningStudentId);
+        showToast('Learning item added');
+    };
+
+    window.changeLearnStatus = function(studentId, itemId, newStatus) {
+        const s = state.students.find(x => x.id === studentId);
+        if (!s || !s.learning) return;
+        const item = s.learning.find(l => l.id === itemId);
+        if (item) { item.status = newStatus; saveState(); viewProfile(studentId); }
+    };
+
+    window.deleteLearningItem = function(studentId, itemId) {
+        const s = state.students.find(x => x.id === studentId);
+        if (!s || !s.learning) return;
+        s.learning = s.learning.filter(l => l.id !== itemId);
+        saveState(); viewProfile(studentId);
+    };
+
+    window.addFutureTopicToAll = function(topic) {
+        if (!topic) return;
+        const date = new Date().toISOString().split('T')[0];
+        state.students.filter(x => x.type === 'student').forEach(s => {
+            if (!s.learning) s.learning = [];
+            if (!s.learning.find(l => l.topic === topic && l.status === 'future'))
+                s.learning.push({ id: generateId('L'), topic, status: 'future', date, addedBy: 'global' });
+        });
+        saveState();
+        showToast(`✨ Added "${topic}" to all students`);
+    };
+  
+  	// ----- IMPORT FUNCTIONALITY -----
+    window.importData = function(file) {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                let studentCount = 0, photoCount = 0;
+
+                if (data.students && Array.isArray(data.students)) {
+                    data.students.forEach(imported => {
+                        if (!state.students.find(s => s.id === imported.id)) {
+                            state.students.push(imported);
+                            studentCount++;
+                        }
+                    });
+                }
+
+                if (data.photos && Array.isArray(data.photos)) {
+                    data.photos.forEach(imported => {
+                        if (!state.photos.find(p => p.id === imported.id)) {
+                            state.photos.push(imported);
+                            photoCount++;
+                        }
+                    });
+                }
+
+                saveState();
+                renderStudentTable();
+                renderGallery();
+                populatePersonFilter();
+                showToast(`✅ Imported ${studentCount} students, ${photoCount} photos`, 'success');
+            } catch (err) {
+                showToast('Invalid JSON file', 'error');
+            }
+            document.getElementById('importFileInput').value = '';
+        };
+        reader.readAsText(file);
+    };
+
+    // ---------- INIT ----------
+    document.addEventListener('DOMContentLoaded', () => {
+        loadState();
+        applySettings();
+        renderStudentTable();
+        setAttToday();
+        updateStats();
+        updateStorageDisplay();
+        startSlideshow();
+        renderExportPreview();
+        populatePersonFilter();
+      	
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (btn.dataset.page) navigateTo(btn.dataset.page);
+            });
+        });
+      	
+        // Close modals on overlay click
+        document.getElementById('editModal').addEventListener('click', function(e) { if (e.target === this) closeEditModal(); });
+        document.getElementById('cameraModal').addEventListener('click', function(e) { if (e.target === this) closeCamera(); });
+        document.getElementById('galleryModal').addEventListener('click', function(e) { if (e.target === this) closeGalleryModal(); });
+        document.getElementById('learnModal').addEventListener('click', function(e) { if (e.target === this) closeLearnModal(); });
+
+        // Export all button
+        document.getElementById('exportAllBtn').addEventListener('click', exportAllData);
+        document.getElementById('settingsBtn').addEventListener('click', () => navigateTo('settings'));
+      
+		// Import button
+        document.getElementById('importBtn').addEventListener('click', () => {
+            document.getElementById('importFileInput').click();
+        });
+        document.getElementById('importFileInput').addEventListener('change', (e) => {
+            if (e.target.files[0]) importData(e.target.files[0]);
+        });
+
+
+        // drag & drop for gallery
+        const zone = document.querySelector('.gallery-upload-zone');
+        if (zone) {
+            zone.addEventListener('dragover', e => e.preventDefault());
+            zone.addEventListener('drop', e => {
+                e.preventDefault();
+                const file = e.dataTransfer.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = ev => openGalleryModalNew(ev.target.result);
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    });
+})();
+  </script>
+  </body>
+</html>

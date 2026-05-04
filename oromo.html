@@ -1,0 +1,4266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Afaan Oromo Flashcards – Master Words & Phrases</title>
+    <!-- Styles will be added in next round -->
+<style>
+    /* Tailwind CSS CDN for utility classes */
+    @import url('https://cdn.jsdelivr.net/npm/tailwindcss@2/dist/tailwind.min.css');
+
+    /* Custom styles */
+    body {
+        background: #eef2f7;
+        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .app-container {
+        max-width: 700px;
+        width: 100%;
+        background: white;
+        border-radius: none;
+        box-shadow: 0 20px 35px -10px rgba(0,0,0,0.1);
+        overflow: hidden;
+        position: relative;
+        min-height: 100vh;
+    }
+
+    /* Study view */
+    .study-view {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .star-counter {
+        font-size: 1.25rem;
+        font-weight: bold;
+        color: #eab308;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        cursor: pointer;
+        transition: transform 0.1s;
+    }
+    .star-counter:active {
+        transform: scale(0.95);
+    }
+    .mode-toggle {
+        display: flex;
+        background: #f3f4f6;
+        border-radius: 9999px;
+        padding: 0.25rem;
+    }
+    .mode-btn {
+        padding: 0.25rem 1rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: bold;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .mode-btn.active {
+        background: white;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        color: #1f2937;
+    }
+    .mode-btn:not(.active) {
+        color: #6b7280;
+    }
+    .gear-btn {
+        font-size: 1.25rem;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0.25rem;
+        border-radius: 9999px;
+        transition: background 0.2s;
+    }
+    .gear-btn:hover {
+        background: #f3f4f6;
+    }
+
+    /* Settings menu */
+    .settings-menu {
+        position: absolute;
+        top: 4rem;
+        right: 1rem;
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        padding: 0.5rem;
+        z-index: 200;
+        min-width: 140px;
+    }
+    .settings-item {
+        display: block;
+        width: 100%;
+        text-align: left;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.75rem;
+        background: none;
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: background 0.1s;
+    }
+    .settings-item:hover {
+        background: #f3f4f6;
+    }
+    .settings-item.danger {
+        color: #ef4444;
+    }
+    .settings-divider {
+        margin: 0.5rem 0;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    /* Instruction text */
+    .instruction-text {
+        text-align: center;
+        color: #9ca3af;
+        font-size: 0.75rem;
+        margin-top: 1rem;
+        margin-bottom: 0.25rem;
+    }
+
+    /* Flashcard area */
+    .flashcard-area {
+        flex: 1;
+        padding: 1rem;
+    }
+    .flip-card {
+        width: 100%;
+        height: 30vh;
+        min-height: 150px;
+        perspective: 1000px;
+        cursor: pointer;
+    }
+    .flip-card-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        transition: transform 0.6s;
+        transform-style: preserve-3d;
+    }
+    .flip-card-front, .flip-card-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        border-radius: 1rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 1rem;
+        box-sizing: border-box;
+    }
+    .flip-card-front {
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+    }
+    .flip-card-back {
+        background-color: #eef2fa;
+        transform: rotateY(180deg);
+        border: 1px solid #cbd5e1;
+    }
+    .definition-text {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #1e2f3a;
+        text-align: center;
+    }
+    .term-text {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #2c7da0;
+        text-align: center;
+    }
+    @media (max-width: 640px) {
+        .definition-text { font-size: 1.1rem; }
+        .term-text { font-size: 1.3rem; }
+        .flip-card { height: 160px; }
+    }
+    @media (max-height: 700px) {
+        .flip-card { height: 140px; }
+        .definition-text { font-size: 1rem; }
+        .term-text { font-size: 1.2rem; }
+    }
+
+    /* Answer input */
+    .dropdown-area {
+        padding: 0 1rem 0.5rem;
+    }
+    .input-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .answer-input {
+        width: 100%;
+        border: 1px solid #d1d5db;
+        border-radius: 9999px;
+        padding: 0.5rem 0.75rem;
+        text-align: center;
+        font-size: 1.125rem;
+        outline: none;
+        transition: box-shadow 0.2s;
+    }
+    .answer-input:focus {
+        box-shadow: 0 0 0 2px #3b82f6;
+        border-color: transparent;
+    }
+
+    /* Action buttons */
+    .buttons-area {
+        padding: 0 1rem 0.5rem;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    .action-btn {
+        padding: 0.25rem 1rem;
+        border-radius: 9999px;
+        font-weight: 600;
+        background: #e5e7eb;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .action-btn.primary {
+        background: #2563eb;
+        color: white;
+    }
+    .action-btn.primary:hover {
+        background: #1d4ed8;
+    }
+    .action-btn.review {
+        background: #f3e8ff;
+        color: #6b21a5;
+    }
+    .action-btn.review:hover {
+        background: #e9d5ff;
+    }
+    .action-btn:not(.primary):not(.review):hover {
+        background: #d1d5db;
+    }
+
+    /* Stats area */
+    .stats-area {
+        padding: 0 1rem 1rem;
+        text-align: center;
+    }
+    .stats-text {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-bottom: 0.5rem;
+    }
+    .info-text {
+        font-size: 0.75rem;
+        color: #9ca3af;
+    }
+
+    /* Flash overlay */
+    .flash-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 9999;
+        opacity: 0;
+        transition: opacity 0.1s ease;
+    }
+    .flash-overlay.active {
+        opacity: 0.9;
+    }
+    .flash-green {
+        background-color: #28a745;
+    }
+    .flash-red {
+        background-color: #dc3545;
+    }
+
+    /* Bounce animation for Next button */
+    @keyframes gentleBounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-6px); }
+    }
+    .bounce-next {
+        animation: gentleBounce 0.6s ease-in-out infinite;
+    }
+
+    /* Result pages */
+    .result-page {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        min-height: 100vh;
+        width: 100%;
+        padding: 2rem;
+        box-sizing: border-box;
+    }
+    .success-page {
+        background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
+        color: white;
+    }
+    .fail-page {
+        background: linear-gradient(135deg, #4b5563, #374151);
+        color: #e5e7eb;
+    }
+    .result-content {
+        max-width: 320px;
+        width: 100%;
+        margin: 0 auto;
+    }
+    .success-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    .result-title {
+        font-size: 2.25rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    .result-translation {
+        font-size: 1.125rem;
+        opacity: 0.9;
+        margin-bottom: 1.5rem;
+        font-weight: 500;
+    }
+    .motivation-text {
+        font-style: italic;
+        font-size: 1rem;
+        max-width: 280px;
+        margin: 0 auto 2rem auto;
+    }
+    .fail-title {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+    }
+    .fail-subtitle {
+        color: #6b7280;
+        margin-bottom: 1.5rem;
+    }
+    .word-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        margin-bottom: 1.5rem;
+    }
+    .word-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #9ca3af;
+        margin-bottom: 0.25rem;
+    }
+    .oromo-word {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #2563eb;
+        margin-bottom: 0.75rem;
+    }
+    .english-word {
+        font-size: 1.25rem;
+        color: #374151;
+    }
+    .retry-note {
+        font-size: 0.75rem;
+        color: #9ca3af;
+        margin-bottom: 2rem;
+    }
+    .continue-btn {
+        background: #2563eb;
+        color: white;
+        font-weight: bold;
+        padding: 0.75rem 2rem;
+        border-radius: 9999px;
+        border: none;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    }
+    .continue-btn:hover {
+        background: #1d4ed8;
+        transform: scale(1.02);
+    }
+    .continue-btn:active {
+        transform: scale(0.98);
+    }
+/* ----- Tutorial styles – full‑screen, no dark overlay ----- */
+.tutorial-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+.tutorial-card {
+    background: white;
+    border-radius: 1.5rem;
+    max-height: 85dvh;
+    max-width: 340px;
+    width: 85%;
+    padding: 1rem;
+    box-shadow: 0 20px 35px -10px rgba(0,0,0,0.2);
+    position: relative;
+    animation: fadeInUp 0.2s ease;
+    overflow-y: auto;
+}
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.tutorial-close {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    background: none;
+    border: none;
+    font-size: 1.6rem;
+    cursor: pointer;
+    color: #666;
+    padding: 0 6px;
+    border-radius: 30px;
+}
+.tutorial-close:hover { background: #f0f0f0; }
+.tutorial-title {
+    font-weight: bold;
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+    padding-right: 2rem;
+}
+.tutorial-desc {
+    font-size: 0.9rem;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    line-height: 1.4;
+}
+.demo-flashcard {
+    width: 80%;
+    margin: 0.8rem auto;
+    height: 15vh;
+    max-height: 120px;
+    min-height: 80px;
+    position: relative;
+    perspective: 800px;
+    cursor: pointer;
+}
+.demo-inner {
+    width: 100%;
+    height: 100%;
+    transition: transform 0.5s;
+    transform-style: preserve-3d;
+    position: relative;
+}
+.demo-front, .demo-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 0.5rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    font-weight: 600;
+    font-size: 0.9rem;
+    line-height: 1.2;
+}
+.demo-back {
+    transform: rotateY(180deg);
+    background: #eef2fa;
+}
+.demo-buttons {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    margin: 0.8rem 0;
+}
+.demo-btn {
+    background: #e2e8f0;
+    border: none;
+    border-radius: 2rem;
+    padding: 0.3rem 0.9rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.1s;
+}
+.demo-btn-primary {
+    background: #3b82f6;
+    color: white;
+}
+.demo-feedback {
+    font-size: 0.8rem;
+    text-align: center;
+    margin-top: 0.5rem;
+    color: #2c7da0;
+}
+.tutorial-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.tutorial-nav button {
+    background: #e2e8f0;
+    border: none;
+    border-radius: 2rem;
+    padding: 0.4rem 1rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+.tutorial-nav button.primary {
+    background: #3b82f6;
+    color: white;
+}
+.tutorial-nav button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.tutorial-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+}
+.highlight-target {
+    outline: 4px solid #ef4444;
+    outline-offset: 4px;
+    z-index: 10001;
+    position: relative;
+}
+.tutorial-arrow {
+    position: fixed;
+    font-size: 30px;
+    color: #ef4444;
+    z-index: 10002;
+    pointer-events: none;
+    line-height: 1;
+    filter: drop-shadow(0 0 2px rgba(0,0,0,0.2));
+    transform: translateY(-50%);
+    animation: bounceRight 0.5s infinite alternate ease-in-out;
+}
+@keyframes bounceRight {
+    from { margin-left: 2px; }
+    to { margin-left: 10px; }
+}
+@keyframes bounceDown {
+    from { margin-top: 0px; }
+    to { margin-top: -8px; }
+}
+/* Custom suggestions dropdown */
+.input-wrapper {
+    position: relative;
+}
+.suggestions-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-top: none;
+    border-radius: 0 0 1rem 1rem;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.suggestion-item {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: background 0.1s;
+    font-size: 0.9rem;
+}
+.suggestion-item:hover {
+    background: #f3f4f6;
+}
+.suggestion-item.active {
+    background: #e5e7eb;
+}
+.guidance-text {
+    font-size: 0.85rem;
+    opacity: 0.8;
+    margin-top: 0.5rem;
+    font-style: italic;
+}
+.peek-message {
+    text-align: center;
+    padding: 0.75rem;
+    background: #fef9c3;
+    border-radius: 1rem;
+    color: #854d0e;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+body {
+    overflow: hidden;
+    height: 100%;
+}
+.app-container {
+    height: 100dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* smooth scroll on iOS */
+}
+#answerInput {
+    scroll-margin-top: 20px;
+    scroll-margin-bottom: 20px;
+}
+.keyboard-open .flashcard-area {
+    min-height: 160px;   /* or a comfortable height */
+}
+/* When keyboard is open, compress the layout */
+.keyboard-open .flashcard-area {
+    height: 25vh !important;      /* reduce from default ~30vh */
+    min-height: 120px !important;
+}
+.keyboard-open .flip-card {
+    min-height: 120px !important;
+}
+.keyboard-open .definition-text,
+.keyboard-open .term-text {
+    font-size: 1rem !important;   /* smaller text if needed */
+}
+.keyboard-open .dropdown-area {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+.keyboard-open .buttons-area {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    gap: 0.25rem !important;
+}
+.keyboard-open .action-btn {
+    padding: 0.25rem 0.75rem !important;
+    font-size: 0.75rem !important;
+}
+.keyboard-open .stats-area,
+.keyboard-open .instruction-text {
+    display: none !important;
+}
+/* Tighten vertical spacing when keyboard opens */
+.keyboard-open .flashcard-area {
+    padding: 0 !important;
+    margin: 0 !important;
+    flex: 0 0 auto !important;
+}
+.keyboard-open .flip-card {
+    height: 120px !important;
+    min-height: 100px !important;
+}
+.keyboard-open .flip-card-front,
+.keyboard-open .flip-card-back {
+    padding: 0.25rem !important;
+}
+.keyboard-open .definition-text,
+.keyboard-open .term-text {
+    font-size: 1rem !important;
+}
+.keyboard-open .dropdown-area {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+.keyboard-open .answer-input {
+    padding: 0.5rem !important;
+    font-size: 1rem !important;
+}
+.keyboard-open .buttons-area {
+    padding: 0.25rem 0 !important;
+    margin: 0 !important;
+}
+.keyboard-open .action-btn {
+    padding: 0.25rem 0.75rem !important;
+    font-size: 0.75rem !important;
+}
+.keyboard-open .stats-area,
+.keyboard-open .instruction-text {
+    display: none !important;
+}
+.keyboard-open .study-view {
+    justify-content: flex-start !important;
+}
+#answerInput {
+    scroll-margin-top: 10px;
+    scroll-margin-bottom: 10px;
+}
+</style>
+</head>
+<body>
+    <div class="app-container" id="mainContainer">
+        <!-- ==================== STUDY VIEW (main learning interface) ==================== -->
+        <div id="studyView" class="study-view">
+            <!-- Header: Star counter, mode toggle, gear -->
+            <div class="header">
+                <div id="starCounter" class="star-counter" onclick="reviewKnown()">
+                    ⭐ <span id="knownCountDisplay">0</span>
+                </div>
+                <div class="mode-toggle">
+                    <button id="modeWordsBtn" class="mode-btn active" onclick="setAppMode('words')">Words</button>
+                    <button id="modePhrasesBtn" class="mode-btn" onclick="setAppMode('phrases')">Phrases</button>
+                </div>
+                <button id="gearBtn" class="gear-btn" onclick="toggleSettings()">⚙️</button>
+            </div>
+
+            <!-- Floating settings menu (hidden by default) -->
+            <div id="settingsMenu" class="settings-menu" style="display: none;">
+                <button class="settings-item" onclick="backupData()">💾 Backup</button>
+                <button class="settings-item" onclick="triggerRestore()">📂 Restore</button>
+                <hr class="settings-divider">
+                <button class="settings-item danger" onclick="resetAllData()">⚠️ Reset</button>
+            </div>
+
+            <!-- Dynamic instruction line -->
+            <div id="instructionText" class="instruction-text">Guess the meaning in English</div>
+
+            <!-- Flashcard area -->
+            <div class="flashcard-area">
+                <div class="flip-card">
+                    <div class="flip-card-inner" id="flipInner">
+                        <div class="flip-card-front">
+                            <div id="frontPrompt" class="definition-text">Loading...</div>
+                        </div>
+                        <div class="flip-card-back">
+                            <div id="backAnswer" class="term-text">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Answer input & datalist -->
+            <div class="dropdown-area">
+                <div class="input-wrapper">
+                    <div class="input-wrapper" style="position: relative;">
+                        <input id="answerInput" class="answer-input" placeholder="Type or select your answer" autocomplete="off">
+                        <div id="suggestionsDropdown" class="suggestions-dropdown" style="display: none;"></div>
+                    </div>
+                    <div id="peekMessage" class="peek-message" style="display: none;">
+                      🔍 You've peeked at the answer. Use the <strong>Next</strong> button to continue.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="buttons-area">
+                <button id="checkBtn" class="action-btn primary">✓ Check</button>
+                <button id="flipBtn" class="action-btn">🔄 Flip</button>
+                <button id="nextBtn" class="action-btn">🎲 Next</button>
+                <button id="reviewKnownBtn" class="action-btn review">⭐ Review Known</button>
+              	<button id="tutorialBtn" class="tutorial-btn">❓</button>
+            </div>
+
+            <!-- Stats area -->
+            <div class="stats-area">
+                <div id="stats" class="stats-text">
+                    Known: <span id="knownCount">0</span> &nbsp;|&nbsp;
+                    Pending retry: <span id="retryCount">0</span> &nbsp;|&nbsp;
+                    Peeked: <span id="peekedCount">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SUCCESS PAGE (Correct) ==================== -->
+        <div id="successPage" class="result-page success-page" style="display: none;">
+          <div class="result-content">
+            <div class="success-icon">⭐</div>
+            <h1 class="result-title">Correct!</h1>
+            <div id="successTranslation" class="result-translation"></div>
+            <div id="successGuidance" class="guidance-text" style="font-size: 0.85rem; opacity: 0.8; margin-top: 0.5rem;"></div>
+            <p class="motivation-text">Goota! You're mastering Afaan Oromo!</p>
+            <button id="continueSuccessBtn" class="continue-btn">Continue</button>
+          </div>
+        </div>
+
+        <!-- ==================== FAIL PAGE (Incorrect) ==================== -->
+        <div id="failPage" class="result-page fail-page" style="display: none;">
+            <div class="result-content">
+                <h1 class="fail-title">Don't worry! It doesn't count against you.</h1>
+                <p class="fail-subtitle">Let's learn this one:</p>
+                <div class="word-card">
+                    <div class="word-label">Afaan Oromo</div>
+                    <div id="failOromo" class="oromo-word"></div>
+                    <div class="word-label">English</div>
+                    <div id="failEnglish" class="english-word"></div>
+                </div>
+                <p class="retry-note">This question will be back in 20 questions to help you memorize it.</p>
+                <button id="continueFailBtn" class="continue-btn">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="flashOverlay" class="flash-overlay"></div>
+    <!-- Script will be added in later round -->
+<script>
+// ==================== AFAAN OROMO VOCABULARY LIBRARIES ====================
+// Each category is an array of { name: "afaan oromo word", meaning: "english meaning" }
+
+const nouns = [
+  {
+    "name": "abbaa / aabboo / baaba / abbayye",
+    "meaning": "father / dad / parent / patriarch / progenitor / sire"
+  },
+  {
+    "name": "haadha / aayyoo / daayyoo / deessee",
+    "meaning": "mother / mom / parent / matriarch / nurturer / dam"
+  },
+  {
+    "name": "ilmoo / mucaa / da'ima / ballaa / abbee",
+    "meaning": "child / son / daughter / offspring / infant / progeny / youth"
+  },
+  {
+    "name": "obboleessa / obbo / eedaa",
+    "meaning": "brother / elder / Mr. / male sibling / kinsman"
+  },
+  {
+    "name": "obboleetti / habitii",
+    "meaning": "sister / female sibling / female kin"
+  },
+  {
+    "name": "hiriyyaa / michuu / jaala / shariika / saahiba",
+    "meaning": "friend / companion / colleague / ally / partner / associate"
+  },
+  {
+    "name": "maatii / warra / qomoo / hidda",
+    "meaning": "family / household / relatives / kin / lineage / clan / folk"
+  },
+  {
+    "name": "hoggannaa / geggeessaa / hayyuu / qaalluu / abba-gadaa",
+    "meaning": "leader / elder / chief / director / guide / authority / headman"
+  },
+  {
+    "name": "mootii / bituu / sulxaan / nigausa",
+    "meaning": "king / ruler / monarch / sovereign / emperor / potentate"
+  },
+  {
+    "name": "mootittii / giiftii",
+    "meaning": "queen / female monarch / empress / queen consort"
+  },
+  {
+    "name": "raajii / fageessaa / muuda",
+    "meaning": "prophet / seer / oracle / diviner / soothsayer / visionary"
+  },
+  {
+    "name": "ergamaa / malayikaa / mursala / ambaasaaddara",
+    "meaning": "messenger / apostle / angel / envoy / emissary / missionary / herald"
+  },
+  {
+    "name": "loltuu / waraana / goota / jannata",
+    "meaning": "warrior / soldier / fighter / combatant / hero / trooper / veteran"
+  },
+  {
+    "name": "qeesii / luba / abba-gadaa / faaqii",
+    "meaning": "priest / cleric / minister / pastor / ritual leader / chaplain"
+  },
+  {
+    "name": "nama / namicha / insaan / dhuunfaa",
+    "meaning": "man / person / human / individual / soul / being / mortal"
+  },
+  {
+    "name": "dubartii / niitii / nadheen / geerantuu",
+    "meaning": "woman / wife / female / lady / spouse / matron"
+  },
+  {
+    "name": "ijoollee / dhaloota / qe'ee / bu'ura",
+    "meaning": "children / offspring / progeny / generation / youngsters / brood"
+  },
+  {
+    "name": "dargaggeessa / qoondala / follee",
+    "meaning": "young man / youth / adolescent / bachelor / stripling"
+  },
+  {
+    "name": "shamarree / durba / madaala / karrayyuu",
+    "meaning": "young woman / maiden / girl / virgin / damsel / lass"
+  },
+  {
+    "name": "jaarsa / manguddoo / gataataa",
+    "meaning": "old man / elder / patriarch / senior / veteran / greybeard"
+  },
+  {
+    "name": "jaartii / gadhituu / dulloomaa",
+    "meaning": "old woman / matron / elderly lady / crone"
+  },
+  {
+    "name": "hojjetaa / dalagee / tajaajilaa",
+    "meaning": "worker / employee / laborer / staff / operative / hand"
+  },
+  {
+    "name": "jiraataa / bulchaa / mudira / qe’ee",
+    "meaning": "resident / inhabitant / ruler / governor / citizen / dweller / occupant"
+  },
+  {
+    "name": "keessummaa / alagaa / mooraa",
+    "meaning": "guest / stranger / visitor / foreigner / outsider / newcomer"
+  },
+  {
+    "name": "diina / sabaata / sidii",
+    "meaning": "enemy / foe / adversary / opponent / antagonist / rival"
+  },
+  {
+    "name": "ollaa / dhihoo / firra",
+    "meaning": "neighbor / associate / nearby resident / acquaintance"
+  },
+  {
+    "name": "abbaa manaa / dhiirsa / sayyo",
+    "meaning": "husband / head of household / male spouse / man of the house"
+  },
+  {
+    "name": "haadha manaa / niitii / manitti",
+    "meaning": "wife / homemaker / female spouse / consort / better half"
+  },
+  {
+    "name": "macaafa / barreessaa / kaatiba / daftara",
+    "meaning": "scribe / writer / scripture / author / chronicler / clerk"
+  },
+  {
+    "name": "tajaajilaa / garba / xurree / kookee",
+    "meaning": "servant / minister / slave / attendant / bondman / valet / domestic"
+  },
+  {
+    "name": "waldaa / gumii / jama'aa / majliisa",
+    "meaning": "assembly / church / congregation / community / gathering / society"
+  },
+  {
+    "name": "gorsaa / hayyuu / waarsaa",
+    "meaning": "counselor / advisor / consultant / mentor / guide / confidant"
+  },
+  {
+    "name": "abbaa murtii / murtii / qaadii",
+    "meaning": "judge / arbiter / magistrate / justice / referee / adjudicator"
+  },
+  {
+    "name": "dhugaa-baatuu / shaahida / ragaa",
+    "meaning": "witness / observer / spectator / deponent / testifier"
+  },
+  {
+    "name": "mana / gojoo / dallaa / qe'ee",
+    "meaning": "house / home / dwelling / residence / abode / building / domicile"
+  },
+  {
+    "name": "minjaala / miishaa / miiza",
+    "meaning": "table / desk / stand / counter"
+  },
+  {
+    "name": "barcuma / teessoo / kurshii",
+    "meaning": "chair / seat / stool / bench / throne"
+  },
+  {
+    "name": "siree / afata / almaga",
+    "meaning": "bed / mattress / cot / sleeping place / bunk"
+  },
+  {
+    "name": "foddaa / masaraa / takkee",
+    "meaning": "window / casement / opening / aperture"
+  },
+  {
+    "name": "balbala / karra / hulaa",
+    "meaning": "door / gate / entrance / portal / hatch / gateway"
+  },
+  {
+    "name": "galma keessummaa",
+    "meaning": "living room / reception / parlor / lounge / sitting room"
+  },
+  {
+    "name": "kuusaa / gombisaa / madiina / bakka-ka'umsaa",
+    "meaning": "store / storage / barn / warehouse / granary / cellar / depot"
+  },
+  {
+    "name": "qumbii / jabaa / saniyya",
+    "meaning": "jar / pot / container / vessel / urn / crock"
+  },
+  {
+    "name": "sananyaa / saanii / saahinii",
+    "meaning": "plate / dish / platter / saucer"
+  },
+  {
+    "name": "fal'aana / malqaa",
+    "meaning": "spoon / scoop / ladle"
+  },
+  {
+    "name": "madooshaa / dubbiisa",
+    "meaning": "hammer / mallet / gavel"
+  },
+  {
+    "name": "makiinaa / masiniii / alaataa",
+    "meaning": "machine / engine / apparatus / motor / device"
+  },
+  {
+    "name": "baaxii / saaqii / garasara",
+    "meaning": "roof / ceiling / canopy / cover / overhead"
+  },
+  {
+    "name": "gabaa / suuquu / bazaar",
+    "meaning": "market / shop / bazaar / marketplace / store / exchange"
+  },
+  {
+    "name": "kushinaa / mana-nyaataa",
+    "meaning": "kitchen / cookhouse / galley / scullery"
+  },
+  {
+    "name": "mana-dhiqannaa / shintii / hammama",
+    "meaning": "bathroom / toilet / washroom / lavatory / latrine / restroom"
+  },
+  {
+    "name": "makiinaa / konkolaataa / kaari",
+    "meaning": "car / vehicle / automobile / motorcar / transport"
+  },
+  {
+    "name": "kophee / tarkaanfii / kofiyaa",
+    "meaning": "shoe / footwear / boot / sandal / slipper"
+  },
+  {
+    "name": "wayyaa / uffata / kittaa / libaasa",
+    "meaning": "clothing / garment / apparel / attire / raiment / dress"
+  },
+  {
+    "name": "furtuu / mufataah",
+    "meaning": "key / opener / latchkey / password"
+  },
+  {
+    "name": "bilbila / tilifoonii",
+    "meaning": "telephone / phone / handset / receiver"
+  },
+  {
+    "name": "televiziyoonii",
+    "meaning": "television / TV / set / receiver"
+  },
+  {
+    "name": "komputarii",
+    "meaning": "computer / processor / workstation / laptop"
+  },
+  {
+    "name": "moobayilii",
+    "meaning": "mobile phone / cell phone / smartphone / device"
+  },
+  {
+    "name": "baatirii",
+    "meaning": "battery / cell / power pack / accumulator"
+  },
+  {
+    "name": "laampii / ibsaa / faannoo / kanadiila",
+    "meaning": "lamp / light / lantern / torch / beacon"
+  },
+  {
+    "name": "fakkii / suurtaa / suraa",
+    "meaning": "picture / photo / image / photograph / portrait / illustration"
+  },
+  {
+    "name": "afata / ayyana / basaxi / gilaasa",
+    "meaning": "mat / carpet / rug / floor covering / tapestry"
+  },
+  {
+    "name": "foon / hamanxe",
+    "meaning": "meat / flesh / muscle / protein"
+  },
+  {
+    "name": "buddeena / qitaa / kijiboo / injera",
+    "meaning": "bread / loaf / flatbread / injera / staple food"
+  },
+  {
+    "name": "bishaan / bishaanicha",
+    "meaning": "water / liquid / moisture / hydration"
+  },
+  {
+    "name": "biyyoo / lafa / dachi / qe’ee",
+    "meaning": "soil / ground / earth / land / terrain / territory / dirt"
+  },
+  {
+    "name": "dhagaa / kersa / siraa",
+    "meaning": "stone / rock / boulder / pebble / flint"
+  },
+  {
+    "name": "muka / xadharee / qoraan",
+    "meaning": "tree / wood / timber / plant / shrub / lumber"
+  },
+  {
+    "name": "abaaboo / farda / wardii",
+    "meaning": "flower / blossom / bloom / floret"
+  },
+  {
+    "name": "margaa / dheedichaa / hookoo / jiba",
+    "meaning": "grass / pasture / herb / greenery / lawn / turf"
+  },
+  {
+    "name": "gammoojjii / barahaa / haraaraa",
+    "meaning": "wilderness / desert / wasteland / arid region / steppe"
+  },
+  {
+    "name": "bosona / dagala / caakaa",
+    "meaning": "forest / woods / jungle / thicket / grove / woodland"
+  },
+  {
+    "name": "laga / yaa'a / malkaa",
+    "meaning": "river / stream / creek / brook / waterway / channel"
+  },
+  {
+    "name": "galaana / baharii / maraa",
+    "meaning": "sea / ocean / deep water / brine"
+  },
+  {
+    "name": "haroo / kuree / galana-xinnaa",
+    "meaning": "lake / pond / pool / basin / reservoir / lagoon"
+  },
+  {
+    "name": "tulluu / gaara / kurkurra / gaayya",
+    "meaning": "mountain / hill / peak / summit / mount / height"
+  },
+  {
+    "name": "burqaa / madda / ayinuu",
+    "meaning": "spring / water source / fountain / headwater / origin"
+  },
+  {
+    "name": "aduu / biiftuu / biftuu / qoree",
+    "meaning": "sun / sunshine / daylight / solar body"
+  },
+  {
+    "name": "ji'a / baatii / qamara",
+    "meaning": "moon / month / lunar body / crescent"
+  },
+  {
+    "name": "urjii / bakkalcha / nujuuma",
+    "meaning": "star / celestial body / asteroid"
+  },
+  {
+    "name": "bubbee / qilleensa / hawwii / nifaasa",
+    "meaning": "wind / air / breeze / gust / atmosphere / gale"
+  },
+  {
+    "name": "rooba / bokkaa / ganna",
+    "meaning": "rain / rainfall / precipitation / shower / downpour"
+  },
+  {
+    "name": "mandiisuu / bakakaa / kabaa",
+    "meaning": "thunder / rumble / boom / peal"
+  },
+  {
+    "name": "bakakaa / ibsaa / balaqqeessa / sa'iqaa",
+    "meaning": "lightning / flash / thunderbolt / bolt"
+  },
+  {
+    "name": "duumessa / bishaan-olii / gubee",
+    "meaning": "cloud / mist / vapor / nimbus"
+  },
+  {
+    "name": "simbirroo / simbira / allaattii / xuyyuura",
+    "meaning": "bird / fowl / winged creature / avian"
+  },
+  {
+    "name": "qurxummii / samakaa",
+    "meaning": "fish / sea creature / aquatic being"
+  },
+  {
+    "name": "bineensa / uumama-diidaa / bahima",
+    "meaning": "wild animal / beast / creature / wildlife / brute"
+  },
+  {
+    "name": "leenca / ambassa / asada",
+    "meaning": "lion / predator / big cat / king of beasts"
+  },
+  {
+    "name": "waraabessa",
+    "meaning": "hyena / scavenger / laugher"
+  },
+  {
+    "name": "gaala / rukuuba",
+    "meaning": "camel / dromedary / ship of the desert"
+  },
+  {
+    "name": "sa'a / loon / barisoo / horii",
+    "meaning": "cow / cattle / livestock / bovine / kine"
+  },
+  {
+    "name": "hoolaa / xuyyuu",
+    "meaning": "sheep / ewe / ram / lamb"
+  },
+  {
+    "name": "farda / bakka",
+    "meaning": "horse / stallion / mare / steed / mount"
+  },
+  {
+    "name": "harree / dhuulloo",
+    "meaning": "donkey / burro / ass / jackass"
+  },
+  {
+    "name": "jaldeessa / qamalee / deeroo",
+    "meaning": "monkey / baboon / primate / ape"
+  },
+  {
+    "name": "saree / kuta / kelbii",
+    "meaning": "dog / hound / canine / pooch"
+  },
+  {
+    "name": "adurree / bashoo / danda / mawsii",
+    "meaning": "cat / feline / kitty / puss"
+  },
+  {
+    "name": "mataa / buuqqee / qaraa",
+    "meaning": "head / skull / cranium / crown"
+  },
+  {
+    "name": "ija / agartuu / ayinuu",
+    "meaning": "eye / eyes / vision / sight / orb"
+  },
+  {
+    "name": "gurra / udnuu",
+    "meaning": "ear / ears / hearing / auditory organ"
+  },
+  {
+    "name": "afaan / boko / qallicha",
+    "meaning": "mouth / language / opening / oral cavity / dialect"
+  },
+  {
+    "name": "funyaan / sanyii",
+    "meaning": "nose / snout / olfactory organ"
+  },
+  {
+    "name": "harka / qeensa",
+    "meaning": "hand / arm / limb / appendage"
+  },
+  {
+    "name": "miilla / luka / tarkaanfii",
+    "meaning": "foot / leg / limb / paw"
+  },
+  {
+    "name": "onnee / laphee / qalbii / muuzuu",
+    "meaning": "heart / mind / core / soul / spirit / center"
+  },
+  {
+    "name": "garaa / mar'umaan / waxanii",
+    "meaning": "stomach / belly / abdomen / gut / paunch"
+  },
+  {
+    "name": "lafee / adhimuu",
+    "meaning": "bone / skeleton / ossicle"
+  },
+  {
+    "name": "dhiiga / dammuu",
+    "meaning": "blood / lifeblood / gore"
+  },
+  {
+    "name": "gogaa / galla / jidha",
+    "meaning": "skin / hide / leather / surface / epidermis"
+  },
+  {
+    "name": "rifeensa / cannee / gaafa",
+    "meaning": "hair / fur / locks / tress / mane"
+  },
+  {
+    "name": "qoma / laphee / dhandhama",
+    "meaning": "chest / breast / torso / sternum"
+  },
+  {
+    "name": "garaa / gadameessa / ridu / rahim",
+    "meaning": "abdomen / womb / uterus / matrix"
+  },
+  {
+    "name": "duggaa / migira / dhabuu",
+    "meaning": "back / spine / backbone / dorsal region"
+  },
+  {
+    "name": "korma / kormaa",
+    "meaning": "male (animal) / masculinity / virility / stud"
+  },
+  {
+    "name": "yeroo / waqtii / saa'a / ayyaana",
+    "meaning": "time / period / season / occasion / instance / duration"
+  },
+  {
+    "name": "waggaa / amata / sanna",
+    "meaning": "year / annum / cycle"
+  },
+  {
+    "name": "ji'a / baatii / shahrii",
+    "meaning": "month / moon / lunar cycle"
+  },
+  {
+    "name": "torban",
+    "meaning": "week / seven days / sennight"
+  },
+  {
+    "name": "guyyaa / aduu / yawma",
+    "meaning": "day / daylight / date / daytime"
+  },
+  {
+    "name": "halkan / dukkanacha / laylii",
+    "meaning": "night / nighttime / darkness / eve"
+  },
+  {
+    "name": "waaree / dursa / barii / subhii",
+    "meaning": "morning / dawn / sunrise / daybreak / forenoon"
+  },
+  {
+    "name": "ganama / barii / fajrii",
+    "meaning": "early morning / AM / crack of dawn"
+  },
+  {
+    "name": "galgala / hifaa / magriiba",
+    "meaning": "evening / dusk / twilight / sunset / eventide"
+  },
+  {
+    "name": "sa'aatii / saa'a",
+    "meaning": "hour / time of day / clock / watch"
+  },
+  {
+    "name": "daqiiqaa",
+    "meaning": "minute / moment"
+  },
+  {
+    "name": "sekondii",
+    "meaning": "second / instant"
+  },
+  {
+    "name": "bara / jaarraa / qarnii / zamaana",
+    "meaning": "era / age / epoch / kingdom / century / generation"
+  },
+  {
+    "name": "ganna / roobaa / hageeyya",
+    "meaning": "winter / rainy season / wet season / monsoon"
+  },
+  {
+    "name": "bona / aduu",
+    "meaning": "summer / dry season / autumn / arid season"
+  },
+  {
+    "name": "birraa",
+    "meaning": "spring / new year / harvest eve / bloom-time"
+  },
+  {
+    "name": "arfaasaa",
+    "meaning": "autumn / harvest season / light rains / fall"
+  },
+  {
+    "name": "jireenya / jiruu / hayaata",
+    "meaning": "life / existence / living / livelihood / being"
+  },
+  {
+    "name": "du'a / ajala / mawtii",
+    "meaning": "death / dying / demise / passing / end"
+  },
+  {
+    "name": "jaalala / hiitannoo / hubbii",
+    "meaning": "love / affection / fondness / passion / devotion"
+  },
+  {
+    "name": "jibba / dhiitannoo / bughdii",
+    "meaning": "hatred / enmity / detestation / dislike / animosity"
+  },
+  {
+    "name": "amantii / iimaana / diinii",
+    "meaning": "faith / belief / religion / creed / conviction / theology"
+  },
+  {
+    "name": "kadhannaa / du'aa'ii / salaata",
+    "meaning": "prayer / supplication / entreaty / petition / worship"
+  },
+  {
+    "name": "seera / qajeelfama / shari'aa / namma",
+    "meaning": "law / rule / commandment / order / regulation / statute / decree"
+  },
+  {
+    "name": "wanta / waan / dhimma",
+    "meaning": "thing / matter / issue / object / substance / item"
+  },
+  {
+    "name": "gammachuu / bashannana / faraha",
+    "meaning": "joy / happiness / delight / pleasure / bliss / elation"
+  },
+  {
+    "name": "gadda / marartoo / huznii",
+    "meaning": "sorrow / grief / sadness / misery / lamentation / woe"
+  },
+  {
+    "name": "waamicha",
+    "meaning": "call / invitation / summons / vocation / appeal"
+  },
+  {
+    "name": "deebii / jawaaba",
+    "meaning": "answer / response / reply / solution / retort"
+  },
+  {
+    "name": "gaaffii",
+    "meaning": "question / inquiry / query / interrogation / doubt"
+  },
+  {
+    "name": "dubbii / jecha / qallicha / kalaama",
+    "meaning": "word / speech / talk / discourse / utterance / phrase"
+  },
+  {
+    "name": "dhugaa / haqa / sidqii",
+    "meaning": "truth / reality / veracity / fact / justice / honesty"
+  },
+  {
+    "name": "soba / kakuu-sobaa / kizbii",
+    "meaning": "lie / falsehood / deception / untruth / fabrication"
+  },
+  {
+    "name": "hojii / gocha / dalagaa / camalee",
+    "meaning": "work / deed / action / labor / task / occupation / exploit"
+  },
+  {
+    "name": "bu'aa / faayidaa / nafi'aa",
+    "meaning": "result / outcome / profit / benefit / advantage / gain"
+  },
+  {
+    "name": "carraa / hixaa / nasiiba",
+    "meaning": "opportunity / chance / luck / fortune / lot / fate"
+  },
+  {
+    "name": "rakkina / gidiraa / mudannoo / balaa",
+    "meaning": "trouble / difficulty / problem / hardship / distress / adversity"
+  },
+  {
+    "name": "tarkaanfii / yaalii / qadam",
+    "meaning": "step / pace / footstep / measure / action / initiative"
+  },
+  {
+    "name": "karaa / daandii / tanaqqii / tariiqa",
+    "meaning": "way / path / road / route / street / method / avenue"
+  },
+  {
+    "name": "karoora / xalayaa",
+    "meaning": "plan / intention / strategy / design / program / blueprint"
+  },
+  {
+    "name": "beekumsa / hayyummaa / ilm",
+    "meaning": "knowledge / wisdom / intellect / understanding / lore"
+  },
+  {
+    "name": "hubannoo / qalbii / fahmii",
+    "meaning": "understanding / comprehension / insight / awareness / perception"
+  },
+  {
+    "name": "fedhii / hawwii / ragbaa",
+    "meaning": "desire / will / wish / appetite / inclination / aspiration"
+  },
+  {
+    "name": "aangoo / madda-humnaa / quwwaa",
+    "meaning": "power / authority / strength / command / jurisdiction / potency"
+  },
+  {
+    "name": "humna / jabina / taaqaa",
+    "meaning": "strength / force / might / energy / capacity / vigor"
+  },
+  {
+    "name": "kallattii / jihaa",
+    "meaning": "direction / orientation / heading / trend / vector"
+  },
+  {
+    "name": "gatii / madaallii / mazaana / qadhari",
+    "meaning": "price / cost / value / worth / rate / valuation"
+  },
+  {
+    "name": "kennaa / hadiyyaa",
+    "meaning": "gift / present / talent / donation / grant / bounty"
+  },
+  {
+    "name": "waadaa / kakuu / moora",
+    "meaning": "promise / covenant / pledge / oath / vow / commitment"
+  },
+  {
+    "name": "kakuu / qolloo / miila",
+    "meaning": "covenant / agreement / treaty / pact / accord"
+  },
+  {
+    "name": "mana barnootaa / madarasaa",
+    "meaning": "school / academy / institute / college / seminary"
+  },
+  {
+    "name": "barnoota / barumsa / darsi / ta'iliima",
+    "meaning": "education / learning / teaching / schooling / instruction / study"
+  },
+  {
+    "name": "kitaaba / macaafa / daftara",
+    "meaning": "book / scripture / volume / manual / publication / tome"
+  },
+  {
+    "name": "qubee / barreessaa",
+    "meaning": "letter / alphabet / script / character / glyph"
+  },
+  {
+    "name": "hojii-manee / caasaa",
+    "meaning": "exercise / homework / assignment / task / drill"
+  },
+  {
+    "name": "qormaata / imtihaana",
+    "meaning": "exam / test / evaluation / assessment / trial"
+  },
+  {
+    "name": "barsiisaa / muallima / ustaza",
+    "meaning": "teacher / instructor / tutor / professor / educator / mentor"
+  },
+  {
+    "name": "barataa / xaaliba",
+    "meaning": "student / learner / pupil / scholar / disciple"
+  },
+  {
+    "name": "barumsa / lallaba / muhaadaraa",
+    "meaning": "lesson / lecture / tutorial / class / session"
+  },
+  {
+    "name": "saayinsii / qorannoo",
+    "meaning": "science / empirical study / investigation / research"
+  },
+  {
+    "name": "herrega / hisaaba",
+    "meaning": "mathematics / arithmetic / calculation / computation"
+  },
+  {
+    "name": "seenaa / odessa / taariika",
+    "meaning": "history / story / narrative / chronicle / past / account"
+  },
+  {
+    "name": "hojii / dalagaa / khidmaa",
+    "meaning": "work / job / employment / vocation / career / trade"
+  },
+  {
+    "name": "hojjetaa / shaagala",
+    "meaning": "worker / employee / staff / operative / laborer"
+  },
+  {
+    "name": "daldalaa / tajaajiraa / tujjaara",
+    "meaning": "merchant / trader / businessman / vendor / dealer / shopkeeper"
+  },
+  {
+    "name": "bulchaa / geggeessaa / mudira / ra'iisa",
+    "meaning": "resident / manager / governor / administrator / director / head"
+  },
+  {
+    "name": "abbaa hojii / basha / gooftaa",
+    "meaning": "boss / employer / master / supervisor / patron"
+  },
+  {
+    "name": "waajjira / maktaba",
+    "meaning": "office / bureau / workplace / department"
+  },
+  {
+    "name": "warshaa / fabrikaa",
+    "meaning": "factory / plant / mill / industry / manufacture"
+  },
+  {
+    "name": "bizaanii / daldala / tijaaraa",
+    "meaning": "business / enterprise / commerce / trade / industry"
+  },
+  {
+    "name": "meeshaa / qabeenya / alaata",
+    "meaning": "tool / instrument / equipment / apparatus / gear / hardware"
+  },
+  {
+    "name": "qonnaa / sanyii",
+    "meaning": "farming / agriculture / cultivation / husbandry / tillage"
+  },
+  {
+    "name": "qonnaan-bulaa / guraabaa / fallaahaa",
+    "meaning": "farmer / agriculturist / cultivator / peasant / tiller"
+  },
+  {
+    "name": "loon / horii / mawaashii",
+    "meaning": "livestock / cattle / kine / herd / stock"
+  },
+  {
+    "name": "midhaan / nyaaticha",
+    "meaning": "grain / crop / food / harvest / cereal / produce"
+  },
+  {
+    "name": "magaalaa / madiinaa / katamaa",
+    "meaning": "city / town / municipality / urban center / metropolis"
+  },
+  {
+    "name": "ganda / mantiqaa",
+    "meaning": "village / neighborhood / district / ward / hamlet / township"
+  },
+  {
+    "name": "biyya / gosa / dawlaa",
+    "meaning": "country / land / nation / homeland / state / territory"
+  },
+  {
+    "name": "daangaa / handhuura / hududa",
+    "meaning": "border / boundary / frontier / limit / edge / perimeter"
+  },
+  {
+    "name": "kutaa / naannoo / kiliila",
+    "meaning": "section / part / region / zone / province / division / sector"
+  },
+  {
+    "name": "karra / balbala / hulaa",
+    "meaning": "gate / entrance / portal / doorway / threshold"
+  },
+  {
+    "name": "addaabaabayii / mayidaana",
+    "meaning": "square / plaza / courtyard / open field / arena"
+  },
+  {
+    "name": "riqicha / dildila / kabaa",
+    "meaning": "bridge / overpass / viaduct / causeway"
+  },
+  {
+    "name": "daandii / karaa / bo'oo / shar'ii",
+    "meaning": "road / path / way / trail / track / avenue / highway"
+  },
+  {
+    "name": "hallayyaa / jallaa / lolaa",
+    "meaning": "slope / ascent / valley / abyss / cliff / ravine"
+  },
+  {
+    "name": "Waaqayyo / Waaqa / Rabbi / Allaah / Uumaa",
+    "meaning": "God / the Almighty / Lord / Creator / Deity / Providence"
+  },
+  {
+    "name": "Yesus / Kiristoos / Iisaa",
+    "meaning": "Jesus / Christ / Messiah / Redeemer / Savior"
+  },
+  {
+    "name": "Hafuura Qulqulluu / Ruuhii",
+    "meaning": "Spirit / Holy Spirit / breath / divine presence / Holy Ghost"
+  },
+  {
+    "name": "macaafa qulqulluu / kitaaba-ibaadaa",
+    "meaning": "scripture / holy writing / Bible / Testament / Sacred Text"
+  },
+  {
+    "name": "kakuu / waadaa / miila",
+    "meaning": "covenant / testament / promise / alliance / treaty"
+  },
+  {
+    "name": "tajaajilaa / diyaaqonii / khaadima",
+    "meaning": "servant / minister / deacon / acolyte / cleric"
+  },
+  {
+    "name": "waldaa / gumii / jama'aa",
+    "meaning": "assembly / church / congregation / body of believers / fellowship"
+  },
+  {
+    "name": "mootummaa / khilaafaa",
+    "meaning": "kingdom / reign / dominion / realm / empire / sovereignty"
+  },
+  {
+    "name": "fayyinna / oolchiinsa / najjaa",
+    "meaning": "salvation / deliverance / healing / rescue / redemption"
+  },
+  {
+    "name": "mirkaneessa / dhugaa-ba’umsa / shahaadaa",
+    "meaning": "testimony / witness / evidence / confirmation / affirmation"
+  },
+  {
+    "name": "amantii / iimaana / diinii",
+    "meaning": "faith / belief / creed / religion / piety"
+  },
+  {
+    "name": "kadhannaa / du'aa'ii / salaata / tasbiih",
+    "meaning": "prayer / request / petition / worship / devotion"
+  },
+  {
+    "name": "ajaja / abboommii / fariidii / wasiyyaa",
+    "meaning": "commandment / order / instruction / decree / mandate"
+  },
+  {
+    "name": "cubbuu / xuraawaa / haraama / dambi",
+    "meaning": "sin / transgression / error / vice / iniquity / offense"
+  },
+  {
+    "name": "qulqullina / xahaaraa / nazaafaa",
+    "meaning": "holiness / purity / sanctity / cleanliness / virtue"
+  },
+  {
+    "name": "wangeela / dhaamsa / misiraachoo",
+    "meaning": "message / news / gospel / good tidings / evangel"
+  },
+  {
+    "name": "ergaa / risaalaa / xalayaa",
+    "meaning": "message / mission / dispatch / epistle / commission"
+  },
+  {
+    "name": "raawwachuu / guutuu / tammuu",
+    "meaning": "fulfillment / accomplishment / completion / realization"
+  },
+  {
+    "name": "raajii / nabi-dubbii / wahyii",
+    "meaning": "prophecy / oracle / revelation / prediction"
+  },
+  {
+    "name": "furii / fidiyaa",
+    "meaning": "redemption / ransom / atonement / expiation"
+  },
+  {
+    "name": "waaqummaa / uumam-waaqaa",
+    "meaning": "divinity / godhead / divine nature / godliness"
+  },
+  {
+    "name": "hafuura / ruuhii / nefeessa",
+    "meaning": "spirit / ghost / soul / essence / aura"
+  },
+  {
+    "name": "lubbuu / jireenya / nefsii",
+    "meaning": "soul / life / self / vital force / being"
+  },
+  {
+    "name": "qabiyyee / dhimma / mawduu'ii",
+    "meaning": "content / substance / matter / subject / theme"
+  },
+  {
+    "name": "nyaata / sagalee / qallaba / xaa'amu",
+    "meaning": "food / meal / nourishment / provisions / diet / fare"
+  },
+  {
+    "name": "dhugaatii / masnuu / mashruub",
+    "meaning": "drink / beverage / refreshment / potable"
+  },
+  {
+    "name": "shurrubbaa / guntuta",
+    "meaning": "braid / plait / tress / weave"
+  },
+  {
+    "name": "kophee / maraxaa / hidhaa",
+    "meaning": "shoes / sandals / footwear / clogs"
+  },
+  {
+    "name": "kamisii / shamiizii / uffata",
+    "meaning": "shirt / clothing / tunic / garment / blouse"
+  },
+  {
+    "name": "buna / qaawa / qahwa",
+    "meaning": "coffee / brew / bean / java"
+  },
+  {
+    "name": "shaayii",
+    "meaning": "tea / infusion / brew"
+  },
+  {
+    "name": "aannan / haraamuu / labanii",
+    "meaning": "milk / dairy / beverage"
+  },
+  {
+    "name": "oowwa / ho'a / dhandhama / haraara",
+    "meaning": "heat / warmth / temperature / fever"
+  },
+  {
+    "name": "qorra / diilallaa / barda",
+    "meaning": "cold / chill / frost / refrigeration"
+  },
+  {
+    "name": "lafa / dachii / ardi",
+    "meaning": "ground / earth / land / floor / soil"
+  },
+  {
+    "name": "ijaarsa / caasaa / gubbaa",
+    "meaning": "structure / building / construction / framework / edifice"
+  },
+  {
+    "name": "nyaata qophaa'e / affeerraa",
+    "meaning": "meal / food prepared / feast / banquet"
+  },
+  {
+    "name": "fal'aana / kumkummaa / malqaa",
+    "meaning": "spoon / scoop / utensil"
+  },
+  {
+    "name": "shukka",
+    "meaning": "fork / utensil"
+  },
+  {
+    "name": "haaduu / billaa / maasha / sikkiini",
+    "meaning": "knife / blade / dagger / cutter"
+  },
+  {
+    "name": "gabaa / suuquu",
+    "meaning": "market / trade / commerce / shop"
+  },
+  {
+    "name": "baankii / khaziinaa",
+    "meaning": "bank / financial institution / treasury"
+  },
+  {
+    "name": "maallaqa / qarshii / luyya / naqdii",
+    "meaning": "money / currency / cash / funds / wealth / capital"
+  },
+  {
+    "name": "bilisummaa / hurriyaa",
+    "meaning": "freedom / liberty / independence / emancipation / sovereignty"
+  },
+  {
+    "name": "bittaa",
+    "meaning": "purchase / buy / acquisition / shopping"
+  },
+  {
+    "name": "gurgurtaa",
+    "meaning": "sale / selling / vending / auction"
+  },
+  {
+    "name": "gatii / haqee / thaman",
+    "meaning": "price / value / cost / charge / fare"
+  }
+];
+
+const verbs = [
+    // Basic actions
+    { name: "ta'uu", meaning: "to be / to become / to happen" },
+    { name: "qabaachuu", meaning: "to have / to hold / to possess" },
+    { name: "gochuu", meaning: "to do / to make / to perform" },
+    { name: "jiraachuu", meaning: "to live / to exist / to be present" },
+    { name: "deemuu", meaning: "to go / to walk / to travel" },
+    { name: "dhufuu", meaning: "to come / to arrive" },
+    { name: "arguu", meaning: "to see / to perceive / to find" },
+    { name: "dhaga'uu", meaning: "to hear / to listen / to feel" },
+    { name: "beekuu", meaning: "to know / to understand / to recognize" },
+    { name: "yaaduu", meaning: "to think / to remember / to intend" },
+    { name: "jechuu", meaning: "to say / to tell / to speak" },
+    { name: "dubbachuu", meaning: "to speak / to talk / to utter" },
+    { name: "barachuu", meaning: "to learn / to study" },
+    { name: "barreessuu", meaning: "to write / to record" },
+    { name: "dubbisuu", meaning: "to read / to recite" },
+    { name: "nyaachuu", meaning: "to eat / to consume" },
+    { name: "dhuguu", meaning: "to drink / to swallow" },
+    { name: "hojjechuun / hojjachuu", meaning: "to work / to labor / to function" },
+    { name: "rafuu", meaning: "to sleep / to rest" },
+    { name: "dammaquu", meaning: "to wake up / to arise" },
+    { name: "dhaabbachuu / dhaabuu", meaning: "to stand / to stop / to establish" },
+    { name: "taa'uu", meaning: "to sit / to dwell" },
+    { name: "kufuu", meaning: "to fall / to drop" },
+    { name: "ka'uu", meaning: "to rise / to get up / to start" },
+    { name: "deebi'uu", meaning: "to return / to go back / to reply" },
+    { name: "ga'uu / gahuu", meaning: "to reach / to arrive / to suffice" },
+    { name: "ba'uu / bahuu", meaning: "to go out / to exit / to appear" },
+    { name: "seenuu", meaning: "to enter / to go in" },
+    { name: "fiiguu / arriifachuu", meaning: "to run / to hurry" },
+    { name: "utaaluu", meaning: "to jump / to leap" },
+    { name: "booyu / boo'ichuu", meaning: "to cry / to weep" },
+    { name: "kolfuu", meaning: "to laugh / to smile" },
+    { name: "faarfachuu", meaning: "to sing / to praise" },
+    { name: "gargaaruu / fayyaduu", meaning: "to help / to benefit / to be useful" },
+
+    // Movement & travel
+    { name: "deemuu", meaning: "to go / to walk" },
+    { name: "socho'uu", meaning: "to move / to shift" },
+    { name: "ol ka'uu", meaning: "to go up / to ascend" },
+    { name: "bu'uu", meaning: "to go down / to descend" },
+    { name: "ce'uu / darbuu", meaning: "to cross / to pass over" },
+    { name: "tarkaanfachuu", meaning: "to step / to tread" },
+    { name: "fudhachuu", meaning: "to take / to receive / to accept" },
+    { name: "kennuu", meaning: "to give / to provide / to grant" },
+    { name: "erguu", meaning: "to send / to dispatch" },
+    { name: "gaafachuu", meaning: "to ask / to request / to inquire" },
+    { name: "deebisuu", meaning: "to answer / to respond" },
+    { name: "waamuu", meaning: "to call / to summon / to invite" },
+    { name: "bituu", meaning: "to buy / to purchase" },
+    { name: "gurguruu", meaning: "to sell / to trade" },
+
+    // Emotions & mental
+    { name: "jaallachuu", meaning: "to love / to like / to cherish" },
+    { name: "jibbuu", meaning: "to hate / to detest / to abhor" },
+    { name: "gammaduu", meaning: "to rejoice / to be happy" },
+    { name: "gadduu", meaning: "to be sad / to mourn" },
+    { name: "sodachuu", meaning: "to fear / to be afraid / to revere" },
+    { name: "amanuu", meaning: "to believe / to trust / to have faith" },
+    { name: "abdachuu", meaning: "to hope / to expect" },
+    { name: "eeguu", meaning: "to wait / to expect / to anticipate" },
+    { name: "aaruu / mufachuu", meaning: "to be angry / to become irritated" },
+    { name: "gaabbii galuu / qalbii jijjiirrachuu", meaning: "to change one's mind / to repent" },
+    { name: "qoruu", meaning: "to examine / to test / to study" },
+    { name: "yaadachuu", meaning: "to remember / to recall" },
+    { name: "irraanfachuu", meaning: "to forget / to neglect" },
+
+    // Communication
+    { name: "haasa'uu", meaning: "to converse / to talk together" },
+    { name: "odeessuu / himuu", meaning: "to narrate / to tell / to inform" },
+    { name: "mari'achuu", meaning: "to consult / to deliberate / to counsel" },
+    { name: "lallabuu", meaning: "to preach / to proclaim / to announce" },
+    { name: "erguu / nagaa erguu", meaning: "to send / to commission" },
+    { name: "ajajuu", meaning: "to command / to order / to instruct" },
+    { name: "gaafachuu", meaning: "to ask / to question" },
+    { name: "deebisuu", meaning: "to answer / to reply" },
+    { name: "waamuu", meaning: "to call / to invite" },
+    { name: "beeksisuu", meaning: "to inform / to notify / to announce" },
+    { name: "raabsuu", meaning: "to spread / to publish / to broadcast" },
+
+    // Spiritual & biblical
+    { name: "kadhachuu", meaning: "to pray / to supplicate / to beg" },
+    { name: "galateeffachuu / faarfachuu", meaning: "to praise / to glorify / to sing" },
+    { name: "waadaa galuu / kakuu", meaning: "to promise / to covenant" },
+    { name: "raajii dubbachuu", meaning: "to prophesy / to foretell" },
+    { name: "fayyisuu", meaning: "to heal / to save / to cure" },
+    { name: "dhiyeessuu", meaning: "to present / to offer / to bring before" },
+    { name: "bulchuu / nayeessuu", meaning: "to rule / to govern / to reign" },
+    { name: "murteessuu", meaning: "to judge / to decide / to rule" },
+    { name: "wangeela lallabuu", meaning: "to preach / to evangelize" },
+    { name: "ajajuu", meaning: "to command / to give an order" },
+    { name: "qulqulleessuu", meaning: "to purify / to sanctify / to cleanse" },
+    { name: "gadi of qabuu", meaning: "to be humble / to submit" },
+    { name: "amanuu", meaning: "to believe / to have faith" },
+    { name: "tajaajiluu", meaning: "to serve / to minister" },
+    { name: "eebbisuu", meaning: "to praise / to bless" },
+    { name: "eebbifamuu", meaning: "to be blessed / to receive blessing" },
+    { name: "raawwachuu", meaning: "to fulfill / to accomplish / to complete" },
+    { name: "mirkaneessuu / dhugaa ba'uu", meaning: "to testify / to bear witness" },
+    { name: "cubbuu hojjechuun / dogoggoruu", meaning: "to sin / to transgress / to err" },
+    { name: "araaramuu / dhiifama gochuu", meaning: "to forgive / to pardon / to remit" },
+    { name: "qulqulleessuu / sankita'u", meaning: "to sanctify / to make holy" },
+    { name: "qulqulluu ta'uu", meaning: "to be holy / to be pure" },
+    { name: "waamuu", meaning: "to call / to summon (divinely)" },
+    { name: "ergamuu", meaning: "to be sent / to be commissioned" },
+    { name: "furuu / baasuu", meaning: "to redeem / to rescue / to save" },
+
+    // Daily life & chores
+    { name: "dhiqachuu", meaning: "to wash / to bathe" },
+    { name: "bilcheessuu / qopheessuu", meaning: "to cook / to prepare food" },
+    { name: "cabsuu", meaning: "to break / to destroy / to shatter" },
+    { name: "suphuu / tumsiisuu", meaning: "to repair / to fix" },
+    { name: "qopheessuu", meaning: "to prepare / to arrange / to get ready" },
+    { name: "qulqulleessuu", meaning: "to clean / to purify" },
+    { name: "banuu", meaning: "to open / to unlock" },
+    { name: "cufuu", meaning: "to close / to shut" },
+    { name: "babal'isuu", meaning: "to open wide / to spread" },
+    { name: "qabuu", meaning: "to catch / to hold / to seize" },
+    { name: "darbuu", meaning: "to pass / to exceed / to surpass" },
+    { name: "dhaabbachuu", meaning: "to stop / to cease / to stand" },
+    { name: "eeguu", meaning: "to wait / to guard / to keep" },
+    { name: "kunuunsuu / guddisuu", meaning: "to care for / to nurture / to raise" },
+    { name: "agarsiisuu", meaning: "to show / to demonstrate / to explain" },
+
+    // Agriculture & nature
+    { name: "qotuu", meaning: "to plow / to cultivate" },
+    { name: "facaasuu", meaning: "to sow / to plant seeds" },
+    { name: "aramuu", meaning: "to weed / to hoe" },
+    { name: "dhaabuu", meaning: "to plant / to transplant" },
+    { name: "haamuu / sassaabuu", meaning: "to harvest / to gather" },
+    { name: "bokokuu", meaning: "to swell / to increase" },
+    { name: "guddisuu", meaning: "to raise / to grow / to increase" },
+    { name: "dhaluu / bu'aa buusuu", meaning: "to bear fruit / to produce" },
+    { name: "ciisuu", meaning: "to cause to lie down / to lay" },
+    { name: "bulchuu", meaning: "to manage / to govern (land)" },
+
+    // Change & transformation
+    { name: "jijjiiruu", meaning: "to change / to alter / to replace" },
+    { name: "fooyyessuu", meaning: "to improve / to make better" },
+    { name: "balleessuu / diiguu", meaning: "to destroy / to ruin" },
+    { name: "dammaqsuu", meaning: "to wake / to stir up" },
+    { name: "deebisuu / deebisanii dhaabuu", meaning: "to return (something) / to restore" },
+    { name: "midheessuu / bareessuu", meaning: "to make beautiful / to adorn" },
+    { name: "ariifachiisuu", meaning: "to hasten / to speed up" },
+    { name: "tursiisuu / turuu", meaning: "to delay / to be late" },
+
+    // Sense & perception
+    { name: "arguu", meaning: "to see / to perceive" },
+    { name: "ilaaluu", meaning: "to look at / to observe / to watch" },
+    { name: "dhaga'uu", meaning: "to hear / to listen" },
+    { name: "yaaduu", meaning: "to think / to reflect" },
+    { name: "dhandhamuu", meaning: "to taste / to test" },
+    { name: "funfannachuu / urgaa'uu", meaning: "to smell / to sniff" },
+    { name: "tuquu", meaning: "to touch / to feel" },
+
+    // Social & relational
+    { name: "tumsuu / gargaaruu", meaning: "to help / to assist / to support" },
+    { name: "gargaaruu", meaning: "to help / to aid" },
+    { name: "dhiisuu", meaning: "to leave / to abandon / to allow" },
+    { name: "wal arguu", meaning: "to meet / to encounter" },
+    { name: "looluu / wal'aansuu", meaning: "to fight / to struggle" },
+    { name: "dha'uu / rukutuu", meaning: "to hit / to strike / to beat" },
+    { name: "banuu / jalqabuu", meaning: "to open / to commence" },
+    { name: "cufuu / haguuguu", meaning: "to close / to cover" },
+    { name: "shaakaluu", meaning: "to practice / to exercise / to train" },
+    { name: "barsiisuu", meaning: "to teach / to instruct" },
+    { name: "barachuu", meaning: "to learn / to become accustomed" },
+
+    // Movement (intentional)
+    { name: "deebi'uu", meaning: "to return / to come back" },
+    { name: "gad bu'uu", meaning: "to go down" },
+    { name: "ol ba'uu", meaning: "to go up" },
+    { name: "baqachuu", meaning: "to flee / to run away" },
+    { name: "darbuu", meaning: "to pass by / to overtake" },
+    { name: "ce'uu", meaning: "to cross over" },
+    { name: "ariifachuu", meaning: "to hurry / to rush" },
+    { name: "asii achi deemuu / jooruu", meaning: "to roam / to wander" },
+
+    // Verbs of existence & state
+    { name: "jiraachuu", meaning: "to exist / to be alive / to stay" },
+    { name: "ta'uu", meaning: "to become / to be (state)" },
+    { name: "fayyuu", meaning: "to be healthy / to be cured" },
+    { name: "waamamuu", meaning: "to be named / to be called (passive)" },
+    { name: "dhufuu / ta'uu", meaning: "to arrive / to happen" },
+    { name: "darbuu", meaning: "to pass (time) / to go by" },
+    { name: "hordofuu", meaning: "to follow / to pursue" },
+    { name: "baqachuu / godaanuu", meaning: "to take shelter / to lodge" },
+    { name: "qubachuu / taa'uu", meaning: "to settle / to sit down" },
+
+    // Ability & possibility
+    { name: "danda'uu", meaning: "to be able / can / to be possible" },
+    { name: "barbaaduu / fedhuu", meaning: "to want / to desire / to wish" },
+    { name: "barbaachisuu", meaning: "to need / to require" },
+    { name: "barbaaduu", meaning: "to seek / to look for / to search" },
+    { name: "filachuu", meaning: "to choose / to select / to prefer" },
+    { name: "murteessuu", meaning: "to decide / to determine" },
+    { name: "yaaluu / yaalii gochuu", meaning: "to try / to attempt" },
+
+    // Additional common verbs
+    { name: "caaluu", meaning: "to exceed / to be more / to surpass" },
+    { name: "hir'achuu", meaning: "to be few / to diminish" },
+    { name: "dabaluu", meaning: "to add / to increase" },
+    { name: "hir'isuu / hiruu", meaning: "to subtract / to reduce" },
+    { name: "tarkaanfachuu", meaning: "to step / to tread" },
+    { name: "dhiifama gochuu", meaning: "to forgive / to excuse" },
+    { name: "fuudhuu", meaning: "to marry (a wife) / to take" },
+    { name: "heerumuu", meaning: "to marry (a husband) / to wed" },
+    { name: "aarsuu / dheekkamsiisuu", meaning: "to anger / to provoke" },
+    { name: "fuudhuu / wal-fuudhuu", meaning: "to wed / to take as wife" },
+    { name: "obsuu", meaning: "to endure / to be patient" },
+    { name: "obsuu / dandamachuu", meaning: "to persevere / to wait patiently" },
+    { name: "kaayyoo qabaachuu", meaning: "to intend / to aim" },
+    { name: "gibira kaffaluu", meaning: "to tax / to levy" },
+    { name: "kakaasuu", meaning: "to stir up / to motivate" },
+    { name: "hamaa hojjechuun", meaning: "to be evil / to do wrong" },
+    { name: "tolchuu / sirreessuu", meaning: "to make good / to repair / to correct" },
+
+    // Bible-specific actions
+    { name: "eebbisuu", meaning: "to bless / to praise" },
+    { name: "abjuuchuu", meaning: "to dream / to have a vision" },
+    { name: "mul'ata arguu", meaning: "to see (a vision) / to behold" },
+    { name: "lallabuu", meaning: "to proclaim / to herald" },
+    { name: "wangeela raabsuu", meaning: "to spread (the gospel)" },
+    { name: "misiraachoo lallabuu", meaning: "to preach good news" },
+    { name: "gorsuu", meaning: "to advise / to counsel" },
+    { name: "aaruu", meaning: "to be angry / to burn with anger" },
+    { name: "gadi of qabuu", meaning: "to be humble / to submit to God" },
+    { name: "waaqeffachuu / sagaduu", meaning: "to worship / to bow down" },
+    { name: "galateeffachuu", meaning: "to sing praise" },
+    { name: "kadhachuu", meaning: "to intercede / to petition" },
+    { name: "milkaa'uu", meaning: "to succeed / to prosper" },
+    { name: "kakachuu", meaning: "to swear / to take an oath" },
+    { name: "kufanii sagaduu", meaning: "to fall down / to prostrate" },
+
+    // Additional for completeness (to reach a large set)
+    { name: "quufuun", meaning: "to become full / to be satisfied" },
+    { name: "hayyamuu", meaning: "to allow / to permit" },
+    { name: "dhoowwu / dhorkuu", meaning: "to forbid / to prohibit" },
+    { name: "waadaa galuu", meaning: "to promise / to covenant" },
+    { name: "seera cabsuu", meaning: "to break / to violate (law)" },
+    { name: "eeguu / ajajamuun", meaning: "to keep (commandments)" },
+    { name: "simachuu", meaning: "to receive / to accept" },
+    { name: "dhiifama gochuu", meaning: "to pardon / to release" },
+    { name: "fannisuu", meaning: "to suspend / to hang" },
+    { name: "akeekkachiisuu", meaning: "to warn / to admonish" },
+    { name: "sirreessuu", meaning: "to correct / to rectify" },
+    { name: "saaxiluu / mul'isuu", meaning: "to expose / to reveal" },
+    { name: "dhoksuu", meaning: "to hide / to conceal" },
+    { name: "mul'achuu", meaning: "to appear / to be revealed" },
+    { name: "fakkaachuu", meaning: "to resemble / to be like" },
+    { name: "tajaajiluu", meaning: "to serve / to minister" }
+];
+
+const adjectives = [
+    // Size & dimension
+    { name: "guddaa", meaning: "big / large / great / huge" },
+    { name: "xiqqaa", meaning: "small / little / tiny / minor" },
+    { name: "dheeraa", meaning: "long / tall / high" },
+    { name: "gabaabaa", meaning: "short / brief / low" },
+    { name: "bal'aa", meaning: "wide / broad / spacious" },
+    { name: "dhiphoo", meaning: "narrow / tight / cramped" },
+    { name: "furdaa", meaning: "thick / fat / bulky" },
+    { name: "qalloo", meaning: "thin / slender / lean" },
+    { name: "ol'aanaa", meaning: "high / elevated / lofty" },
+    { name: "gadi aanaa", meaning: "low / deep / depressed" },
+    { name: "dhihoo / dhiyoo", meaning: "near / close / adjacent" },
+    { name: "fagoo", meaning: "far / distant / remote" },
+    { name: "cimaa / jabaa", meaning: "strong / powerful / mighty / firm" },
+    { name: "laafaa", meaning: "weak / soft / gentle / tender" },
+    { name: "ulfaataa", meaning: "heavy / weighty / serious" },
+    { name: "salphaa", meaning: "light (weight) / easy" },
+
+    // Color
+    { name: "adii", meaning: "white / pure / bright" },
+    { name: "gurraacha", meaning: "black / dark" },
+    { name: "diimaa", meaning: "red / crimson" },
+    { name: "keelloo", meaning: "yellow / golden" },
+    { name: "magariisa", meaning: "green / verdant" },
+    { name: "cuquliisa / dooqee", meaning: "blue / azure" },
+    { name: "bunaama / buraayee", meaning: "brown / tan" },
+    { name: "daamaa / boora", meaning: "gray / ash-colored" },
+    { name: "damaashii / kiriiraa", meaning: "purple / violet" },
+    { name: "daamii / diim-adii", meaning: "pink / rose" },
+    { name: "iftuu / calaqqisaa", meaning: "bright / shining / luminous" },
+    { name: "dimimmisaa / hammaa", meaning: "dark / dim / obscure" },
+
+    // Age & condition
+    { name: "haaraa", meaning: "new / fresh / modern" },
+    { name: "moofaa / dulloomaa", meaning: "old / ancient / worn out" },
+    { name: "dargaggeessa / dargaggoo", meaning: "young / youthful" },
+    { name: "jaarsa / dullacha", meaning: "old (person) / elderly / aged" },
+    { name: "jabaa", meaning: "hard / solid / tough" },
+    { name: "laafaa", meaning: "soft / gentle / mild" },
+    { name: "jiraataa / jiraa", meaning: "alive / living / lively" },
+    { name: "du'aa", meaning: "dead / deceased / lifeless" },
+    { name: "fayyaa", meaning: "healthy / well / sound" },
+    { name: "dhukkubsataa / dhukkubamaa", meaning: "sick / ill / diseased" },
+    { name: "guutuu / fayyaa", meaning: "whole / complete / intact" },
+    { name: "cabaa / dilaa", meaning: "broken / shattered / damaged" },
+
+    // Quality & value
+    { name: "gaarii / dansaa", meaning: "good / fine / excellent / virtuous" },
+    { name: "badaa / hamaa", meaning: "bad / evil / wicked / poor quality" },
+    { name: "bareedaa / miidhagaa", meaning: "beautiful / handsome / lovely" },
+    { name: "fokkisaa / gadhee", meaning: "ugly / unpleasant / nasty" },
+    { name: "badhaadhaa / qabeessa", meaning: "rich / wealthy / affluent" },
+    { name: "hiyyeessa / deegaa", meaning: "poor / needy / destitute" },
+    { name: "salphaa", meaning: "easy / simple / effortless" },
+    { name: "ulfaataa / rakkisaa", meaning: "difficult / hard / challenging" },
+    { name: "mi'aawaa", meaning: "sweet / delicious / pleasant" },
+    { name: "hadhaa'aa", meaning: "bitter / sour / unpleasant taste" },
+    { name: "qulqulluu", meaning: "pure / holy / clean / innocent" },
+    { name: "xuraawaa / gurraachaa", meaning: "dirty / unclean / impure" },
+    { name: "amanamaa", meaning: "honest / trustworthy / faithful" },
+    { name: "gammadaa", meaning: "happy / joyful / glad" },
+    { name: "gaddaa / gaddisiisaa", meaning: "sad / sorrowful / mournful" },
+    { name: "kabajamaa / safu-qabeessa", meaning: "respectful / honorable / dignified" },
+    { name: "naamus-maleeyyii", meaning: "disrespectful / dishonorable" },
+    { name: "qaroo / beekaa", meaning: "intelligent / wise / clever" },
+    { name: "gowwaa / wallaalaa", meaning: "foolish / silly / stupid" },
+    { name: "jajjaboo / jabaa", meaning: "sturdy / durable / resilient" },
+
+    // Speed & intensity
+    { name: "saffisaa / ariifataa", meaning: "fast / quick / swift / rapid" },
+    { name: "suuta-deemaa / laafaa", meaning: "slow / leisurely / gradual" },
+    { name: "baay'ee / hedduu", meaning: "many / much / abundant / plenty" },
+    { name: "xinnoo / muraasa", meaning: "few / little / scarce / insufficient" },
+    { name: "cimaa / jabaa", meaning: "strong / intense / violent" },
+    { name: "dadhabaa", meaning: "tired / weary / exhausted" },
+
+    // Temperature & weather
+    { name: "ho'aa / oowwaa", meaning: "hot / warm / fervent" },
+    { name: "qorraa", meaning: "cold / chilly / cool" },
+    { name: "qabbannaa'aa", meaning: "cool / refreshing" },
+    { name: "diilallaa'aa / cabbanaa'aa", meaning: "cold (to touch) / icy" },
+    { name: "roobaa / jiidhaa", meaning: "rainy / wet" },
+    { name: "gogaa", meaning: "dry / arid" },
+    { name: "qilleensawaa", meaning: "windy / breezy" },
+    { name: "obonbolleetti / bubbisaa", meaning: "stormy / turbulent" },
+
+    // Shape & form
+    { name: "geengoo / amartii", meaning: "round / circular / spherical" },
+    { name: "roog-afree", meaning: "square / four-sided" },
+    { name: "roog-saddee", meaning: "triangular" },
+    { name: "diriiraa / lafa", meaning: "flat / level / even" },
+    { name: "maramaa / jal'aa", meaning: "curved / bent / crooked" },
+    { name: "qajeelaa", meaning: "straight / direct / upright" },
+    { name: "maramaa / micciiramaa", meaning: "curly / twisted" },
+    { name: "qara / shinniisaa", meaning: "pointed / sharp" },
+    { name: "doofaa / qara-maleeyyii", meaning: "blunt / dull (edge)" },
+
+    // Time & frequency
+    { name: "yeroodhaan", meaning: "timely / punctual" },
+    { name: "ganama", meaning: "early / premature" },
+    { name: "tardhee / duubatti-hafaa", meaning: "late / delayed / overdue" },
+    { name: "yeroo hunda / yeroo mara", meaning: "always / constant / perpetual" },
+    { name: "yeroo tokko tokko", meaning: "occasional / sometimes" },
+    { name: "dheeraa / yeroo-dheeraa", meaning: "long (time) / lengthy" },
+    { name: "gabaabaa / yeroo-muraasa", meaning: "short (time) / brief" },
+    { name: "durii / bara-dheeraa", meaning: "ancient / long-lasting" },
+    { name: "haaraa / dhihoo", meaning: "recent / new (in time)" },
+    { name: "durii / dursa", meaning: "former / previous / olden" },
+
+    // Personality & character
+    { name: "abboomamaa", meaning: "obedient / compliant" },
+    { name: "diddaa / abboomamu-dhabu", meaning: "disobedient / rebellious" },
+    { name: "huj-jaallataa / jabaa", meaning: "diligent / hardworking / industrious" },
+    { name: "dhibaa'aa", meaning: "lazy / idle / sluggish" },
+    { name: "obsaa", meaning: "patient / enduring / steadfast" },
+    { name: "ariifataa / obs-maleeyyii", meaning: "impatient / hasty" },
+    { name: "arjaa / kennaa-qabeessa", meaning: "generous / giving / charitable" },
+    { name: "sassattaa / dunuunsi", meaning: "stingy / greedy / miserly" },
+    { name: "goota / jabduu", meaning: "brave / courageous / bold" },
+    { name: "sodaataa", meaning: "fearful / timid / cowardly" },
+    { name: "amanamaa / amantii-qabeessa", meaning: "faithful / loyal / trustworthy" },
+    { name: "gantuu / dabaree", meaning: "unfaithful / treacherous / deceitful" },
+    { name: "arjaa / gara-laafessa", meaning: "kind / compassionate / merciful" },
+    { name: "gara-jabeessa / jaraa", meaning: "cruel / harsh / merciless" },
+    { name: "gadi-of-qabaa", meaning: "humble / modest / meek" },
+    { name: "boonaa / kooraa", meaning: "proud / arrogant / haughty" },
+
+    // Spiritual & moral (extensive for Bible reading)
+    { name: "qulqulluu", meaning: "holy / sacred / sanctified / pure" },
+    { name: "xuraawaa / qulqullu-miti", meaning: "unholy / profane / impure" },
+    { name: "qajeelaa", meaning: "righteous / just / upright" },
+    { name: "jal'aa / hamaa", meaning: "wicked / evil / sinful" },
+    { name: "amanamaa / amanee", meaning: "faithful / believing / devoted" },
+    { name: "ala-amanee / kafira", meaning: "unbelieving / faithless / pagan" },
+    { name: "eebbifamaa", meaning: "blessed / favored / fortunate" },
+    { name: "abaaramaa", meaning: "cursed / accursed" },
+    { name: "fayyaa / fayyifamaa", meaning: "saved / healed / whole" },
+    { name: "badduu / badee", meaning: "lost / perishing / doomed" },
+    { name: "hayyuu / qaroo", meaning: "wise / prudent / discerning" },
+    { name: "gowwaa / wallaalaa", meaning: "foolish / unwise / senseless" },
+    { name: "mudh-qulqulluu", meaning: "righteous / blameless" },
+    { name: "jal'aa / qajeela-miti", meaning: "unrighteous / unjust" },
+    { name: "amanamaa / kakuu-qabeessa", meaning: "faithful (covenant)" },  // contextual
+    { name: "abdii-qabeessa", meaning: "hopeful / expectant" },
+    { name: "abdii-kutataa", meaning: "hopeless / despairing" },
+
+    // Physical & sensory
+    { name: "mi'aawaa", meaning: "tasty / delicious / flavorful" },
+    { name: "hadhaa'aa", meaning: "bitter / sour / unpleasant" },
+    { name: "dhugaa", meaning: "true / real / genuine" },
+    { name: "soba / sobaa", meaning: "false / fake / counterfeit" },
+    { name: "ifaa / iftuu", meaning: "bright / clear / obvious" },
+    { name: "dukkanaawaa / hammaa", meaning: "dark / obscure / hidden" },
+    { name: "gurraacha", meaning: "dark / black" },
+    { name: "adii", meaning: "white / clear / pure" },
+    { name: "sagalee-guddaa", meaning: "loud / high (sound)" },
+    { name: "sagalee-laafaa", meaning: "soft (sound) / quiet" },
+    { name: "mi'aawaa", meaning: "tasty / delicious" },
+    { name: "urgaa'aa", meaning: "fragrant / aromatic / sweet-smelling" },
+    { name: "ajaa'aa", meaning: "stinking / foul-smelling" },
+
+    // Quantity & degree
+    { name: "baay'ee / hedduu", meaning: "many / much / plenty / abundant" },
+    { name: "xinnoo / muraasa", meaning: "few / little / a bit / scarce" },
+    { name: "hunda / cufa", meaning: "all / every / whole" },
+    { name: "tokkicha", meaning: "only / sole / single" },
+    { name: "addaa", meaning: "special / particular / distinct" },
+    { name: "wal-qixa", meaning: "equal / same / identical" },
+    { name: "adda / bira", meaning: "different / separate / distinct" },
+    { name: "dabalataa", meaning: "extra / additional / surplus" },
+    { name: "dhabamaa / dhabamee", meaning: "missing / lacking / absent" },
+
+    // Condition & state
+    { name: "banamaa", meaning: "open / unlocked / accessible" },
+    { name: "cufamaa", meaning: "closed / shut / locked" },
+    { name: "dhiifama-qabu", meaning: "forgiven / pardoned" },
+    { name: "gadi-of-qabaa", meaning: "humble / submissive" },
+    { name: "boonaa / kooraa", meaning: "proud / arrogant" },
+    { name: "bilisa / tola", meaning: "free / gratis / without cost" },
+    { name: "gatii-qabeessa", meaning: "valuable / precious" },
+    { name: "gatii-maleeyyii", meaning: "worthless / valueless" },
+    { name: "turu / danda'aa", meaning: "long-lasting / enduring" },
+    { name: "darbaa / dhumataa", meaning: "temporary / fleeting / passing" },
+    { name: "mirkanaawaa", meaning: "certain / sure / confirmed" },
+    { name: "shakkisiisaa", meaning: "doubtful / uncertain" },
+
+    // Relation & comparison
+    { name: "caalaa", meaning: "superior / better / more" },
+    { name: "xiqqaa / xiqqaataa", meaning: "inferior / lesser / less" },
+    { name: "wal-qixa", meaning: "equal / equivalent / same" },
+    { name: "fakkaataa", meaning: "similar / alike / resembling" },
+    { name: "adda", meaning: "different / unlike / distinct" },
+    { name: "gahaa", meaning: "enough / sufficient / adequate" },
+    { name: "hir'ina / hanquu", meaning: "insufficient / lacking / deficient" },
+    { name: "dhaabbataa", meaning: "permanent / stable / fixed" },
+    { name: "jijjiiramaa", meaning: "changeable / variable / unstable" },
+
+    // Additional common adjectives
+    { name: "sirrii / qixa", meaning: "correct / right / proper" },
+    { name: "dogoggoraa", meaning: "wrong / incorrect / mistaken" },
+    { name: "haqa / madaalawaa", meaning: "fair / just / reasonable" },
+    { name: "jal'aa / loogii", meaning: "unjust / unfair / partial" },
+    { name: "ariifataa / saffisaa", meaning: "quick / prompt / immediate" },
+    { name: "suuta / obsaa", meaning: "slow / gradual / patient" },
+    { name: "nagaya / eeggamaa", meaning: "safe / secure / protected" },
+    { name: "xumuramaa / raawwatamaa", meaning: "complete / finished / accomplished" },
+    { name: "hin xumuramne", meaning: "incomplete / unfinished" },
+    { name: "bu'aa-qabeessa", meaning: "productive / fruitful / effective" },
+    { name: "bu'aa-maleeyyii", meaning: "unproductive / fruitless / vain" },
+    { name: "jaallatamaa", meaning: "lovable / beloved / dear" },
+    { name: "jibbamaa", meaning: "hateful / detestable / abhorrent" },
+    { name: "safartuu / madaalawaa", meaning: "measured / moderate / balanced" },
+    { name: "hanga-malee", meaning: "excessive / immoderate / extreme" },
+    { name: "qulqulluu", meaning: "clean / pure / moral" },
+    { name: "xuraawaa", meaning: "dirty / filthy / immoral" },
+    { name: "fagoo", meaning: "far / distant / remote" },
+    { name: "dhihoo / dhiyoo", meaning: "near / close / intimate" },
+    { name: "ifaa", meaning: "bright / shiny / radiant" },
+    { name: "dukkanaawaa", meaning: "dim / dull / obscure" },
+    { name: "qabbannaa'aa", meaning: "cool / chilly / fresh" },
+    { name: "ho'aa", meaning: "hot / warm / passionate" },
+    { name: "furdaa / gabbataa", meaning: "fat / plump / abundant" },
+    { name: "qalloo / haphee", meaning: "thin / lean / sparse" },
+
+    // Bible-specific adjectives (holiness, righteousness, etc.)
+    { name: "qulqulluu", meaning: "holy / sanctified / consecrated" },
+    { name: "qulqulluu / cululuqaa", meaning: "pure / immaculate" },
+    { name: "qajeelaa", meaning: "righteous / just / upright" },
+    { name: "jabaa / danda'aa", meaning: "mighty / powerful / strong (God)" },
+    { name: "guddaa / ulfaataa", meaning: "great / magnificent / majestic" },
+    { name: "bara baraa", meaning: "eternal / everlasting / perpetual" },
+    { name: "hammaa / cubbuu", meaning: "wicked / evil / sinful" },
+    { name: "fayyisaa / oolchaa", meaning: "saving / healing / redeeming" },
+    { name: "furii / oolchiinsaa", meaning: "redeeming / delivering" },
+    { name: "ergamaa / ergamtummaa", meaning: "apostolic / sent" },
+    { name: "raajii", meaning: "prophetic / of prophecy" },
+    { name: "mootummaawaa", meaning: "royal / kingly / regal" },
+    { name: "mootummaa", meaning: "kingdom / sovereign" },
+    { name: "amanamaa", meaning: "faithful / believing" },
+    { name: "abdii-qabeessa", meaning: "hopeful / expectant" },
+    { name: "abdii-kutataa", meaning: "hopeless / despairing" },
+    { name: "gaarii / qajeelaa", meaning: "good / righteous / virtuous" },
+    { name: "hammaa / jal'aa", meaning: "evil / bad / wicked" },
+    { name: "duwwaa / waa-malee", meaning: "empty / vain / meaningless" },
+    { name: "bu'aa-qabeessa", meaning: "fruitful / productive / effective" },
+    { name: "gammadaa", meaning: "joyful / glad / delighted" },
+
+    // Emotional & mental states (expanded)
+    { name: "gammadaa", meaning: "happy / joyful / cheerful" },
+    { name: "gaddaa / gaddisiisaa", meaning: "sad / sorrowful / grieving" },
+    { name: "aaramaa / dheekkamaa", meaning: "angry / furious / indignant" },
+    { name: "gara-laafessa", meaning: "compassionate / merciful / tender-hearted" },
+    { name: "boonaa / kooraa", meaning: "proud / haughty / conceited" },
+    { name: "gadi-of-qabaa", meaning: "humble / modest / meek" },
+    { name: "dhukkubsataa", meaning: "sick / ill / afflicted" },
+    { name: "fayyaa", meaning: "healthy / healed / whole" },
+    { name: "dadhabaa", meaning: "tired / weary / exhausted" },
+    { name: "humna-qabeessa", meaning: "energetic / strong / vigorous" },
+    { name: "jaallatamaa", meaning: "loved / cherished / beloved" },
+    { name: "jibbamaa", meaning: "hated / despised / rejected" },
+
+    // Descriptive for nature & environment
+    { name: "bosonawaa / diida", meaning: "wild / forested / uncultivated" },
+    { name: "gammoojjawaa", meaning: "desert / barren / desolate" },
+    { name: "jiidhaa / bishaanawaa", meaning: "wet / moist / humid" },
+    { name: "gogaa", meaning: "dry / arid / parched" },
+    { name: "korma", meaning: "male / masculine" },
+    { name: "dhaltuu", meaning: "female / feminine" },
+    { name: "hadhurree / magariisa", meaning: "green / fresh / unripe" },
+    { name: "bilchaataa", meaning: "ripe / mature / ready" },
+    { name: "diilallaa'aa / qorraa", meaning: "cold / freezing / icy" },
+    { name: "ho'aa / oowwaa", meaning: "hot / scorching / fervent" },
+
+    // Additional to ensure comprehensiveness (to reach a large set)
+    { name: "mijaa'aa / fooyya'aa", meaning: "comfortable / convenient / pleasant" },
+    { name: "rakkisaa / ulfaataa", meaning: "difficult / hard / troublesome" },
+    { name: "haqa / qajeelaa", meaning: "fair / just / equitable" },
+    { name: "jal'aa / loogii", meaning: "unfair / unjust / biased" },
+    { name: "rakasa / gati-laafaa", meaning: "cheap / inexpensive / affordable" },
+    { name: "gatii-guddaa", meaning: "expensive / costly / precious" },
+    { name: "addaa", meaning: "different / unique / special" },
+    { name: "wal-fakkaataa", meaning: "similar / like / resembling" },
+    { name: "kan-koo / kan-isaa", meaning: "own / personal / private" },
+    { name: "kan-biraa", meaning: "other / another / different" },
+    { name: "gahaa", meaning: "sufficient / enough / adequate" },
+    { name: "hir'ina / hanquu", meaning: "insufficient / lacking / short" },
+    { name: "itt-fufaa / dhaabbataa", meaning: "continuous / constant / unceasing" },
+    { name: "citaa / wal-faana-miti", meaning: "partial / incomplete / fragmentary" },
+    { name: "guutuu", meaning: "full / complete / entire" },
+    { name: "duwwaa", meaning: "empty / vacant / void" },
+    { name: "diriiraa", meaning: "flat / level / smooth" },
+    { name: "kurkurraa / qara-maleeyyii", meaning: "rough / uneven / bumpy" },
+    { name: "calaqqisaa", meaning: "shiny / glossy / polished" },
+    { name: "dukkanaawaa / dullachaa", meaning: "dull / matte / tarnished" }
+];
+
+const adverbs = [
+    // Manner adverbs (how)
+    { name: "gaaritti / sirriitti", meaning: "well / properly / correctly / nicely" },
+    { name: "gadheetti / hamatti", meaning: "badly / poorly / wrongly" },
+    { name: "ariitiidhaan / saffisaan", meaning: "quickly / swiftly / rapidly / fast" },
+    { name: "suutaan / laafatti", meaning: "slowly / gently / gradually" },
+    { name: "ciminaan / jabaatti", meaning: "strongly / forcefully / powerfully" },
+    { name: "laafinaan / lallaafatti", meaning: "gently / softly / mildly" },
+    { name: "ifatti / mul'atatti", meaning: "clearly / obviously / plainly" },
+    { name: "dimimmisatti / hammaatti", meaning: "dimly / obscurely / vaguely" },
+    { name: "dhugumaan / dhugatti", meaning: "truly / really / honestly" },
+    { name: "sobaan / haalummaan", meaning: "falsely / deceptively" },
+    { name: "walitti / waliin", meaning: "together / jointly / collectively" },
+    { name: "adda addaan / qofatti", meaning: "separately / apart / individually" },
+    { name: "dafee / hatattamaan", meaning: "quickly / soon / early / promptly" },
+    { name: "tardheedhaan / suutaan", meaning: "late / belatedly / slowly" },
+    { name: "fedhaan / fedha-ofitiin", meaning: "voluntarily / willingly / by oneself" },
+    { name: "dirqamaan / humnaan", meaning: "necessarily / inevitably / forcibly" },
+    { name: "dingata / tasa", meaning: "suddenly / abruptly / unexpectedly" },
+    { name: "tasgabbaan / nagaatti", meaning: "calmly / peacefully / quietly" },
+    { name: "callisuun / callisatti", meaning: "silently / quietly / without noise" },
+    { name: "sagalee malee", meaning: "silently / without speaking" },
+    { name: "tollee / of-eeggannoon", meaning: "carefully / cautiously / deliberately" },
+    { name: "of-eeggannaadhaan", meaning: "carefully / prudently / cautiously" },
+    { name: "salphumatti / salphinaan", meaning: "easily / without difficulty" },
+    { name: "ulfaataan / rakkinaan", meaning: "difficultly / with difficulty / heavily" },
+    { name: "gammachuudhaan", meaning: "happily / joyfully / gladly" },
+    { name: "gaddaan / gaddiidhaan", meaning: "sadly / sorrowfully / mournfully" },
+    { name: "jaalalaan", meaning: "lovingly / affectionately / dearly" },
+    { name: "jibbaan / jibbiinsaan", meaning: "hatefully / with hatred" },
+    { name: "amantiidhaan / amanamummaan", meaning: "faithfully / loyally / devoutly" },
+    { name: "sodaadhaan", meaning: "fearfully / timidly / with fear" },
+    { name: "jabaadhaan / gootummaan", meaning: "bravely / courageously / boldly" },
+    { name: "gara olii / oliitti", meaning: "upward / upwards / aloft" },
+    { name: "gara gadii / gadiitti", meaning: "downward / downwards / below" },
+
+    // Time adverbs (when)
+    { name: "har'a", meaning: "today" },
+    { name: "kaleessa", meaning: "yesterday" },
+    { name: "bor", meaning: "tomorrow" },
+    { name: "amma", meaning: "now / currently / at present" },
+    { name: "yeruma sana / achuma", meaning: "immediately / right away / instantly" },
+    { name: "dafee / dhiyootti", meaning: "soon / shortly / before long" },
+    { name: "yeroo dheeraaf", meaning: "for a long time / long" },
+    { name: "yeroo gabaabaaf", meaning: "for a short time / briefly" },
+    { name: "yeroo ammaa / yeroo kana", meaning: "nowadays / these days" },
+    { name: "yeroo darbe / duratti", meaning: "formerly / in the past / previously" },
+    { name: "gara fuulduraatti", meaning: "in the future / ahead / later" },
+    { name: "dhuma irratti", meaning: "finally / at last / eventually" },
+    { name: "dura / dursa", meaning: "before / earlier / first" },
+    { name: "booda / booddee", meaning: "after / afterwards / later" },
+    { name: "yeroodhaaf / takka takka", meaning: "sometimes / occasionally / at times" },
+    { name: "yeroo hunda / yeroo mara", meaning: "always / all the time / constantly" },
+    { name: "yeroo tokko tokko", meaning: "sometimes / now and then" },
+    { name: "gonkumaa / matumaa", meaning: "never / not ever" },
+    { name: "baay'ee / hedduu", meaning: "often / frequently / many times" },
+    { name: "dhiyootti / dhiyeenya kana", meaning: "recently / lately" },
+    { name: "dhuma irratti / dhumarratti", meaning: "at last / in the end" },
+    { name: "jalqaba / jalqabarratti", meaning: "first / firstly / initially" },
+    { name: "waaree / ganama", meaning: "early / in the morning" },
+    { name: "galgala / galgalaan", meaning: "in the evening / at dusk" },
+    { name: "halkan / halkanitti", meaning: "at night / nightly" },
+    { name: "ganama barii / ganama", meaning: "in the early morning / dawn" },
+    { name: "yeroodhaan / qixxee", meaning: "on time / punctually" },
+    { name: "tardheedhaan / duubatti-hafuun", meaning: "late / behind schedule" },
+    { name: "yeroo mara / yeroo cufa", meaning: "every time / each time" },
+    { name: "yeroo hunda / yeroo kamuu", meaning: "anytime / whenever" },
+    { name: "yeroo tokko", meaning: "once / one time" },
+    { name: "yeroo lama", meaning: "twice / two times" },
+    { name: "yeroo sadii", meaning: "three times / thrice" },
+    { name: "yeroo baay'ee / dabalataan", meaning: "many times / repeatedly" },
+
+    // Frequency adverbs (how often)
+    { name: "yeroo hunda", meaning: "always / always" },
+    { name: "yeroo baay'ee / hedduu", meaning: "usually / generally / often" },
+    { name: "yeroo tokko tokko", meaning: "sometimes / occasionally" },
+    { name: "yeroo muraasa / darbee darbee", meaning: "rarely / seldom" },
+    { name: "gonkumaa / matumaa", meaning: "never / not ever" },
+    { name: "yeroo mara / hunda", meaning: "every time / each time" },
+    { name: "yeroo tokko", meaning: "once" },
+    { name: "yeroo lama", meaning: "twice" },
+    { name: "yeroo sadii", meaning: "three times" },
+    { name: "itti fufuun / irra deddeebiin", meaning: "continuously / repeatedly / over and over" },
+
+    // Place adverbs (where)
+    { name: "as", meaning: "here / this place" },
+    { name: "achi", meaning: "there / that place" },
+    { name: "asii fi achi / bakka hundumaatti", meaning: "here and there / everywhere" },
+    { name: "bakka hundatti / marumatti", meaning: "everywhere / all over" },
+    { name: "cinaa / bira", meaning: "near / close by / beside" },
+    { name: "fagoo", meaning: "far / far away / distant" },
+    { name: "keessatti / keessa", meaning: "inside / within / indoors" },
+    { name: "alatti / ala", meaning: "outside / outdoors / externally" },
+    { name: "gubbaa / oli", meaning: "above / on top / upstairs" },
+    { name: "jala / gadi", meaning: "under / beneath / below" },
+    { name: "duubaan / duuba", meaning: "behind / at the back" },
+    { name: "fuuldura / dura", meaning: "in front / ahead / before" },
+    { name: "gara bitaa", meaning: "to the left / leftwards" },
+    { name: "gara mirgaa", meaning: "to the right / rightwards" },
+    { name: "gara dhihaa", meaning: "westward / to the west" },
+    { name: "gara bahaa", meaning: "eastward / to the east" },
+    { name: "gara kaabaa", meaning: "northward / to the north" },
+    { name: "gara kibbaa", meaning: "southward / to the south" },
+    { name: "ol / gara olii", meaning: "upward / uphill" },
+    { name: "gad / gara gadii", meaning: "downward / downhill" },
+    { name: "kallattii hunda / bakka hundatti", meaning: "in all directions / everywhere" },
+    { name: "bakka / iddoo", meaning: "where / somewhere / anywhere" },
+    { name: "bakka kamuu / iddoo hundatti", meaning: "anywhere / wherever" },
+    { name: "bakka tokko", meaning: "somewhere / at some place" },
+    { name: "bakka tokkottu / iddoo tokko malee", meaning: "nowhere / no place" },
+
+    // Degree & intensity adverbs (how much)
+    { name: "baay'ee / hedduu", meaning: "very / much / a lot / extremely" },
+    { name: "hedduu hedduu / garmalee", meaning: "extremely / very much / enormously" },
+    { name: "garmalee / hanga malee", meaning: "too / excessively / overly" },
+    { name: "xinnoo / muraasa", meaning: "a little / slightly / somewhat" },
+    { name: "xinxinnoo / baay'ee xinnoo", meaning: "very little / barely / scarcely" },
+    { name: "guutummaatti", meaning: "completely / entirely / wholly" },
+    { name: "xiqqoo / dhiyaatti", meaning: "almost / nearly / just about" },
+    { name: "dabalataan / irratti", meaning: "more / additionally / further" },
+    { name: "caalaa / irra", meaning: "more / rather / comparatively" },
+    { name: "hanga tokko / gahaa", meaning: "enough / sufficiently / adequately" },
+    { name: "hanga malee / garmalee", meaning: "excessively / too much" },
+    { name: "hamma tokko", meaning: "somewhat / to some extent" },
+    { name: "wal-qixa / wal-qixxee", meaning: "equally / evenly / alike" },
+    { name: "adda addaan / addatti", meaning: "differently / in different ways" },
+    { name: "akkasuma / dabalataan", meaning: "similarly / likewise / also" },
+    { name: "ta'uyyuu / garuu", meaning: "nevertheless / however / still" },
+    { name: "ciminaan / jabaatti", meaning: "intensely / strongly / severely" },
+    { name: "laafinaan / lallaafatti", meaning: "mildly / gently / softly" },
+    { name: "yoo xiqqaate", meaning: "at least / at minimum" },
+    { name: "yoo baay'ate", meaning: "at most / at maximum" },
+
+    // Affirmation & negation
+    { name: "eeyyee", meaning: "yes / indeed / certainly" },
+    { name: "lakki / waan ta'u miti", meaning: "no / not at all / negative" },
+    { name: "tolee / tole", meaning: "okay / fine / agreed" },
+    { name: "dhuguma / dhugaa", meaning: "truly / indeed / really" },
+    { name: "miti", meaning: "no / not / it is not" },
+    { name: "hin / hin-", meaning: "not (precedes verb) / no" },
+    { name: "gonkumaa / matumaa", meaning: "never / not at all / by no means" },
+    { name: "dhugumatti / mirkanatti", meaning: "indeed / truly / certainly" },
+    { name: "dhugaa dubbachuuf", meaning: "honestly / truthfully" },
+    { name: "dhugaatti / dhugumaan", meaning: "truly / indeed" },
+    { name: "sirriitti / sirrii", meaning: "correctly / rightly / properly" },
+    { name: "dogoggoraan / jal'atti", meaning: "wrongly / incorrectly / mistakenly" },
+
+    // Conjunctive & relative adverbs (transitional)
+    { name: "kanaaf / kanaafuu", meaning: "therefore / so / thus / for this reason" },
+    { name: "kanaaf / sababa kanaan", meaning: "therefore / consequently" },
+    { name: "ta'uyyuu / haa ta'u malee", meaning: "however / nevertheless / but" },
+    { name: "garuu", meaning: "however / but / yet" },
+    { name: "akka / akkaataa", meaning: "like / as / just as" },
+    { name: "sana booda", meaning: "after that / afterwards / then" },
+    { name: "sana dura", meaning: "before that / previously" },
+    { name: "yeroo / yommuu", meaning: "when / at the time that" },
+    { name: "iddoo / bakka", meaning: "where / in which place" },
+    { name: "akkam / akkamitti", meaning: "how / in what way" },
+    { name: "maaliif", meaning: "why / for what reason" },
+    { name: "yoom", meaning: "when / at what time" },
+    { name: "eessa / eessatti", meaning: "where / at what place" },
+    { name: "meeqa / hangam", meaning: "how many / how much" },
+    { name: "akkamitti", meaning: "how / in what manner" },
+    { name: "hanga / hamma", meaning: "until / up to / as far as" },
+    { name: "eegalee / jalqabee", meaning: "since / from the time that" },
+    { name: "haa ta'u malee", meaning: "however / no matter how" },
+    { name: "yoo ta'u / ta'uyyuu", meaning: "however / on the other hand" },
+
+    // Additional common adverbs
+    { name: "dabalataan / irratti", meaning: "additionally / moreover / also" },
+    { name: "kana malees / kana caalaa", meaning: "moreover / furthermore" },
+    { name: "akkasumas / dabalataan", meaning: "also / as well / too" },
+    { name: "malee / haa ta'u malee", meaning: "but / except / only" },
+    { name: "qofa", meaning: "only / merely / just" },
+    { name: "tokkicha / qofatti", meaning: "only / solely / exclusively" },
+    { name: "akkasitti / akkasumaan", meaning: "like that / thus / in that way" },
+    { name: "kanaafuu / kanaaf", meaning: "therefore / so / consequently" },
+    { name: "sababni isaas", meaning: "because / for the reason that" },
+    { name: "yoo / yoo ta'e", meaning: "if / in case / provided that" },
+    { name: "yoo ta'eyyuu", meaning: "even if / even though" },
+    { name: "hanga / hamma", meaning: "until / till / up to" },
+    { name: "erga / booddee", meaning: "since / after / when" },
+    { name: "yeroo / yommuu", meaning: "when / while / as" },
+    { name: "amma / yeroo ammaa", meaning: "now / currently / at present" },
+    { name: "yeroodhaaf / yeroo muraasaaf", meaning: "sometimes / occasionally" },
+    { name: "bara baraan / bara mara", meaning: "forever / eternally / always" },
+    { name: "bara baraan / baraa hamma baraatti", meaning: "forever / everlastingly" },
+    { name: "jalqaba / dursa", meaning: "first / before / firstly" },
+    { name: "dhuma irratti / dhumarratti", meaning: "finally / at last / eventually" },
+    { name: "callisanii / tasgabbaan", meaning: "quietly / silently / peacefully" },
+    { name: "callisanii / sagalee malee", meaning: "silently / without making noise" },
+    { name: "wajjin / waliin", meaning: "together / along with" },
+    { name: "kophaa / kophaatti", meaning: "alone / by oneself / only" },
+    { name: "walitti / wal-faana", meaning: "together / collectively" },
+    { name: "qajeelatti / kallattiidhaan", meaning: "straight / directly / directly" },
+    { name: "tasa / dingata", meaning: "suddenly / unexpectedly" },
+    { name: "yeruma sana / achumaan", meaning: "immediately / right away" },
+    { name: "darbee darbee / yeroodhaaf", meaning: "sometimes / on occasion" },
+    { name: "muraasa / yeroo muraasa", meaning: "rarely / seldom" },
+    { name: "xiqqa dhiyaate / cuffi", meaning: "almost / nearly / practically" },
+    { name: "yoo xiqqaate / waan tokkof", meaning: "at least / anyway" },
+    { name: "tarii / garii", meaning: "maybe / perhaps / possibly" },
+    { name: "tarii / tariidha", meaning: "perhaps / maybe" },
+    { name: "tolee / tole", meaning: "okay / alright / fine" },
+    { name: "dhugumatti / dhugaatti", meaning: "indeed / certainly / truly" },
+    { name: "dhugaan / dhugumaan", meaning: "honestly / truly / sincerely" },
+    { name: "akkasumatti / qixxee", meaning: "exactly / precisely / just" },
+    { name: "kana malee / yookaan", meaning: "otherwise / or else / except" }
+];
+
+const pronouns = [
+    // ========== PERSONAL PRONOUNS (Subject) ==========
+    { name: "ani", meaning: "I / me" },
+    { name: "ati", meaning: "you (singular / informal)" },
+    { name: "isa", meaning: "he / it (masculine)" },
+    { name: "isheen / ishee", meaning: "she / it (feminine)" },
+    { name: "nuti / nu'i", meaning: "we / us" },
+    { name: "isin", meaning: "you (plural / formal)" },
+    { name: "isaan", meaning: "they / them" },
+
+    // ========== PERSONAL PRONOUNS (Object / Accusative) ==========
+    { name: "na", meaning: "me (object)" },
+    { name: "si", meaning: "you (object, singular)" },
+    { name: "isa", meaning: "him / it (object)" },
+    { name: "ishee / isheen", meaning: "her / it (object)" },
+    { name: "nu", meaning: "us (object)" },
+    { name: "isin", meaning: "you (object, plural/formal)" },
+    { name: "isaan", meaning: "them (object)" },
+
+    // ========== POSSESSIVE PRONOUNS (Independent) ==========
+    { name: "kan koo / kiyya", meaning: "mine / my own" },
+    { name: "kan kee", meaning: "yours (singular) / your own" },
+    { name: "kan isaa", meaning: "his / his own" },
+    { name: "kan ishee", meaning: "hers / her own" },
+    { name: "kan keenya", meaning: "ours / our own" },
+    { name: "kan keessan", meaning: "yours (plural/formal) / your own" },
+    { name: "kan isaanii", meaning: "theirs / their own" },
+
+    // ========== DEMONSTRATIVE PRONOUNS ==========
+    { name: "kun", meaning: "this / this one (near speaker)" },
+    { name: "sun", meaning: "that / that one (near listener)" },
+    { name: "san / sani", meaning: "that / that one (over there / previously mentioned)" },
+    { name: "kuni", meaning: "this one / these (subject emphatic)" },
+    { name: "suni", meaning: "that one / those (subject emphatic)" },
+    { name: "kan", meaning: "the one / that which / which" },  // relative/demonstrative
+    { name: "kana", meaning: "this (object) / these" },
+    { name: "sana", meaning: "that (object) / those" },
+
+    // ========== INTERROGATIVE PRONOUNS ==========
+    { name: "eenyu", meaning: "who / whom" },
+    { name: "maali / maalo", meaning: "what / which thing" },
+    { name: "kam / kamitti", meaning: "which / which one" },
+    { name: "meeqa", meaning: "how many / how much" },
+    { name: "eessa / eessatti", meaning: "where / at what place" },
+    { name: "yoom", meaning: "when / at what time" },
+    { name: "akkam / akkamitti", meaning: "how / in what manner" },
+    { name: "maaliif / maaliifiree", meaning: "why / for what reason" },
+    { name: "kan eenyuu", meaning: "whose / belonging to whom" },
+
+    // ========== REFLEXIVE PRONOUNS ==========
+    { name: "of / uf", meaning: "myself / yourself / himself / herself / itself / ourselves / yourselves / themselves (reflexive)" },
+    { name: "ofti / ufti", meaning: "self / one's own self (emphatic)" },
+    { name: "ofii koo", meaning: "myself (emphatic)" },
+    { name: "ofii kee", meaning: "yourself (singular, emphatic)" },
+    { name: "ofii isaa", meaning: "himself (emphatic)" },
+    { name: "ofii ishee", meaning: "herself (emphatic)" },
+    { name: "ofii keenya", meaning: "ourselves (emphatic)" },
+    { name: "ofii keessan", meaning: "yourselves (plural/formal, emphatic)" },
+    { name: "ofii isaanii", meaning: "themselves (emphatic)" },
+
+    // ========== RECIPROCAL PRONOUN ==========
+    { name: "wal", meaning: "each other / one another" },
+    { name: "walii / waliin", meaning: "together / to each other" },
+
+    // ========== INDEFINITE PRONOUNS ==========
+    { name: "tokko", meaning: "one / someone / something / any" },
+    { name: "namni / namni tokko", meaning: "someone / somebody / a person" },
+    { name: "waan / waan tokko", meaning: "something / anything" },
+    { name: "hunda / cufa", meaning: "everything / all / everyone" },
+    { name: "namni hundi", meaning: "everyone / everybody" },
+    { name: "eenyuyyuu / eenyullee", meaning: "anyone / anybody / whoever" },
+    { name: "maaliyyuu / waanyyuu", meaning: "anything / whatever" },
+    { name: "tokkoyyuu / tokkollee", meaning: "anyone / anyone at all" },
+    { name: "baay’een / hedduun", meaning: "many / several / many people" },
+    { name: "muraasni / gariin", meaning: "some / a few / several" },
+    { name: "kam iyyuu / kamlee", meaning: "any (one) / whichever" },
+    { name: "eenyu iyyuu / eenyullee", meaning: "anyone / whoever" },
+    { name: "maali iyyuu / waan iyyuu", meaning: "anything / whatever" },
+    { name: "tokko iyyuu / tokkollee", meaning: "any (one) / any single" },
+    { name: "homaa / homtuu", meaning: "nothing / none / no one (used with negative verb)" },
+    { name: "homaa", meaning: "nothing" }, // duplicate for clarity
+    { name: "eenyu iyyuu / namni tokkollee", meaning: "no one / nobody (used with negative verb)" },
+
+    // ========== RELATIVE PRONOUNS ==========
+    { name: "kan", meaning: "who / which / that (subject)" },
+    { name: "kan / isa", meaning: "the one who / which (common relative)" },
+    { name: "karaa", meaning: "the way / how / where" },
+    { name: "iddoo / bakka", meaning: "where / the place where" },
+    { name: "yeroo / yommuu", meaning: "when / the time when" },
+
+    // ========== EMPHATIC & ADDITIONAL PRONOUNS ==========
+    { name: "ana / anatti", meaning: "I (emphatic / focus) / me" },
+    { name: "sii / sumtuu", meaning: "you (singular emphatic)" },
+    { name: "isaa / isumtuu", meaning: "he / him (emphatic)" },
+    { name: "ishee / ishumtuu", meaning: "she / her (emphatic)" },
+    { name: "nuta / nuyyuu", meaning: "we (emphatic) / us" },
+    { name: "isina / isinyyuu", meaning: "you (plural/formal emphatic)" },
+    { name: "isaani / isaanumtuu", meaning: "they (emphatic) / them" },
+    { name: "kophaa / kophaatti", meaning: "alone / by oneself" },
+    { name: "qofti / qofaa", meaning: "only / alone (emphatic)" },
+    { name: "baay’ee / hedduu", meaning: "many / much" },
+    { name: "hunda / mara", meaning: "all / everything" },
+    { name: "tokko", meaning: "one (indefinite)" },
+    { name: "lamaan / lachuu", meaning: "both / two" },
+    { name: "tokkoon tokko", meaning: "each one / individually" },
+    { name: "tokkoo tokko / gariin", meaning: "some / certain ones" }
+];
+
+const prepositions = [
+    // ========== LOCATION & POSITION (postpositions) ==========
+    { name: "irra", meaning: "on / upon / on top of / over" },
+    { name: "jala", meaning: "under / beneath / below" },
+    { name: "keessa", meaning: "in / inside / within / among" },
+    { name: "alatti / ala", meaning: "outside / out of / beyond" },
+    { name: "duuba / booda", meaning: "behind / after / at the back of" },
+    { name: "fuuldura / dura", meaning: "in front of / before / ahead of" },
+    { name: "gubbaa / oli", meaning: "above / up / upward" },
+    { name: "gadi / jala", meaning: "below / down / downward" },
+    { name: "cinaa / bira", meaning: "beside / near / next to / by" },
+    { name: "dhihoo / dhiyoo", meaning: "near / close to" },
+    { name: "fagoo", meaning: "far from / distant from" },
+    { name: "gidduu", meaning: "between / among / in the middle of" },
+    { name: "maddii / fuullee", meaning: "opposite / across from / facing" },
+    { name: "kallattii", meaning: "toward / in the direction of" },
+    { name: "gara", meaning: "toward / to (direction)" },
+
+    // ========== DIRECTION & MOVEMENT ==========
+    { name: "gara", meaning: "to / toward / towards / in the direction of" },
+    { name: "harka", meaning: "to (direction) / toward (hand)" }, // often used with "harka" meaning "to the hand of"
+    { name: "itti / -tti", meaning: "to / onto / toward (attached to verbs/nouns)" },
+    { name: "irraa / -raa", meaning: "from / off / away from" },
+    { name: "keessaa", meaning: "from inside / out of" },
+    { name: "jalaa", meaning: "from under / out from under" },
+    { name: "gidduutti / keessatti", meaning: "to (market) / into / among" },
+    { name: "bira", meaning: "to (person) / at the side of / to (someone)" },
+    { name: "biraa", meaning: "from (someone) / away from" },
+    { name: "darbee", meaning: "past / beyond / across" },
+    { name: "ce'ee", meaning: "across / over / beyond" },
+    { name: "hanga / hamma", meaning: "until / up to / as far as" },
+    { name: "eegalee / jalqabee", meaning: "since / from the time of" },
+
+    // ========== TIME ==========
+    { name: "booda / booddee", meaning: "after / later than / following" },
+    { name: "dura / dursa", meaning: "before / prior to / earlier than" },
+    { name: "yeroo / yommuu", meaning: "during / at the time of / while" },
+    { name: "keessatti / keessa", meaning: "within (time) / in (time period)" },
+    { name: "hanga / hamma", meaning: "until / till / up to (a time)" },
+    { name: "eegalee / kaassee", meaning: "since / from (a time) onward" },
+    { name: "gidduutti", meaning: "during / in the course of" },
+
+    // ========== ABSTRACT RELATIONSHIPS ==========
+    { name: "waa'ee", meaning: "about / concerning / regarding" },
+    { name: "irratti", meaning: "about / on the subject of" },
+    { name: "-f / -iif", meaning: "for / for the sake of / on behalf of" }, // often attached as suffix
+    { name: "-tiif", meaning: "for / in exchange for / because of" },
+    { name: "wajjin", meaning: "with / together with / along with" },
+    { name: "waliin", meaning: "with / accompanied by" },
+    { name: "malee", meaning: "without / except / but" },
+    { name: "karaa / karaan", meaning: "by means of / through / via" },
+    { name: "-dhaan", meaning: "by / with (instrumental)" }, // instrumental suffix
+    { name: "-tiin", meaning: "by / with (instrumental, variant)" },
+    { name: "fakkaatti / akka", meaning: "like / similar to / resembling" },
+    { name: "akka / akkaataa", meaning: "like / as / according to / in the manner of" },
+    { name: "haala ... -tiin", meaning: "according to / following / in line with" },
+    { name: "madaallii / akka", meaning: "according to / as per" },
+    { name: "faallaa / mormii", meaning: "against / contrary to / opposite" },
+    { name: "haa ta'u malee", meaning: "despite / in spite of / regardless of" },
+    { name: "sababa ... -tiif", meaning: "because of / due to / on account of" }, // also instrumental
+    { name: "-tiif / waan ... -tiif", meaning: "because of / for the reason of" },
+
+    // ========== RELATIONAL NOUN PHRASES (with possessive) ==========
+    // These are commonly used as compound prepositions; we list the base form.
+    { name: "gubbaa", meaning: "top / above / over (as in 'on top of')" },
+    { name: "jala", meaning: "bottom / under (as in 'underneath')" },
+    { name: "keessa", meaning: "inside (as in 'inside of')" },
+    { name: "alatti", meaning: "outside (as in 'outside of')" },
+    { name: "duuba / booddee", meaning: "back / behind (as in 'behind')" },
+    { name: "fuuldura", meaning: "front / before (as in 'in front of')" },
+    { name: "cinaa", meaning: "side / beside (as in 'beside')" },
+    { name: "gidduu", meaning: "middle / between (as in 'between')" },
+    { name: "maddii / fuullee", meaning: "opposite side / across from" },
+    { name: "bira", meaning: "presence / near (as in 'near someone')" },
+    { name: "cinaa / bira", meaning: "side (of a person) / with" },
+    { name: "harka", meaning: "hand / under the authority of / by" },
+
+    // ========== COMPOUND PREPOSITIONS (common expressions) ==========
+    { name: "harkaan", meaning: "by (agent) / through / via (with possessive)" },
+    { name: "afaanin", meaning: "by means of / through (by mouth / language)" },
+    { name: "karaan", meaning: "via / by way of / through (road)" },
+    { name: "karaa", meaning: "through / by means of" },
+    { name: "haala", meaning: "according to / based on" },
+    { name: "akka / akkaataa", meaning: "like / as / in accordance with" },
+    { name: "fakkaatti", meaning: "like / similar to" },
+    { name: "gidduu / keessa", meaning: "through / among" },
+    { name: "keessatti", meaning: "into (the market) / among" },
+
+    // ========== SUFFIXES / CASE MARKERS (often used as postpositions) ==========
+    // These are not standalone but are essential for prepositions.
+    { name: "-tti", meaning: "to / at / in (locative/dative suffix)" },
+    { name: "-irra", meaning: "on / upon (suffix form)" },
+    { name: "-irraa", meaning: "from / off (ablative suffix)" },
+    { name: "-dhaan", meaning: "with / by / through (instrumental suffix)" },
+    { name: "-tiin", meaning: "with / by (instrumental variant)" },
+    { name: "-f / -iif", meaning: "for / for the sake of (benefactive suffix)" },
+    { name: "-tiif", meaning: "for / for the sake of (benefactive variant)" },
+    { name: "waa'ee", meaning: "about / concerning (used as word)" },
+
+    // ========== ADDITIONAL COMMON PREPOSITIONS ==========
+    { name: "malee / ala", meaning: "except / excluding / apart from" },
+    { name: "malee / maleeyyii", meaning: "without / except / but" },
+    { name: "hanga / hamma", meaning: "until / as far as / up to" },
+    { name: "eegalee / kaassee", meaning: "since / from (time)" },
+    { name: "dura / dursa", meaning: "before (in time) / earlier" },
+    { name: "booda / booddee", meaning: "after / at the end of / following" },
+    { name: "booddee / booda", meaning: "after / later" },
+    { name: "fuuldura", meaning: "in front of / ahead of (time or place)" },
+    { name: "duuba / booda", meaning: "behind / after (time or place)" },
+    { name: "yeroo / yommuu", meaning: "during / at the time of" },
+    { name: "gidduutti", meaning: "in the middle of / during" },
+    { name: "naannoo", meaning: "around / all over / throughout" },
+    { name: "hunduma / mara", meaning: "throughout / all over" },
+    { name: "karaa", meaning: "through / across / via" },
+
+    // ========== LOCATIVE SUFFIXES (for completeness) ==========
+    // These are often attached to nouns to form prepositional meanings.
+    { name: "-tti", meaning: "to / at / in (locative suffix)" },
+    { name: "-rra", meaning: "on / upon (variant of -irra)" },
+    { name: "-rraa", meaning: "from / off (variant of -irraa)" },
+    { name: "-dhaan", meaning: "with / by (instrumental)" },
+
+    // ========== FURTHER ABSTRACT & COMPOUND ==========
+    { name: "wajjin", meaning: "together with / along with" },
+    { name: "waliin", meaning: "with / in company with" },
+    { name: "gidduu", meaning: "between / among / amidst" },
+    { name: "gidduutti", meaning: "in between / in the midst of" },
+    { name: "haala", meaning: "according to / as per / based on" },
+    { name: "-tiif", meaning: "for the sake of / because of" },
+    { name: "-f / -iif", meaning: "for (benefactive)" },
+    { name: "fakkaatti", meaning: "like / resembling / similar to" },
+    { name: "faallaa", meaning: "against / opposite / in opposition to" },
+    { name: "kallattii / gara", meaning: "toward / in the direction of" },
+    { name: "keessatti", meaning: "into / toward (market/place)" },
+    { name: "bira", meaning: "to (a person) / at the side of" },
+    { name: "biraa", meaning: "from (a person) / away from" }
+];
+
+const conjunctions = [
+    // ========== COORDINATING CONJUNCTIONS ==========
+    { name: "fi / akkasumas", meaning: "and / also / moreover" },
+    { name: "yookiin / yookaan", meaning: "or / either / otherwise" },
+    { name: "ykn", meaning: "or (abbreviation)" },
+    { name: "garuu", meaning: "but / however / yet / nevertheless" },
+    { name: "ta'ullee / ta'uyyuu", meaning: "however / but / nevertheless / although" },
+    { name: "kanaaf / kanaafuu", meaning: "therefore / so / thus / consequently" },
+    { name: "kanaafuu / kanaaf", meaning: "therefore / for that reason / hence" },
+    { name: "eeyyee / dhugumatti", meaning: "indeed / yes / certainly (as a connector)" },
+
+    // ========== SUBORDINATING CONJUNCTIONS ==========
+    // Cause & Reason
+    { name: "sababiin isaas", meaning: "because / since / as (reason)" },
+    { name: "sababii / waan", meaning: "because / for the reason that" },
+    { name: "waan", meaning: "because / since / as" },
+    { name: "waan ta'eef / waan ... -tiif", meaning: "because / due to the fact that" },
+    { name: "-tiif / sababa", meaning: "because of / on account of (often with noun)" },
+
+    // Condition
+    { name: "yoo", meaning: "if / whether / in case" },
+    { name: "yoo ta'e", meaning: "if / even if / supposing that" },
+    { name: "yoo ta'eyyuu / ta'ullee", meaning: "even if / although" },
+    { name: "yoo malee / yoo ... malee", meaning: "unless / except if" },
+    { name: "haa ta'u malee / ta'uyyuu", meaning: "although / even though / albeit" },
+
+    // Time
+    { name: "yeroo / yommuu", meaning: "when / while / at the time that" },
+    { name: "yommuu / yeroo", meaning: "when / as soon as / whenever" },
+    { name: "erga / booda", meaning: "after / since / when (after something)" },
+    { name: "eegalee / kaassee", meaning: "since / from the time that" },
+    { name: "hanga / hamma", meaning: "until / till / up to the time that" },
+    { name: "dursa / dura", meaning: "before / prior to" },
+    { name: "dura", meaning: "before / earlier than" },
+    { name: "booda / booddee", meaning: "after / later than" },
+    { name: "akkuma / yommuuma", meaning: "as soon as / immediately when" },
+
+    // Purpose
+    { name: "akka / akka ... -tiif", meaning: "so that / in order that / that" },
+    { name: "kanaaf / kanaafuu", meaning: "so that / for this purpose" },
+    { name: "-f / -iif", meaning: "for / so that (suffix, often attached to verb)" },
+
+    // Result
+    { name: "kanaaf / kanaafuu", meaning: "so / therefore / as a result" },
+    { name: "kanaafuu / kanaaf", meaning: "consequently / accordingly" },
+
+    // Manner
+    { name: "akkasuma / akkuma", meaning: "as / like / just as" },
+    { name: "akka / akkaataa", meaning: "as / in the manner that" },
+    { name: "akka ... -tti", meaning: "as if / as though" },
+
+    // Concession
+    { name: "ta'ullee / ta'uyyuu", meaning: "although / even though / though" },
+    { name: "yoo ta'ullee / yoo ta'uyyuu", meaning: "even if / although" },
+    { name: "haa ta'u malee", meaning: "nevertheless / nonetheless" },
+    { name: "garuu", meaning: "but / however (also coordinating)" },
+
+    // Comparison
+    { name: "akka / akkuma", meaning: "as / like / than (comparison)" },
+    { name: "caalaa / irra", meaning: "than / more than" },
+    { name: "akkuma / akka", meaning: "as / since (comparative)" },
+    { name: "akka", meaning: "as if / like" },
+
+    // ========== CORRELATIVE CONJUNCTIONS ==========
+    { name: "yoo ... yoo / yookaan ... yookaan", meaning: "whether ... or / either ... or" },
+    { name: "yookiin ... yookiin", meaning: "either ... or" },
+    { name: "yoo ... yoo malee", meaning: "whether ... or not" },
+    { name: "akkuma ... akkasuma", meaning: "just as ... so too" },
+    { name: "yeroo ... yeroo", meaning: "when ... when / sometimes ... sometimes" },
+    { name: "lamaan ... fi", meaning: "both ... and" }, // note: "baay'ee" means "much", used correlatively
+    { name: "-f ... -fi", meaning: "both ... and" },
+
+    // ========== ADDITIONAL COMMON CONJUNCTIONS ==========
+    { name: "akkasumas / dabalataan", meaning: "also / moreover / furthermore" },
+    { name: "dabalataan / irratti", meaning: "in addition / moreover / besides" },
+    { name: "kana malee / yookaan", meaning: "otherwise / or else / except" },
+    { name: "malee", meaning: "but / except / unless" },
+    { name: "ta'uyyuu", meaning: "yet / still / however" },
+    { name: "ta'u malee / haa ta'u malee", meaning: "nevertheless / nonetheless" },
+    { name: "haa ta'u malee", meaning: "yet / still / nevertheless" },
+    { name: "tokkoffaa ... booddee", meaning: "firstly / then / next (sequential)" },
+    { name: "dhuma irratti", meaning: "finally / in the end" },
+    { name: "sana booda", meaning: "after that / then / afterwards" },
+    { name: "sana dura", meaning: "before that / previously" },
+    { name: "sanaa booddee", meaning: "thereafter / subsequently" },
+    { name: "yeruma sana / achuma", meaning: "immediately / right then / as soon as" },
+    { name: "yeroo sanatti", meaning: "at that time / then" },
+    { name: "amma / ammammoo", meaning: "now / at present (as a transitional)" },
+    { name: "kanaaf / kanaafuu", meaning: "so / therefore (summary)" },
+    { name: "kanaafuu / kanaaf", meaning: "consequently / thus" },
+
+    // ========== INTERJECTION-LIKE CONJUNCTIONS ==========
+    { name: "tolee / tole", meaning: "okay / well / then (agreement)" },
+    { name: "egaa / ega", meaning: "well / so (introductory)" },
+    { name: "dhugumatti / egaa", meaning: "well / indeed / actually" },
+
+    // ========== EXPLANATORY & ILLUSTRATIVE ==========
+    { name: "fakkeenyaaf", meaning: "for example / for instance" },
+    { name: "kana jechuun", meaning: "that is / i.e. / meaning" },
+    { name: "kanaaf / kanaafuu", meaning: "that is why / therefore" },
+    { name: "jechuun", meaning: "that is / namely" },
+
+    // ========== EMPHATIC & TRANSITIONAL ==========
+    { name: "dhugumatti", meaning: "indeed / truly / certainly" },
+    { name: "dhugaan", meaning: "truly / indeed / in truth" },
+    { name: "waan ta'eef / kanaafuu", meaning: "therefore / consequently" },
+    { name: "kana malee", meaning: "otherwise / else" }
+];
+
+const phrases = [
+    // ========== GREETINGS & COURTESY ==========
+    { name: "akkam?", meaning: "how are you? / how do you do?" },
+    { name: "akkam jirta?", meaning: "how are you? (to male) / how are you doing?" },
+    { name: "akkam jirti?", meaning: "how are you? (to female)" },
+    { name: "akkam jirtu?", meaning: "how are you? (plural/formal)" },
+    { name: "nagaa / nagaadha", meaning: "peace / hello / greetings / I am fine" },
+    { name: "nagaa dhuftan?", meaning: "hello / welcome / did you come in peace?" },
+    { name: "baga nagaan dhufte", meaning: "welcome (to female) / glad you came in peace" },
+    { name: "baga nagaan dhuftan", meaning: "welcome (plural/formal) / glad you came in peace" },
+    { name: "hanga boodatti / walitti deebina", meaning: "goodbye / until later / see you later" },
+    { name: "nagaan turi", meaning: "goodbye (to male) / stay in peace" },
+    { name: "nagaan turi", meaning: "goodbye (to female) / stay in peace" },
+    { name: "nagaan turaa", meaning: "goodbye (plural) / stay in peace" },
+    { name: "magaa / wal argina", meaning: "see you / until we meet again" },
+    { name: "galatoomi", meaning: "thank you / thanks (singular)" },
+    { name: "galatoomaa", meaning: "thank you (plural/formal) / many thanks" },
+    { name: "homattuun miti / galanni kan Waaqayyooti", meaning: "you're welcome / it's nothing / praise God" },
+    { name: "tolee / tole", meaning: "okay / fine / alright" },
+    { name: "dhiifama", meaning: "sorry / excuse me / pardon me" },
+    { name: "naaf dhiisi / dhiifama naaf godhi", meaning: "excuse me / forgive me / pardon me" },
+    { name: "maaloo / mee", meaning: "please / I beg you" },
+    { name: "of eeggadhu", meaning: "take care / be careful / farewell" },
+
+    // ========== INTRODUCTIONS & PERSONAL ==========
+    { name: "maqaan kee eenyu?", meaning: "what is your name? / your name?" },
+    { name: "maqaan koo ... jedhama", meaning: "my name is ..." },
+    { name: "ani ...", meaning: "I am ..." },
+    { name: "eessaa dhufta?", meaning: "where are you from? (to male)" },
+    { name: "eessaa dhufti?", meaning: "where are you from? (to female)" },
+    { name: "eessaa dhuftan?", meaning: "where are you from? (plural/formal)" },
+    { name: "biyyi koo ...", meaning: "my country is ... / (I am from ...)" },
+    { name: "sitti gammade", meaning: "nice to meet you / I am happy with you" },
+    { name: "wal baruun keenya gaariidha", meaning: "nice to meet you / our getting to know each other is good" },
+    { name: "umuriin kee meeqa?", meaning: "how old are you? / your age?" },
+    { name: "umuriin koo waggaa ...", meaning: "I am ... years old" },
+
+    // ========== EVERYDAY CONVERSATION ==========
+    { name: "akkas / akkana", meaning: "like this / like that / as" },
+    { name: "as / asitti", meaning: "here / this place" },
+    { name: "achi / achitti", meaning: "there / that place" },
+    { name: "akka asitti", meaning: "like this / in this way" },
+    { name: "akka sanatti", meaning: "like that / in that way" },
+    { name: "maal?", meaning: "what? / pardon?" },
+    { name: "maali?", meaning: "what? / what is it?" },
+    { name: "maal gochaa jirta?", meaning: "what are you doing? (to male)" },
+    { name: "maal gochaa jirti?", meaning: "what are you doing? (to female)" },
+    { name: "maal gochaa jirtu?", meaning: "what are you doing? (plural)" },
+    { name: "eessa deemaa jirta?", meaning: "where are you going? (to male)" },
+    { name: "eessa deemaa jirti?", meaning: "where are you going? (to female)" },
+    { name: "mana deemaan jira", meaning: "I'm going home" },
+    { name: "hojii deemaan jira", meaning: "I'm going to work" },
+    { name: "barumsa deemaan jira", meaning: "I'm going to school" },
+    { name: "sa'aatii meeqa?", meaning: "what time? / when?" },
+    { name: "sa'aatii ... irratti", meaning: "at ... o'clock" },
+    { name: "meeqa?", meaning: "how much? / how many?" },
+    { name: "gatiin isaa meeqa?", meaning: "how much is it? / how much does it cost?" },
+    { name: "gatiin isaa baay'ee guddaadha", meaning: "expensive / too expensive" },
+    { name: "rakkina / gidiraa", meaning: "problem / trouble / difficulty" },
+    { name: "rakkina hin qabu", meaning: "no problem / it's okay" },
+
+    // ========== LANGUAGE & COMMUNICATION ==========
+    { name: "afaan oromoo dubbatta?", meaning: "do you speak Afaan Oromo? (to male)" },
+    { name: "afaan oromoo dubbatti?", meaning: "do you speak Afaan Oromo? (to female)" },
+    { name: "afaan ingilizii dubbatta?", meaning: "do you speak English?" },
+    { name: "naaf gale / hubadhe", meaning: "I understand / I got it" },
+    { name: "naaf hin galle / hin hubanne", meaning: "I don't understand / I didn't get it" },
+    { name: "suuta dubbadhu", meaning: "speak slowly / speak slower" },
+    { name: "irra deebisi", meaning: "repeat / say again" },
+    { name: "mee irra naaf deebisi", meaning: "please repeat / say again" },
+    { name: "akkamitti jedhama?", meaning: "how do you say? / what is the word?" },
+    { name: "afaan oromootiin maali?", meaning: "what is this in Oromo? / how to say in Oromo?" },
+
+    // ========== POLITE REQUESTS ==========
+    { name: "mee na gargaari", meaning: "please help me / assist me" },
+    { name: "mee naaf himi", meaning: "please tell me / inform me" },
+    { name: "mee naaf ibsi", meaning: "please explain to me / clarify" },
+    { name: "mee bishaan naaf kenni", meaning: "give me water / please give water" },
+    { name: "karaa naaf agarsiisi", meaning: "show me the way / direct me" },
+    { name: "mana fincaanii eessa?", meaning: "where is the restroom? / bathroom?" },
+    { name: "bakki hojii eessa?", meaning: "where is the workplace? / office?" },
+    { name: "manni keessan eessa?", meaning: "where is your home? / house?" },
+
+    // ========== EXPRESSIONS OF FEELINGS ==========
+    { name: "gammachuu", meaning: "joy / happiness / I'm happy" },
+    { name: "gammachuu guddaa", meaning: "great joy / very happy" },
+    { name: "gadda / gaddaniiru", meaning: "sad / sorrowful / I'm sad" },
+    { name: "gadda guddaa", meaning: "very sad / deep sorrow" },
+    { name: "aarii / dheekkamsa", meaning: "angry / I'm angry / furious" },
+    { name: "of eeggannoo godhi", meaning: "be careful / watch out" },
+    { name: "nan sodaadha", meaning: "I'm afraid / I'm scared" },
+    { name: "jibba", meaning: "hate / I hate it / detest" },
+    { name: "jaalala", meaning: "love / I love it / affection" },
+    { name: "an si jaaladha", meaning: "I love you / I care for you" },
+    { name: "ani si jaalladha", meaning: "I love you (emphatic)" },
+    { name: "waan gaarii", meaning: "good / that's good / excellent" },
+    { name: "waan hamaa / gadhee", meaning: "bad / that's bad / terrible" },
+    { name: "waan tokko", meaning: "something / anything / it's okay" },
+
+    // ========== BIBLICAL & SPIRITUAL PHRASES ==========
+    { name: "Waaqayyo / Waaqa", meaning: "God / the Almighty" },
+    { name: "Waaqayyo jaalaladha", meaning: "God is love" },
+    { name: "Yesus gooftaadha", meaning: "Jesus is Lord / Jesus is God" },
+    { name: "Waaqayyoof galanni haa ta'u", meaning: "thank God / praise God" },
+    { name: "Waaqayyo gaariidha", meaning: "God is good / God is gracious" },
+    { name: "Waaqayyo araara-qabeessa", meaning: "God is merciful / gracious" },
+    { name: "Waaqa nagaa", meaning: "God of peace" },
+    { name: "Waaqayyo fayyisaadha", meaning: "God is savior / healer" },
+    { name: "fedha Waaqayyootiin", meaning: "God wills / if God permits" },
+    { name: "kadhannaa", meaning: "prayer / pray" },
+    { name: "kadhadhu / kadhachuu", meaning: "pray / supplicate" },
+    { name: "kakuu / waadaa", meaning: "covenant / promise" },
+    { name: "ergamaa / ergamoota", meaning: "angel / messenger / apostle" },
+    { name: "raajii", meaning: "prophet / oracle" },
+    { name: "macaafa qulqulluu", meaning: "scripture / holy writing" },
+    { name: "macaafichi", meaning: "the Book / the Bible" },
+    { name: "macaafa qulqulluu", meaning: "Holy Book / Holy Bible" },
+    { name: "amantiidhaan fayyina argattu", meaning: "by faith you are saved / faith saves" },
+    { name: "dhugaan bilisa isin baasa", meaning: "the truth will set you free" },
+    { name: "seera", meaning: "law / commandment" },
+    { name: "ajaja / abboommii", meaning: "commandment / order" },
+    { name: "cubbuu", meaning: "sin / transgression" },
+    { name: "araarama / dhiifama", meaning: "forgiveness / pardon" },
+    { name: "fayyinna / oolchiinsa", meaning: "salvation / healing / deliverance" },
+    { name: "dhugaa-ba’umsa", meaning: "testimony / witness" },
+    { name: "waldaa / gumii", meaning: "church / congregation" },
+    { name: "waldaa Waaqayyoo", meaning: "church of God" },
+    { name: "Hafuura Qulqulluu", meaning: "Spirit / Holy Spirit" },
+    { name: "Hafuura Qulqulluu", meaning: "Holy Spirit" },
+    { name: "mootummaa", meaning: "kingdom / reign" },
+    { name: "mootummaa Waaqayyoo", meaning: "kingdom of God" },
+    { name: "hammaa / jal'ina", meaning: "evil / wickedness" },
+    { name: "hammaa irraa fagaadhu", meaning: "depart from evil / flee evil" },
+
+    // ========== TIME & SEASONS ==========
+    { name: "har'a", meaning: "today" },
+    { name: "kaleessa", meaning: "yesterday" },
+    { name: "bor", meaning: "tomorrow" },
+    { name: "iftaan", meaning: "day after tomorrow" },
+    { name: "ganna", meaning: "rainy season / (winter)" },
+    { name: "bona", meaning: "dry season / (summer)" },
+    { name: "birraa", meaning: "spring / new year" },
+    { name: "arfaasaa", meaning: "autumn / harvest" },
+    { name: "guyyaa", meaning: "day" },
+    { name: "halkan", meaning: "night" },
+    { name: "ganama barii", meaning: "morning / dawn" },
+    { name: "galgala", meaning: "evening / dusk" },
+
+    // ========== HEALTH & WELL-BEING ==========
+    { name: "fayyaa dhaa?", meaning: "are you well? / are you healthy?" },
+    { name: "fayyaadha", meaning: "healthy / well / I'm fine" },
+    { name: "fayyaa miti / dhukkubsataan jira", meaning: "not well / I'm sick" },
+    { name: "dhukkubsataa", meaning: "sick / ill" },
+    { name: "qoricha", meaning: "medicine / remedy" },
+    { name: "hakiima / doktarra", meaning: "doctor / physician" },
+    { name: "hojii", meaning: "work / job / labor" },
+    { name: "boqonnaa", meaning: "rest / vacation / break" },
+    { name: "rakkina", meaning: "problem / difficulty / trouble" },
+
+    // ========== FAMILY & RELATIONSHIPS ==========
+    { name: "maatiin kee akkam?", meaning: "how is your family?" },
+    { name: "abbaa", meaning: "father / dad" },
+    { name: "haadha", meaning: "mother / mom" },
+    { name: "obboleessa / obbo", meaning: "brother / Mr." },
+    { name: "obboleetti", meaning: "sister" },
+    { name: "ilmoo / mucaa", meaning: "child / son / daughter" },
+    { name: "haadha manaa / niitii", meaning: "wife / spouse" },
+    { name: "abbaa manaa", meaning: "husband / head of household" },
+    { name: "maatii", meaning: "family" },
+    { name: "keessummaa / ollaa", meaning: "guest / stranger / neighbor" },
+
+    // ========== FOOD & DRINK ==========
+    { name: "nyaata", meaning: "food / meal" },
+    { name: "dhugaatii", meaning: "drink / beverage" },
+    { name: "buddeena / qitaa", meaning: "bread / injera" },
+    { name: "aannan", meaning: "milk" },
+    { name: "buna", meaning: "coffee" },
+    { name: "shaayii", meaning: "tea" },
+    { name: "bishaan", meaning: "water" },
+    { name: "mi'aawaa", meaning: "delicious / tasty" },
+    { name: "mi'aawaa miti", meaning: "not tasty / bland" },
+
+    // ========== SHOPPING & TRANSACTIONS ==========
+    { name: "gatiin isaa meeqa?", meaning: "how much is it? / what price?" },
+    { name: "qaalii / rakkisaa", meaning: "expensive / costly" },
+    { name: "gabaa", meaning: "market / shop" },
+    { name: "maal bitta?", meaning: "what do you buy? / what are you buying?" },
+    { name: "waan tokkon bitaa jira", meaning: "I'm buying something / shopping" },
+    { name: "maallaqa / qarshii", meaning: "money / cash" },
+    { name: "yeroo kaffaltii", meaning: "pay time / payment time" },
+
+    // ========== TRAVEL & DIRECTION ==========
+    { name: "karaa / daandii", meaning: "road / way / path" },
+    { name: "karaan eessa?", meaning: "where is the road? / which way?" },
+    { name: "qajeelatti / fuuldura", meaning: "straight / ahead / forward" },
+    { name: "gara bitaa", meaning: "to the left / left side" },
+    { name: "gara mirgaa", meaning: "to the right / right side" },
+    { name: "baasii", meaning: "bus / vehicle" },
+    { name: "taaksii", meaning: "bus / taxi" },
+    { name: "makiinaa", meaning: "car / automobile" },
+
+    // ========== MISCELLANEOUS COMMON EXPRESSIONS ==========
+    { name: "akkam ta'e?", meaning: "how is it? / how did it happen?" },
+    { name: "dhuma irratti", meaning: "finally / at last" },
+    { name: "akka danda'ametti", meaning: "as much as possible / if possible" },
+    { name: "hunda / cufa", meaning: "all / everything / everyone" },
+    { name: "homaa / homtuu", meaning: "nothing / none / no one" },
+    { name: "deemaan jira", meaning: "I'm going / let's go" },
+    { name: "dhufaan jira", meaning: "I'm coming / let's come" },
+    { name: "haa ta'u", meaning: "okay / it's fine / let it be" },
+    { name: "tajaajila / gargaarsa", meaning: "service / help / ministry" },
+    { name: "dhiyeenya kana / waan darbe", meaning: "recently / lately / the past" }
+];
+
+// Combine all word categories for "Words" mode
+const wordCategories = [nouns, verbs, adjectives, adverbs, pronouns, prepositions, conjunctions];
+const combinedWords = wordCategories.flat();
+
+// Helper to get category name for an array (used for persistence)
+function getCategoryNameForArray(arr) {
+    if (arr === nouns) return "Nouns";
+    if (arr === verbs) return "Verbs";
+    if (arr === adjectives) return "Adjectives";
+    if (arr === adverbs) return "Adverbs";
+    if (arr === pronouns) return "Pronouns";
+    if (arr === prepositions) return "Prepositions";
+    if (arr === conjunctions) return "Conjunctions";
+    if (arr === phrases) return "Phrases";
+    return null;
+}
+
+// ---------- State ----------
+let appMode = "words"; // "words" or "phrases"
+let currentSet = combinedWords;
+let knownMap = {};
+let retryMap = {};
+let peekedMap = {};
+let cardsSinceLastPeekMap = {};
+let cardsSinceLastRetryMap = {};
+let knownSetMap = {};
+let currentCard = null;
+let flipped = false;
+let hasChecked = false;
+let hasPeeked = false;
+let nextCardScheduled = false;
+let reviewMode = false;
+let autoNextTimer = null;
+
+// Initialise maps for each category
+const allCategories = ["Nouns","Verbs","Adjectives","Adverbs","Pronouns","Prepositions","Conjunctions","Phrases"];
+allCategories.forEach(name => {
+    knownMap[name] = [];
+    retryMap[name] = [];
+    peekedMap[name] = [];
+    cardsSinceLastPeekMap[name] = 0;
+    cardsSinceLastRetryMap[name] = 0;
+    knownSetMap[name] = new Set();
+});
+  
+function confirmChange(action) {
+    // If already answered or peeked, no need to confirm
+    if (hasChecked || hasPeeked) return true;
+    if (!currentCard) return true;
+    if (nextCardScheduled) return true;
+    
+    const messages = {
+        next: "🎲 Ready to move to the next card? Your current answer will be lost. Continue?",
+        reviewKnown: "⭐ Time to test your known words? This question will be left behind. Continue?",
+        mode: "🔄 Switching modes? Your unsaved answer will be lost. Continue?"
+    };
+    const msg = messages[action] || "You haven't answered this card. Are you sure you want to leave?";
+    return confirm(msg);
+}
+
+// Helper to get combined known list for words mode
+function getKnownListForWords() {
+    let all = [];
+    for (let i = 0; i < wordCategories.length; i++) {
+        const catName = getCategoryNameForArray(wordCategories[i]);
+        if (catName) all.push(...knownMap[catName]);
+    }
+    return all;
+}
+function getKnownList() {
+    return appMode === "words" ? getKnownListForWords() : knownMap["Phrases"];
+}
+function getRetryList() {
+    if (appMode === "words") {
+        let all = [];
+        for (let i = 0; i < wordCategories.length; i++) {
+            const catName = getCategoryNameForArray(wordCategories[i]);
+            if (catName) all.push(...retryMap[catName]);
+        }
+        return all;
+    }
+    return retryMap["Phrases"];
+}
+function getPeekedList() {
+    if (appMode === "words") {
+        let all = [];
+        for (let i = 0; i < wordCategories.length; i++) {
+            const catName = getCategoryNameForArray(wordCategories[i]);
+            if (catName) all.push(...peekedMap[catName]);
+        }
+        return all;
+    }
+    return peekedMap["Phrases"];
+}
+function getCardsSinceLastPeek() {
+    return appMode === "words" ? (cardsSinceLastPeekMap["WordsCombined"] || 0) : cardsSinceLastPeekMap["Phrases"];
+}
+function setCardsSinceLastPeek(val) {
+    if (appMode === "words") cardsSinceLastPeekMap["WordsCombined"] = val;
+    else cardsSinceLastPeekMap["Phrases"] = val;
+}
+function getCardsSinceLastRetry() {
+    return appMode === "words" ? (cardsSinceLastRetryMap["WordsCombined"] || 0) : cardsSinceLastRetryMap["Phrases"];
+}
+function setCardsSinceLastRetry(val) {
+    if (appMode === "words") cardsSinceLastRetryMap["WordsCombined"] = val;
+    else cardsSinceLastRetryMap["Phrases"] = val;
+}
+function getKnownSet() {
+    if (appMode === "words") {
+        const set = new Set();
+        for (let i = 0; i < wordCategories.length; i++) {
+            const catName = getCategoryNameForArray(wordCategories[i]);
+            if (catName) knownMap[catName].forEach(w => set.add(w));
+        }
+        return set;
+    }
+    return knownSetMap["Phrases"];
+}
+
+function saveKnownForWord(word, categoryName) {
+    if (!knownMap[categoryName].includes(word)) {
+        knownMap[categoryName].push(word);
+        knownSetMap[categoryName].add(word);
+        localStorage.setItem(`afaan_oromo_known_${categoryName}`, JSON.stringify(knownMap[categoryName]));
+    }
+}
+function saveRetryForWord(card, categoryName) {
+    if (!retryMap[categoryName].some(c => c.oromoWord === card.oromoWord)) {
+        retryMap[categoryName].push(card);
+        localStorage.setItem(`afaan_oromo_retry_${categoryName}`, JSON.stringify(retryMap[categoryName]));
+    }
+}
+
+// UI updates
+function updateStatsUI() {
+    const known = getKnownList().length;
+    const retry = getRetryList().length;
+    const peeked = getPeekedList().length;
+    document.getElementById("knownCount").innerText = known;
+    document.getElementById("retryCount").innerText = retry;
+    document.getElementById("peekedCount").innerText = peeked;
+    document.getElementById("knownCountDisplay").innerText = known;
+}
+
+function loadData() {
+    for (const cat of allCategories) {
+        const known = localStorage.getItem(`afaan_oromo_known_${cat}`);
+        if (known) {
+            knownMap[cat] = JSON.parse(known);
+            knownSetMap[cat] = new Set(knownMap[cat]);
+        }
+        const retry = localStorage.getItem(`afaan_oromo_retry_${cat}`);
+        if (retry) retryMap[cat] = JSON.parse(retry);
+    }
+    updateStatsUI();
+}
+
+// Helper functions for matching (same as original)
+function cleanText(text) {
+    if (!text) return "";
+    return text.toLowerCase().trim().replace(/[‘’]/g, "'").replace(/\s+/g, ' ');
+}
+function getEditDistance(a, b) {
+    const matrix = Array(a.length + 1).fill().map(() => Array(b.length + 1).fill(0));
+    for (let i = 0; i <= a.length; i++) matrix[i][0] = i;
+    for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
+    for (let i = 1; i <= a.length; i++) {
+        for (let j = 1; j <= b.length; j++) {
+            const cost = a[i-1] === b[j-1] ? 0 : 1;
+            matrix[i][j] = Math.min(matrix[i-1][j] + 1, matrix[i][j-1] + 1, matrix[i-1][j-1] + cost);
+        }
+    }
+    return matrix[a.length][b.length];
+}
+function getMatchResult(userAnswer, correctValue, cardType) {
+    const cleanUser = cleanText(userAnswer);
+    const synonyms = correctValue.split(/[\/,]+|\s+or\s+/).map(s => cleanText(s));
+    
+    // Exact perfect match
+    if (synonyms.includes(cleanUser)) return { type: "perfect", correct: correctValue };
+    
+    // Close match (typo tolerance)
+    for (const syn of synonyms) {
+        const distance = getEditDistance(cleanUser, syn);
+        const len = syn.length;
+        let allowed = 0;
+        if (len >= 4 && len <= 6) allowed = 1;
+        if (len >= 7) allowed = 2;
+        if (distance > 0 && distance <= allowed) {
+            return { type: "close", correct: syn };
+        }
+    }
+    
+    // NEW: Check if the answer contains any synonym as a whole word
+    for (const syn of synonyms) {
+        if (isContainedWord(syn, cleanUser)) {
+            return { type: "contained", correct: syn };
+        }
+    }
+    
+    return { type: "wrong" };
+}
+function getTypoHint(user, correct) {
+    if (user.length < correct.length) return `Almost! You missed a letter in "${correct}".`;
+    if (user.length > correct.length) return `Close! You added an extra letter in "${correct}".`;
+    return `Watch your spelling! It should be "${correct}".`;
+}
+  
+function isContainedWord(word, text) {
+    const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp('\\b' + escaped + '\\b', 'i');
+    return regex.test(text);
+}
+
+function generateRandomCard() {
+    const parts = currentSet;
+    if (parts.length === 0) return null;
+    const part = parts[Math.floor(Math.random() * parts.length)];
+    const askForMeaning = Math.random() < 0.5;
+    if (askForMeaning) {
+        return {
+            type: "meaning",
+            oromoWord: part.name,
+            correctValue: part.meaning,
+            questionText: part.name,
+            answerText: part.meaning
+        };
+    } else {
+        return {
+            type: "part",
+            oromoWord: part.name,
+            correctValue: part.name,
+            questionText: part.meaning,
+            answerText: part.name
+        };
+    }
+}
+
+const RETRY_DELAY_THRESHOLD = 20;
+function getNextCard() {
+    const retry = getRetryList();
+    const peeked = getPeekedList();
+    let retryCounter = getCardsSinceLastRetry();
+    let peekCounter = getCardsSinceLastPeek();
+    if (retry.length > 0 && retryCounter >= RETRY_DELAY_THRESHOLD) {
+        setCardsSinceLastRetry(0);
+        return retry.shift();
+    }
+    if (peeked.length > 0 && peekCounter >= 20) {
+        setCardsSinceLastPeek(0);
+        return peeked.shift();
+    }
+    let attempts = 0;
+    let card = generateRandomCard();
+    const knownSet = getKnownSet();
+    while (attempts < 10 && knownSet.has(card.oromoWord)) {
+        card = generateRandomCard();
+        attempts++;
+    }
+    setCardsSinceLastRetry(retryCounter + 1);
+    setCardsSinceLastPeek(peekCounter + 1);
+    return card;
+}
+
+function resetCardUI() {
+    if (autoNextTimer) clearTimeout(autoNextTimer);
+    document.getElementById("nextBtn").classList.remove("bounce-next");
+    const answerInput = document.getElementById("answerInput");
+    answerInput.disabled = false;
+    answerInput.value = "";
+    answerInput.placeholder = "Type or select your answer";
+    document.getElementById("answerInput").style.display = "block";
+    document.getElementById("checkBtn").style.display = "inline-block";
+    document.getElementById("peekMessage").style.display = "none";
+    document.getElementById("flipBtn").disabled = false;
+    document.getElementById("nextBtn").disabled = false;
+    document.getElementById("reviewKnownBtn").disabled = false;
+    hasChecked = false;
+    hasPeeked = false;
+    nextCardScheduled = false;
+    reviewMode = false;
+    const inner = document.getElementById("flipInner");
+    inner.style.transform = "rotateY(0deg)";
+    flipped = false;
+}
+
+function displayCard(card) {
+    if (!card) return;
+    const front = document.getElementById("frontPrompt");
+    const back = document.getElementById("backAnswer");
+    if (card.type === "meaning") {
+        front.innerHTML = `<strong>${escapeHtml(card.questionText)}</strong>`;
+    } else {
+        front.innerHTML = `${appMode === "words" ? "word" : "phrase"} that means <strong>${escapeHtml(card.questionText)}</strong>`;
+    }
+    back.innerHTML = escapeHtml(card.answerText);
+    resetCardUI();
+    document.getElementById("answerInput").focus();
+}
+
+let currentSuggestions = [];
+let selectedSuggestionIndex = -1;
+
+function updateSuggestions() {
+    // Store current set for filtering
+    currentSuggestions = currentSet.map(item => item.name);
+}
+
+function populateDatalist() {
+    // No longer used; we just update the stored set
+    updateSuggestions();
+}
+
+function filterAndShowSuggestions() {
+    const input = document.getElementById("answerInput");
+    const dropdown = document.getElementById("suggestionsDropdown");
+    const query = input.value.trim().toLowerCase();
+    
+    if (!query) {
+        dropdown.style.display = "none";
+        return;
+    }
+    
+    const filtered = currentSuggestions.filter(item => item.toLowerCase().includes(query));
+    
+    if (filtered.length === 0) {
+        dropdown.style.display = "none";
+        return;
+    }
+    
+    dropdown.innerHTML = "";
+    filtered.forEach((suggestion, idx) => {
+        const div = document.createElement("div");
+        div.className = "suggestion-item";
+        div.textContent = suggestion;
+        div.onclick = (e) => {
+            input.value = suggestion;
+            dropdown.style.display = "none";
+            selectedSuggestionIndex = -1;
+            input.focus();
+        };
+        dropdown.appendChild(div);
+    });
+    
+    dropdown.style.display = "block";
+    selectedSuggestionIndex = -1;
+}
+
+function flashScreen(color, duration = 400) {
+    const overlay = document.getElementById("flashOverlay");
+    overlay.className = `flash-overlay flash-${color} active`;
+    setTimeout(() => overlay.classList.remove("active"), duration);
+}
+
+function showSuccessPage(oromoWord, meaning, guidance = null) {
+    document.getElementById("successTranslation").innerHTML = `${escapeHtml(oromoWord)} | ${escapeHtml(meaning)}`;
+    const guidanceEl = document.getElementById("successGuidance");
+    if (guidance) {
+        guidanceEl.textContent = guidance;
+        guidanceEl.style.display = "block";
+    } else {
+        guidanceEl.style.display = "none";
+    }
+    document.getElementById("successPage").style.display = "flex";
+    document.getElementById("studyView").style.display = "none";
+  	document.getElementById('continueSuccessBtn').focus();
+}
+function showFailPage(oromoWord, meaning) {
+    document.getElementById("failOromo").innerText = oromoWord;
+    document.getElementById("failEnglish").innerText = meaning;
+    document.getElementById("failPage").style.display = "flex";
+    document.getElementById("studyView").style.display = "none";
+  	document.getElementById('continueFailBtn').focus();
+}
+function hideResultPagesAndContinue() {
+    document.getElementById("successPage").style.display = "none";
+    document.getElementById("failPage").style.display = "none";
+    document.getElementById("studyView").style.display = "flex";
+    showNextCard();
+}
+
+function checkAnswer() {
+    if (flipped) { flashScreen("red", 300); return; }
+    if (!currentCard || hasChecked) return;
+    const userAnswer = document.getElementById("answerInput").value.trim();
+    if (!userAnswer) { flashScreen("red", 300); return; }
+
+    const correct = currentCard.correctValue;
+    const oromoWord = currentCard.oromoWord;
+    const answerInput = document.getElementById("answerInput");
+    const checkBtn = document.getElementById("checkBtn");
+    const flipBtn = document.getElementById("flipBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const reviewBtn = document.getElementById("reviewKnownBtn");
+
+    hasChecked = true;
+    answerInput.disabled = true;
+    checkBtn.disabled = true;
+
+    let result = getMatchResult(userAnswer, correct, currentCard.type);
+    let isCorrect = (result.type === "perfect" || result.type === "close" || result.type === "contained");
+    let closeMatch = (result.type === "close");
+    let isContainedMatch = (result.type === "contained");
+
+    // Verb stem acceptance for verb part cards (only in words mode)
+    if (!isCorrect && appMode === "words" && currentCard.type === "part") {
+        const oromoSynonyms = correct.split(/[\/,]+|\s+or\s+/).map(s => s.trim().toLowerCase());
+        for (const syn of oromoSynonyms) {
+            if (syn.endsWith("uu")) {
+                const stem = syn.slice(0, -2);
+                if (cleanText(userAnswer) === stem) {
+                    isCorrect = true;
+                    closeMatch = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (isCorrect) {
+        flashScreen("green", 400);
+        let guidanceMsg = null;
+        if (isContainedMatch) {
+            guidanceMsg = `✓ Good! Your answer contained the word "${result.correct}".`;
+            answerInput.placeholder = "✓ Correct! (Partial match)";
+        } else if (closeMatch) {
+            answerInput.placeholder = getTypoHint(cleanText(userAnswer), result.correct);
+        } else {
+            answerInput.placeholder = "✓ Correct!";
+        }
+
+        if (!reviewMode) {
+            // Record as known in the appropriate category
+            if (appMode === "words") {
+                for (let i = 0; i < wordCategories.length; i++) {
+                    const catArr = wordCategories[i];
+                    if (catArr.some(item => item.name === oromoWord)) {
+                        const catName = getCategoryNameForArray(catArr);
+                        if (catName) saveKnownForWord(oromoWord, catName);
+                        break;
+                    }
+                }
+                // Remove from retry in that category
+                for (let i = 0; i < wordCategories.length; i++) {
+                    const catArr = wordCategories[i];
+                    if (catArr.some(item => item.name === oromoWord)) {
+                        const catName = getCategoryNameForArray(catArr);
+                        if (catName) {
+                            const retryList = retryMap[catName];
+                            const idx = retryList.findIndex(c => c.oromoWord === oromoWord);
+                            if (idx !== -1) retryList.splice(idx, 1);
+                            localStorage.setItem(`afaan_oromo_retry_${catName}`, JSON.stringify(retryList));
+                        }
+                        break;
+                    }
+                }
+            } else {
+                // Phrases mode
+                if (!knownMap["Phrases"].includes(oromoWord)) {
+                    knownMap["Phrases"].push(oromoWord);
+                    knownSetMap["Phrases"].add(oromoWord);
+                    localStorage.setItem(`afaan_oromo_known_Phrases`, JSON.stringify(knownMap["Phrases"]));
+                }
+                const retryList = retryMap["Phrases"];
+                const idx = retryList.findIndex(c => c.oromoWord === oromoWord);
+                if (idx !== -1) retryList.splice(idx, 1);
+                localStorage.setItem(`afaan_oromo_retry_Phrases`, JSON.stringify(retryList));
+            }
+        }
+        updateStatsUI();
+
+        // Disable further interaction on the card
+        answerInput.disabled = true;
+        checkBtn.disabled = true;
+        flipBtn.disabled = true;
+        nextBtn.disabled = true;
+        reviewBtn.disabled = true;
+
+        showSuccessPage(oromoWord, correct, guidanceMsg);
+    } else {
+        flashScreen("red", 400);
+        if (reviewMode) {
+            // Remove from known if it was known
+            if (appMode === "words") {
+                for (let i = 0; i < wordCategories.length; i++) {
+                    const catArr = wordCategories[i];
+                    if (catArr.some(item => item.name === oromoWord)) {
+                        const catName = getCategoryNameForArray(catArr);
+                        if (catName) {
+                            const idxKnown = knownMap[catName].indexOf(oromoWord);
+                            if (idxKnown !== -1) knownMap[catName].splice(idxKnown, 1);
+                            knownSetMap[catName].delete(oromoWord);
+                            localStorage.setItem(`afaan_oromo_known_${catName}`, JSON.stringify(knownMap[catName]));
+                            // Add to retry
+                            if (!retryMap[catName].some(c => c.oromoWord === oromoWord)) {
+                                retryMap[catName].push(currentCard);
+                                localStorage.setItem(`afaan_oromo_retry_${catName}`, JSON.stringify(retryMap[catName]));
+                            }
+                        }
+                        break;
+                    }
+                }
+            } else {
+                const idxKnown = knownMap["Phrases"].indexOf(oromoWord);
+                if (idxKnown !== -1) knownMap["Phrases"].splice(idxKnown, 1);
+                knownSetMap["Phrases"].delete(oromoWord);
+                localStorage.setItem(`afaan_oromo_known_Phrases`, JSON.stringify(knownMap["Phrases"]));
+                if (!retryMap["Phrases"].some(c => c.oromoWord === oromoWord)) {
+                    retryMap["Phrases"].push(currentCard);
+                    localStorage.setItem(`afaan_oromo_retry_Phrases`, JSON.stringify(retryMap["Phrases"]));
+                }
+            }
+            updateStatsUI();
+            answerInput.placeholder = "❌ Incorrect. Removed from known.";
+        } else {
+            // Normal wrong: add to retry
+            if (appMode === "words") {
+                for (let i = 0; i < wordCategories.length; i++) {
+                    const catArr = wordCategories[i];
+                    if (catArr.some(item => item.name === oromoWord)) {
+                        const catName = getCategoryNameForArray(catArr);
+                        if (catName && !knownSetMap[catName].has(oromoWord)) {
+                            if (!retryMap[catName].some(c => c.oromoWord === oromoWord)) {
+                                retryMap[catName].push(currentCard);
+                                localStorage.setItem(`afaan_oromo_retry_${catName}`, JSON.stringify(retryMap[catName]));
+                            }
+                        }
+                        break;
+                    }
+                }
+            } else {
+                if (!knownSetMap["Phrases"].has(oromoWord) && !retryMap["Phrases"].some(c => c.oromoWord === oromoWord)) {
+                    retryMap["Phrases"].push(currentCard);
+                    localStorage.setItem(`afaan_oromo_retry_Phrases`, JSON.stringify(retryMap["Phrases"]));
+                }
+            }
+            updateStatsUI();
+            answerInput.placeholder = `❌ Incorrect. Correct: ${correct}`;
+        }
+        // Disable further interaction
+        answerInput.disabled = true;
+        checkBtn.disabled = true;
+        flipBtn.disabled = true;
+        nextBtn.disabled = true;
+        reviewBtn.disabled = true;
+
+        showFailPage(oromoWord, correct);
+    }
+}
+
+function showNextCard() {
+    if (nextCardScheduled) return;
+    if (autoNextTimer) clearTimeout(autoNextTimer);
+    if (!confirmChange("next")) return;
+    currentCard = getNextCard();
+    displayCard(currentCard);
+    updateStatsUI();
+}
+
+function reviewKnown() {
+    if (nextCardScheduled) return;
+    if (!confirmChange("reviewKnown")) return;
+    const knownList = getKnownList();
+    if (knownList.length === 0) { flashScreen("red", 400); return; }
+    reviewMode = true;
+    const randomWord = knownList[Math.floor(Math.random() * knownList.length)];
+    let partObj = null;
+    if (appMode === "words") {
+        for (let i = 0; i < wordCategories.length; i++) {
+            partObj = wordCategories[i].find(p => p.name === randomWord);
+            if (partObj) break;
+        }
+    } else {
+        partObj = phrases.find(p => p.name === randomWord);
+    }
+    if (!partObj) {
+        currentCard = { type: "meaning", oromoWord: randomWord, correctValue: randomWord, questionText: randomWord, answerText: randomWord };
+    } else {
+        const askForMeaning = Math.random() < 0.5;
+        if (askForMeaning) {
+            currentCard = { type: "meaning", oromoWord: partObj.name, correctValue: partObj.meaning, questionText: partObj.name, answerText: partObj.meaning };
+        } else {
+            currentCard = { type: "part", oromoWord: partObj.name, correctValue: partObj.name, questionText: partObj.meaning, answerText: partObj.name };
+        }
+    }
+    displayCard(currentCard);
+    updateStatsUI();
+}
+
+function flipCard() {
+    if (nextCardScheduled) return;
+    const inner = document.getElementById("flipInner");
+    if (inner.style.transform === "rotateY(180deg)") {
+        inner.style.transform = "rotateY(0deg)";
+        flipped = false;
+    } else {
+        inner.style.transform = "rotateY(180deg)";
+        flipped = true;
+        if (!hasChecked && !hasPeeked) {
+            hasPeeked = true;
+            document.getElementById("answerInput").style.display = "none";
+            document.getElementById("checkBtn").style.display = "none";
+            document.getElementById("peekMessage").style.display = "block";
+            const oromoWord = currentCard.oromoWord;
+            if (appMode === "words") {
+                for (let i = 0; i < wordCategories.length; i++) {
+                    const catArr = wordCategories[i];
+                    if (catArr.some(item => item.name === oromoWord)) {
+                        const catName = getCategoryNameForArray(catArr);
+                        if (catName && !peekedMap[catName].some(c => c.oromoWord === oromoWord)) {
+                            peekedMap[catName].push(currentCard);
+                        }
+                        break;
+                    }
+                }
+            } else {
+                if (!peekedMap["Phrases"].some(c => c.oromoWord === oromoWord)) {
+                    peekedMap["Phrases"].push(currentCard);
+                }
+            }
+            updateStatsUI();
+        }
+    }
+}
+
+function setAppMode(mode) {
+    if (nextCardScheduled) return;
+    if (!confirmChange("mode")) return;
+    appMode = mode;
+    if (mode === "words") {
+        currentSet = combinedWords;
+        document.getElementById("modeWordsBtn").classList.add("active");
+        document.getElementById("modePhrasesBtn").classList.remove("active");
+        document.getElementById("instructionText").innerText = "Guess the meaning in English";
+    } else {
+        currentSet = phrases;
+        document.getElementById("modePhrasesBtn").classList.add("active");
+        document.getElementById("modeWordsBtn").classList.remove("active");
+        document.getElementById("instructionText").innerText = "Translate this phrase";
+    }
+  	updateSuggestions();
+    showNextCard();
+    updateStatsUI();
+}
+
+function toggleSettings() {
+    const menu = document.getElementById("settingsMenu");
+    menu.style.display = menu.style.display === "none" ? "block" : "none";
+}
+
+function backupData() {
+    const exportObj = { known: knownMap, retry: retryMap };
+    const dataStr = JSON.stringify(exportObj, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `afaan_oromo_backup_${new Date().toISOString().slice(0,19)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function triggerRestore() {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "application/json";
+    input.onchange = (e) => {
+        if (e.target.files[0]) restoreData(e.target.files[0]);
+    };
+    input.click();
+}
+
+function restoreData(file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const imported = JSON.parse(e.target.result);
+            if (!imported.known || !imported.retry) throw new Error("Invalid file format");
+            for (const cat of allCategories) {
+                if (imported.known[cat] && Array.isArray(imported.known[cat])) {
+                    knownMap[cat] = imported.known[cat];
+                    knownSetMap[cat] = new Set(knownMap[cat]);
+                    localStorage.setItem(`afaan_oromo_known_${cat}`, JSON.stringify(knownMap[cat]));
+                }
+                if (imported.retry[cat] && Array.isArray(imported.retry[cat])) {
+                    retryMap[cat] = imported.retry[cat];
+                    localStorage.setItem(`afaan_oromo_retry_${cat}`, JSON.stringify(retryMap[cat]));
+                }
+            }
+            updateStatsUI();
+            showNextCard();
+            flashScreen("green", 300);
+            alert("Data restored successfully!");
+        } catch (err) { alert("Restore failed: " + err.message); }
+    };
+    reader.readAsText(file);
+}
+
+function resetAllData() {
+    if (confirm("⚠️ Reset all progress? This will delete all known and retry cards for all categories. You cannot undo this.")) {
+        for (const cat of allCategories) {
+            localStorage.removeItem(`afaan_oromo_known_${cat}`);
+            localStorage.removeItem(`afaan_oromo_retry_${cat}`);
+            knownMap[cat] = [];
+            retryMap[cat] = [];
+            peekedMap[cat] = [];
+            knownSetMap[cat] = new Set();
+        }
+        cardsSinceLastPeekMap = {};
+        cardsSinceLastRetryMap = {};
+        allCategories.forEach(name => {
+            cardsSinceLastPeekMap[name] = 0;
+            cardsSinceLastRetryMap[name] = 0;
+        });
+        currentCard = null;
+        hasChecked = false;
+        hasPeeked = false;
+        nextCardScheduled = false;
+        reviewMode = false;
+        updateStatsUI();
+        showNextCard();
+        flashScreen("green", 300);
+    }
+}
+
+function escapeHtml(str) {
+    if (!str) return "";
+    return str.replace(/[&<>]/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[m]));
+}
+  
+// ---------- TUTORIAL (full‑screen interactive) ----------
+let tutorialActive = false;
+let currentStep = 0;
+let tutorialSteps = [];
+let stepCompletionFlags = [];
+let arrowDiv = null;
+
+function highlightElement(selector) {
+    removeHighlight();
+    const el = document.querySelector(selector);
+    if (el) el.classList.add('highlight-target');
+}
+function removeHighlight() {
+    document.querySelectorAll('.highlight-target').forEach(el => el.classList.remove('highlight-target'));
+}
+function removeArrow() {
+    if (arrowDiv) {
+        arrowDiv.remove();
+        arrowDiv = null;
+    }
+}
+function addArrowToElement(selector) {
+    removeArrow();
+    const target = document.querySelector(selector);
+    if (!target) return;
+    const rect = target.getBoundingClientRect();
+    const viewWidth = window.innerWidth;
+    const viewHeight = window.innerHeight;
+    let side = 'right';
+    const spaceRight = viewWidth - rect.right;
+    const spaceLeft = rect.left;
+    const spaceTop = rect.top;
+    if (spaceRight < 50 && spaceLeft > spaceRight) side = 'left';
+    if (spaceRight < 50 && spaceLeft < 50 && spaceTop > 60) side = 'top';
+    arrowDiv = document.createElement('div');
+    arrowDiv.className = 'tutorial-arrow';
+    switch (side) {
+        case 'right':
+            arrowDiv.innerHTML = '⬅';
+            arrowDiv.style.left = `${rect.right + 5}px`;
+            arrowDiv.style.top = `${rect.top + rect.height / 2}px`;
+            arrowDiv.style.animation = 'bounceRight 0.5s infinite alternate ease-in-out';
+            break;
+        case 'left':
+            arrowDiv.innerHTML = '➡';
+            arrowDiv.style.left = `${rect.left - 35}px`;
+            arrowDiv.style.top = `${rect.top + rect.height / 2}px`;
+            arrowDiv.style.animation = 'bounceRight 0.5s infinite alternate ease-in-out';
+            break;
+        case 'top':
+            arrowDiv.innerHTML = '⬇';
+            arrowDiv.style.left = `${rect.left + rect.width / 2 - 15}px`;
+            arrowDiv.style.top = `${rect.top - 35}px`;
+            arrowDiv.style.transform = 'none';
+            arrowDiv.style.animation = 'bounceDown 0.5s infinite alternate ease-in-out';
+            break;
+    }
+    document.body.appendChild(arrowDiv);
+}
+function highlightTutorialNextButton() {
+    removeHighlight();
+    removeArrow();
+    const nextBtn = document.getElementById('tutorialNextBtn');
+    if (nextBtn) {
+        nextBtn.classList.add('highlight-target');
+        addArrowToElement('#tutorialNextBtn');
+    }
+}
+function endTutorial() {
+    tutorialActive = false;
+    const overlay = document.querySelector('.tutorial-overlay');
+    if (overlay) overlay.remove();
+    removeHighlight();
+    removeArrow();
+}
+function showStep(stepIndex) {
+    removeHighlight();
+    removeArrow();
+    const step = tutorialSteps[stepIndex];
+    if (!step) return;
+    let tooltipHtml = `<div class="tutorial-card">
+        <button class="tutorial-close" id="tutorialCloseBtn">&times;</button>
+        <div class="tutorial-title">${step.title}</div>
+        <div class="tutorial-desc">${step.desc}</div>`;
+    if (step.demo) {
+        tooltipHtml += `<div class="demo-flashcard" id="demoFlashcard">
+            <div class="demo-inner" id="demoInner">
+                <div class="demo-front">${step.demo.front}</div>
+                <div class="demo-back">${step.demo.back}</div>
+            </div>
+        </div>`;
+        if (step.demo.hasInput) {
+            let prefillValue = '';
+            if (step.demo.prefillAnswer && step.demo.expectedAnswer) {
+                const firstSynonym = step.demo.expectedAnswer.split(/[\/,]+|\s+or\s+/)[0].trim();
+                prefillValue = ` value="${escapeHtml(firstSynonym)}"`;
+            }
+            tooltipHtml += `<div style="margin: 0.8rem 0;">
+                <input type="text" id="demoInput" placeholder="Type your answer here..."${prefillValue} style="width:100%; padding:0.5rem; border:1px solid #ccc; border-radius:2rem; text-align:center;">
+            </div>`;
+        }
+        if (step.demo.buttons && step.demo.buttons.length > 0) {
+            tooltipHtml += `<div class="demo-buttons">`;
+            for (const btn of step.demo.buttons) {
+                const id = btn.action === 'check' ? 'demoCheckBtn' : (btn.action === 'flip' ? 'demoFlipBtn' : '');
+                tooltipHtml += `<button ${id ? `id="${id}"` : ''} class="demo-btn ${btn.class || ''}" data-action="${btn.action}">${btn.label}</button>`;
+            }
+            tooltipHtml += `</div>`;
+        }
+        if (step.demo.feedbackId) {
+            tooltipHtml += `<div class="demo-feedback" id="demoFeedback"></div>`;
+        }
+    }
+    const prevDisabled = stepIndex === 0 ? 'disabled' : '';
+    const nextDisabled = step.requiredAction && !stepCompletionFlags[stepIndex] ? 'disabled' : '';
+    tooltipHtml += `<div class="tutorial-nav">
+        <button id="tutorialPrevBtn" ${prevDisabled}>← Previous</button>
+        <div class="tutorial-checkbox">
+            <input type="checkbox" id="tutorialDontShowAgain"> <label for="tutorialDontShowAgain">Don't show again</label>
+        </div>
+        <button id="tutorialNextBtn" class="primary" ${nextDisabled}>${stepIndex === tutorialSteps.length-1 ? 'Finish' : 'Next →'}</button>
+    </div></div>`;
+    let overlay = document.querySelector('.tutorial-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.className = 'tutorial-overlay';
+        document.body.appendChild(overlay);
+    }
+    overlay.innerHTML = tooltipHtml;
+    overlay.style.display = 'flex';
+    let targetElement = step.demo ? (step.arrowTarget || '#demoFlashcard') : step.arrowTarget;
+    if (targetElement) {
+        setTimeout(() => {
+            highlightElement(targetElement);
+            addArrowToElement(targetElement);
+        }, 10);
+    }
+    if (!step.requiredAction && stepIndex < tutorialSteps.length - 1) {
+        setTimeout(() => highlightTutorialNextButton(), 900);
+    }
+    // Demo interactions
+    if (step.demo) {
+        const demoInner = document.getElementById('demoInner');
+        const demoFeedback = document.getElementById('demoFeedback');
+        const demoInput = document.getElementById('demoInput');
+        const checkBtn = document.getElementById('demoCheckBtn') || document.querySelector('.demo-btn[data-action="check"]');
+        const flipBtns = document.querySelectorAll('.demo-btn[data-action="flip"]');
+        let demoFlipped = false;
+        if (step.demo.disableOnFlip && demoInput) {
+            demoInput.disabled = true;
+            if (checkBtn) checkBtn.disabled = true;
+        }
+        flipBtns.forEach(btn => {
+            btn.onclick = () => {
+                demoInner.style.transform = demoFlipped ? 'rotateY(0deg)' : 'rotateY(180deg)';
+                demoFlipped = !demoFlipped;
+                if (demoFeedback) demoFeedback.innerText = '';
+                if (step.demo.disableOnFlip && demoFlipped) {
+                    if (demoInput) demoInput.disabled = true;
+                    if (checkBtn) checkBtn.disabled = true;
+                    if (demoFeedback) demoFeedback.innerText = '⚠️ Flipping counts as a peek. Input & Check are now disabled.';
+                }
+                if (step.requiredAction === 'flip') {
+                    stepCompletionFlags[stepIndex] = true;
+                    const nextBtn = document.getElementById('tutorialNextBtn');
+                    if (nextBtn) nextBtn.disabled = false;
+                    highlightTutorialNextButton();
+                }
+            };
+        });
+        if (step.requiredAction === 'type' && demoInput) {
+            const handleType = () => {
+                if (demoInput.value.trim() !== '') {
+                    stepCompletionFlags[stepIndex] = true;
+                    const nextBtn = document.getElementById('tutorialNextBtn');
+                    if (nextBtn) nextBtn.disabled = false;
+                    highlightTutorialNextButton();
+                    demoInput.removeEventListener('input', handleType);
+                }
+            };
+            demoInput.addEventListener('input', handleType);
+        }
+        if (step.demo.hasInput && step.requiredAction === 'check') {
+            const handleCheck = () => {
+                if (step.demo.disableOnFlip && demoFlipped) {
+                    if (demoFeedback) demoFeedback.innerText = '❌ You already peeked – answer is disabled.';
+                    return;
+                }
+                if (!demoInput) return;
+                const userAnswer = demoInput.value.trim().toLowerCase();
+                const correctSynonyms = step.demo.expectedAnswer.split(/[\/,]+|\s+or\s+/).map(s => s.trim().toLowerCase());
+                if (correctSynonyms.includes(userAnswer)) {
+                    if (demoFeedback) demoFeedback.innerText = '✓ Correct! Good job.';
+                    stepCompletionFlags[stepIndex] = true;
+                    const nextBtn = document.getElementById('tutorialNextBtn');
+                    if (nextBtn) nextBtn.disabled = false;
+                    highlightTutorialNextButton();
+                } else {
+                    if (demoFeedback) demoFeedback.innerText = `❌ Incorrect. Try one of: ${correctSynonyms.join(', ')}`;
+                }
+            };
+            if (checkBtn) checkBtn.onclick = handleCheck;
+        }
+        const demoCard = document.getElementById('demoFlashcard');
+        if (demoCard && flipBtns.length > 0) {
+            demoCard.onclick = (e) => {
+                if (e.target === demoCard || e.target.classList.contains('demo-front') || e.target.classList.contains('demo-back')) {
+                    demoInner.style.transform = demoFlipped ? 'rotateY(0deg)' : 'rotateY(180deg)';
+                    demoFlipped = !demoFlipped;
+                    if (demoFeedback) demoFeedback.innerText = '';
+                    if (step.demo.disableOnFlip && demoFlipped) {
+                        if (demoInput) demoInput.disabled = true;
+                        if (checkBtn) checkBtn.disabled = true;
+                        if (demoFeedback) demoFeedback.innerText = '⚠️ Flipping counts as a peek. Input & Check are now disabled.';
+                    }
+                    if (step.requiredAction === 'flip') {
+                        stepCompletionFlags[stepIndex] = true;
+                        const nextBtn = document.getElementById('tutorialNextBtn');
+                        if (nextBtn) nextBtn.disabled = false;
+                        highlightTutorialNextButton();
+                    }
+                }
+            };
+        }
+    }
+    // Navigation events
+    document.getElementById('tutorialCloseBtn').onclick = endTutorial;
+    document.getElementById('tutorialPrevBtn').onclick = () => { if (stepIndex > 0) showStep(stepIndex-1); };
+    document.getElementById('tutorialNextBtn').onclick = () => {
+        if (stepIndex === tutorialSteps.length-1) {
+            endTutorial();
+        } else {
+            showStep(stepIndex+1);
+        }
+    };
+    const chk = document.getElementById('tutorialDontShowAgain');
+    if (chk) {
+        chk.checked = localStorage.getItem('tutorial_dont_show_again') === 'true';
+        chk.onchange = (e) => {
+            localStorage.setItem('tutorial_dont_show_again', e.target.checked ? 'true' : 'false');
+        };
+    }
+}
+function startTutorial() {
+    if (tutorialActive) return;
+    tutorialActive = true;
+    currentStep = 0;
+    stepCompletionFlags = tutorialSteps.map(() => false);
+    showStep(0);
+}
+function buildTutorialSteps() {
+    tutorialSteps = [
+        { title: "🎓 Welcome!", desc: "Let's learn how to use this app in 30 seconds.", requiredAction: null, arrowTarget: null, demo: null },
+        { title: "1. The Challenge", desc: "Look at the word on this card.", demo: { front: "mana", back: "house / home / dwelling", buttons: [], hasInput: false, disableOnFlip: false }, requiredAction: null, arrowTarget: "#demoFlashcard" },
+        { title: "2. Your Answer", desc: "Type the translation here. For this demo, type <b>house</b>.", demo: { front: "mana", back: "house / home / dwelling", buttons: [], feedbackId: "demoFeedback", hasInput: true, expectedAnswer: "house / home / dwelling", disableOnFlip: false }, requiredAction: "type", arrowTarget: "#demoInput" },
+        { title: "3. Verify", desc: "Click Check to submit your answer.", demo: { front: "mana", back: "house / home / dwelling", buttons: [{ label: "✓ Check", action: "check", class: "demo-btn-primary" }], feedbackId: "demoFeedback", hasInput: true, expectedAnswer: "house / home / dwelling", disableOnFlip: false, prefillAnswer: true }, requiredAction: "check", arrowTarget: "#demoCheckBtn" },
+        { title: "4. Stuck?", desc: "Can't remember? Use Flip to peek, but this disables the 'Check' button for this card.", demo: { front: "mana", back: "house / home / dwelling", buttons: [{ label: "🔄 Flip", action: "flip", class: "" }], feedbackId: "demoFeedback", hasInput: true, disableOnFlip: true, expectedAnswer: null }, requiredAction: "flip", arrowTarget: "#demoFlipBtn" },
+        { title: "🏷️ Mode Switch", desc: "Use Words/Phrases toggles to switch between individual words and common phrases.", requiredAction: null, arrowTarget: ".mode-toggle", demo: null },
+        { title: "📊 Tracking", desc: "Watch your 'Known' count grow! Wrong answers go to 'Retry'.", requiredAction: null, arrowTarget: ".stats-area", demo: null },
+        { title: "🕹️ Feature Gallery", desc: `<div class="flex flex-col gap-2 mt-2"><div class="flex items-center gap-2"><button class="bg-red-500 text-white text-xs px-3 py-1 rounded-full">⚠️ Reset</button> <span class="text-xs">Deletes all progress.</span></div><div class="flex items-center gap-2"><button class="bg-blue-500 text-white text-xs px-3 py-1 rounded-full">💾 Backup</button> <span class="text-xs">Save progress to file.</span></div><div class="flex items-center gap-2"><button class="bg-green-500 text-white text-xs px-3 py-1 rounded-full">📂 Restore</button> <span class="text-xs">Load your saved data.</span></div><div class="flex items-center gap-2"><button class="bg-purple-100 text-purple-800 text-xs px-3 py-1 rounded-full">⭐ Review Known</button> <span class="text-xs">Practice mastered words.</span></div></div>`, requiredAction: null, arrowTarget: ".stats-area", demo: null },
+        { title: "🎉 Ready!", desc: "Start learning. You can reopen this tutorial anytime with the ❓ button.", requiredAction: null, arrowTarget: null, demo: null }
+    ];
+}
+function initTutorial() {
+    buildTutorialSteps();
+    const dontShow = localStorage.getItem('tutorial_dont_show_again') === 'true';
+    if (!dontShow) setTimeout(() => startTutorial(), 500);
+    document.getElementById('tutorialBtn').onclick = () => startTutorial();
+}
+  
+// Keyboard navigation for tutorial (Enter / Space on Next button)
+function handleTutorialKeys(e) {
+    if (!tutorialActive) return;
+    const activeTag = document.activeElement?.tagName;
+    if (activeTag === 'INPUT' || activeTag === 'TEXTAREA') return;
+    const key = e.key;
+    if (key === 'Enter' || key === ' ') {
+        e.preventDefault();
+        const nextBtn = document.getElementById('tutorialNextBtn');
+        if (nextBtn && !nextBtn.disabled) {
+            nextBtn.click();
+        }
+    }
+}
+document.addEventListener('keydown', handleTutorialKeys);
+
+// Event listeners
+document.getElementById("answerInput").addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+        e.preventDefault();
+        if (!flipped && !hasChecked && !nextCardScheduled) checkAnswer();
+        else if (flipped) flashScreen("red", 300);
+    }
+});
+document.getElementById("checkBtn").addEventListener("click", () => {
+    if (!flipped && !hasChecked && !nextCardScheduled) checkAnswer();
+    else flashScreen("red", 300);
+});
+document.querySelector(".flip-card").addEventListener("click", () => flipCard());
+document.getElementById("flipBtn").addEventListener("click", flipCard);
+document.getElementById("nextBtn").addEventListener("click", () => { if (!nextCardScheduled) showNextCard(); });
+document.getElementById("reviewKnownBtn").addEventListener("click", () => { if (!nextCardScheduled) reviewKnown(); });
+document.getElementById("continueSuccessBtn").addEventListener("click", hideResultPagesAndContinue);
+document.getElementById("continueFailBtn").addEventListener("click", hideResultPagesAndContinue);
+
+document.addEventListener("click", (e) => {
+    const menu = document.getElementById("settingsMenu");
+    const gear = document.getElementById("gearBtn");
+    if (menu.style.display === "block" && !menu.contains(e.target) && e.target !== gear) {
+        menu.style.display = "none";
+    }
+});
+// Keyboard: Close result pages with Enter or Space
+document.addEventListener('keydown', (e) => {
+    const successPage = document.getElementById('successPage');
+    const failPage = document.getElementById('failPage');
+    const isSuccessVisible = successPage.style.display === 'flex';
+    const isFailVisible = failPage.style.display === 'flex';
+    
+    if ((isSuccessVisible || isFailVisible) && (e.key === 'Enter' || e.key === ' ')) {
+        e.preventDefault(); // prevent page scrolling on Space
+        if (isSuccessVisible) {
+            document.getElementById('continueSuccessBtn').click();
+        } else if (isFailVisible) {
+            document.getElementById('continueFailBtn').click();
+        }
+    }
+});
+const answerInput = document.getElementById("answerInput");
+answerInput.addEventListener("input", filterAndShowSuggestions);
+answerInput.addEventListener("blur", () => {
+    setTimeout(() => {
+        document.getElementById("suggestionsDropdown").style.display = "none";
+    }, 150); // delay to allow click on suggestion
+});
+answerInput.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+        document.getElementById("suggestionsDropdown").style.display = "none";
+        selectedSuggestionIndex = -1;
+    }
+});
+
+// Warn before leaving if current card is unanswered
+window.addEventListener("beforeunload", function (e) {
+    if (!hasChecked && !hasPeeked && currentCard && !nextCardScheduled) {
+        e.preventDefault();
+        e.returnValue = "You haven't answered this card yet. Are you sure you want to leave?";
+        return e.returnValue;
+    }
+});
+  
+loadData();
+setAppMode("words");
+initTutorial();
+const inputField = document.getElementById("answerInput");
+if (inputField) {
+    inputField.addEventListener("focus", () => {
+        if (document.getElementById("studyView").style.display !== "none") {
+            document.body.classList.add("keyboard-open");
+            // Close settings menu if open
+            const settingsMenu = document.getElementById("settingsMenu");
+            if (settingsMenu && settingsMenu.style.display === "block") {
+                settingsMenu.style.display = "none";
+            }
+            // Wait for keyboard and layout to adjust, then scroll input into center
+            setTimeout(() => {
+                inputField.scrollIntoView({ behavior: "smooth", block: "center" });
+            }, 200);
+        }
+    });
+    inputField.addEventListener("blur", () => {
+        document.body.classList.remove("keyboard-open");
+    });
+}
+</script>
+</body>
+</html>

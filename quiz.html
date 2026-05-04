@@ -1,0 +1,2640 @@
+cat > flashcards.html
+lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>? Quiz – Create Your Own Exam</title>
+  <style>
+/* Tailwind CSS CDN for utility classes */
+@import url('https://cdn.jsdelivr.net/npm/tailwindcss@2/dist/tailwind.min.css');
+
+/* Custom styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #eef2f7;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    overflow: hidden;
+    height: 100%;
+}
+
+/* ===== FLUID SCALING ===== */
+html {
+    font-size: clamp(14px, 1.2vw + 8px, 28px);
+}
+
+/* App container – overrides blog layout */
+.app-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0 !important;
+    max-width: none !important;
+    border-radius: 0;
+    z-index: 9999;
+    overflow-y: auto;
+    background: white;
+    box-shadow: 0 20px 35px -10px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Quiz View (holds header and quiz content) */
+.quiz-view {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    position: relative;
+}
+
+/* Header */
+.header {
+    background: white;
+    border-bottom: 1px solid #f0f0f0;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+.header-main {
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+.stats {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    background: #f3f4f6;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    color: #1f2937;
+}
+.upload-area {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+.drop-zone {
+    background: #f9fafb;
+    border: 2px dashed #cbd5e1;
+    border-radius: 1rem;
+    padding: 0.5rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.drop-zone.drag-over {
+    background: #eef2ff;
+    border-color: #2563eb;
+}
+.drop-zone p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #4b5563;
+}
+.paste-area {
+    margin-top: 0.5rem;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.json-paste-textarea {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.5rem;
+    font-family: monospace;
+    font-size: 0.75rem;
+    background-color: #f9fafb;
+    resize: vertical;
+}
+.json-paste-textarea:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37,99,235,0.2);
+}
+.load-pasted-btn {
+    background: #e5e7eb;
+    border: none;
+    border-radius: 9999px;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    align-self: flex-start;
+}
+.load-pasted-btn:hover {
+    background: #d1d5db;
+}
+.upload-btn {
+    background: none;
+    border: none;
+    color: #2563eb;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+}
+.download-prompt-btn, .manage-files-btn, .settings-btn {
+    background: #e5e7eb;
+    border: none;
+    border-radius: 9999px;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.download-prompt-btn:hover, .manage-files-btn:hover, .settings-btn:hover {
+    background: #d1d5db;
+}
+
+/* Collapsed header */
+.header-collapsed-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background: white;
+    border-bottom: 1px solid #f0f0f0;
+}
+.collapsed-score {
+    font-size: 0.875rem;
+    font-weight: 500;
+    background: #f3f4f6;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    color: #eab308;
+}
+.header-toggle {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 50%;
+    transition: transform 0.2s;
+}
+.header-toggle:hover {
+    background: #f0f0f0;
+}
+.header-collapsed .header-main {
+    display: none;
+}
+.header-collapsed .header-toggle {
+    transform: rotate(180deg);
+}
+
+/* Quiz Content */
+.quiz-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+.quiz-scroll-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0));
+}
+.question-text {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1e2f3a;
+    margin-bottom: 1rem;
+    line-height: 1.4;
+    text-align: center;
+}
+.choices-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+.choice-btn {
+    background: white;
+    border: 1px solid #cbd5e1;
+    border-radius: 2rem;
+    padding: 0.8rem 1.2rem;
+    text-align: left;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #1f2937;
+}
+.choice-btn:hover {
+    background: #f1f5f9;
+    border-color: #2563eb;
+}
+.choice-btn.selected {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: white;
+}
+.choice-btn.correct-feedback {
+    background: #28a745;
+    border-color: #28a745;
+    color: white;
+}
+.choice-btn.wrong-feedback {
+    background: #dc3545;
+    border-color: #dc3545;
+    color: white;
+}
+
+/* Unified Action Bar */
+.action-bar {
+    background: white;
+    border-top: 1px solid #e5e7eb;
+    padding: 0.8rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem;
+    flex-shrink: 0;
+}
+.action-btn {
+    background: #e5e7eb;
+    border: none;
+    border-radius: 9999px;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.action-btn:hover {
+    background: #d1d5db;
+}
+.action-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.nav-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.nav-btn {
+    background: #e5e7eb;
+    border: none;
+    border-radius: 9999px;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.nav-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.nav-btn:not(:disabled):hover {
+    background: #d1d5db;
+}
+.counter {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+.submit-btn {
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 9999px;
+    padding: 0.6rem 1.8rem;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.submit-btn:not(:disabled):hover {
+    background: #1d4ed8;
+    transform: scale(1.02);
+}
+
+/* Question List Panel */
+.question-list-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 85%;
+    max-width: 320px;
+    height: 100%;
+    background: white;
+    box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+    z-index: 300;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-left: 1px solid #e5e7eb;
+}
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    background: white;
+}
+.panel-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+.close-list-btn {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.25rem;
+}
+.filter-buttons {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
+    flex-wrap: wrap;
+}
+.filter-btn {
+    background: #f3f4f6;
+    border: none;
+    border-radius: 9999px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.filter-btn.active {
+    background: #2563eb;
+    color: white;
+}
+.question-list-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.5rem;
+}
+.question-list-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+    transition: background 0.1s;
+}
+.question-list-item:hover {
+    background: #f9fafb;
+}
+.question-list-item .status-icon {
+    width: 1.5rem;
+    text-align: center;
+}
+.question-list-item .question-preview {
+    flex: 1;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Result Pages – spacious and scroll‑free */
+.result-page {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    box-sizing: border-box;
+    z-index: 20;
+    overflow-y: auto; /* only if card is taller than viewport */
+}
+.success-page {
+    background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
+    color: white;
+}
+.fail-page {
+    background: linear-gradient(135deg, #4b5563, #374151);
+    color: #e5e7eb;
+}
+.results-page {
+    background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
+    color: white;
+}
+.result-content {
+    width: min(90%, 1200px);
+    max-width: 90vw;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 2rem;
+    margin: 0 auto;
+    background: rgba(255,255,255,0.95);
+    border-radius: 2rem;
+    box-shadow: 0 20px 35px -10px rgba(0,0,0,0.2);
+    /* No max-height / overflow; card grows with content */
+}
+.success-page .result-content {
+    background: transparent;
+    box-shadow: none;
+}
+.fail-page .result-content {
+    background: rgba(0, 0, 0, 0.8);
+    color: #e5e7eb;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+.results-page .result-content {
+    background: rgba(255,255,255,0.95);
+  	color: #1f2937;
+}
+.word-card {
+    background: rgba(255,255,255,0.95);
+    padding: 1.25rem;
+    border-radius: 1rem;
+    text-align: left;
+    color: #1f2937;
+    margin: 0.5rem 0;
+}
+.fail-page .word-card {
+    background: rgba(255,255,255,0.95);
+}
+.success-icon {
+    font-size: 4rem;
+    margin-bottom: 0.5rem;
+    animation: pulse 1s infinite;
+}
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+.result-title {
+    font-size: 2rem;
+    font-weight: bold;
+}
+.result-explanation {
+    font-size: 1rem;
+    line-height: 1.4;
+    opacity: 0.9;
+}
+.motivation-text {
+    font-style: italic;
+    font-size: 1rem;
+}
+.fail-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+.word-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b7280;
+    margin-bottom: 0.25rem;
+}
+.fail-question {
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 0.75rem;
+}
+.fail-correct {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #2563eb;
+    margin-bottom: 0.75rem;
+}
+.fail-explanation {
+    font-size: 0.9rem;
+    color: #4b5563;
+    line-height: 1.4;
+}
+.results-score {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin: 0.5rem 0;
+}
+.results-details {
+    font-size: 0.9rem;
+    text-align: left;
+    max-height: 50vh;
+    overflow-y: auto;
+    padding: 0.5rem;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+.continue-btn, .restart-btn {
+    background: white;
+    color: #2563eb;
+    font-weight: bold;
+    padding: 0.75rem 2rem;
+    border-radius: 9999px;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    margin-top: 0.5rem;
+    margin-bottom: max(0.5rem, env(safe-area-inset-bottom, 0));
+}
+.continue-btn:hover, .restart-btn:hover {
+    background: #f0f0f0;
+    transform: scale(1.02);
+}
+.continue-btn:active, .restart-btn:active {
+    transform: scale(0.98);
+}
+
+/* Settings Menu */
+.settings-menu {
+    position: absolute;
+    top: 4rem;
+    right: 1rem;
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+    padding: 0.75rem;
+    z-index: 200;
+    min-width: 200px;
+}
+.settings-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+.settings-section label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+}
+.settings-divider {
+    margin: 0.5rem 0;
+    border-top: 1px solid #e5e7eb;
+}
+.settings-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    background: none;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background 0.1s;
+}
+.settings-item:hover {
+    background: #f3f4f6;
+}
+.settings-item.danger {
+    color: #ef4444;
+}
+
+/* Modal (File Management) */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 400;
+}
+.modal-content {
+    background: white;
+    border-radius: 1rem;
+    width: 90%;
+    max-width: 400px;
+    max-height: 80vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+.modal-header h3 {
+    margin: 0;
+}
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    cursor: pointer;
+}
+.file-list-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.5rem;
+}
+.file-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+.file-item label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    cursor: pointer;
+}
+.file-item input[type="checkbox"] {
+    width: 1.1rem;
+    height: 1.1rem;
+    cursor: pointer;
+}
+.file-name {
+    font-size: 0.9rem;
+}
+.file-delete {
+    background: none;
+    border: none;
+    color: #ef4444;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+}
+.file-delete:hover {
+    background: #fee2e2;
+}
+.modal-footer {
+    padding: 1rem;
+    border-top: 1px solid #e5e7eb;
+    text-align: center;
+}
+.modal-btn {
+    background: #e5e7eb;
+    border: none;
+    border-radius: 9999px;
+    padding: 0.5rem 1.5rem;
+    cursor: pointer;
+}
+
+/* Tutorial Button (floating) */
+.tutorial-btn {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    background: #2563eb;
+    color: white;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+    z-index: 20;
+}
+.tutorial-btn:hover {
+    transform: scale(1.05);
+}
+
+/* Flash Overlay */
+.flash-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.1s ease;
+}
+.flash-overlay.active {
+    opacity: 0.9;
+}
+.flash-green {
+    background-color: #28a745;
+}
+.flash-red {
+    background-color: #dc3545;
+}
+
+/* Global drag overlay (border effect) */
+.global-drag-over::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(37, 99, 235, 0.1);
+    border: 2px dashed #2563eb;
+    pointer-events: none;
+    z-index: 9999;
+    box-sizing: border-box;
+}
+
+/* Full‑screen drop overlay (translucent) */
+.drop-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    font-size: 2rem;
+    color: white;
+    text-align: center;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    opacity: 0;
+    visibility: hidden;
+}
+.drop-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+.drop-overlay span {
+    background: rgba(0,0,0,0.6);
+    padding: 1rem 2rem;
+    border-radius: 2rem;
+    font-weight: bold;
+    border: 2px dashed white;
+}
+
+/* Help panel (embedded tutorial) */
+.help-panel {
+    position: fixed;
+	max-height: min(80vh, 80vw);
+	max-height: 80vmin;
+	overflow: auto;
+    bottom: 1rem;
+    left: 1rem;
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    width: 260px;
+    z-index: 25;
+    font-size: 0.85rem;
+    overflow: hidden;
+    transition: all 0.2s;
+}
+.help-header {
+    background: #2563eb;
+    color: white;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.help-content {
+	overflow: auto;
+    padding: 0.75rem;
+    border-top: 1px solid #e5e7eb;
+    background: white;
+    display: none;
+}
+.help-content.visible {
+  	overflow: auto;
+    display: block;
+}
+.help-link {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: bold;
+}
+.help-link:hover {
+    text-decoration: underline;
+}
+
+/* Tutorial overlay styles */
+.tutorial-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+.tutorial-card {
+    background: white;
+    border-radius: 1.5rem;
+    max-height: 85dvh;
+    max-width: 340px;
+    width: 85%;
+    padding: 1rem;
+    box-shadow: 0 20px 35px -10px rgba(0,0,0,0.2);
+    position: relative;
+    animation: fadeInUp 0.2s ease;
+    overflow-y: auto;
+}
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.tutorial-close {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    background: none;
+    border: none;
+    font-size: 1.6rem;
+    cursor: pointer;
+    color: #666;
+    padding: 0 6px;
+    border-radius: 30px;
+}
+.tutorial-close:hover { background: #f0f0f0; }
+.tutorial-title {
+    font-weight: bold;
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+    padding-right: 2rem;
+}
+.tutorial-desc {
+    font-size: 0.9rem;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    line-height: 1.4;
+}
+.demo-buttons {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    margin: 0.8rem 0;
+}
+.demo-btn {
+    background: #e2e8f0;
+    border: none;
+    border-radius: 2rem;
+    padding: 0.3rem 0.9rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.1s;
+}
+.demo-btn-primary {
+    background: #3b82f6;
+    color: white;
+}
+.demo-feedback {
+    font-size: 0.8rem;
+    text-align: center;
+    margin-top: 0.5rem;
+    color: #2c7da0;
+}
+.tutorial-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.tutorial-nav button {
+    background: #e2e8f0;
+    border: none;
+    border-radius: 2rem;
+    padding: 0.4rem 1rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+.tutorial-nav button.primary {
+    background: #3b82f6;
+    color: white;
+}
+.tutorial-nav button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.tutorial-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+}
+.highlight-target {
+    outline: 4px solid #ef4444;
+    outline-offset: 4px;
+    z-index: 10001;
+    position: relative;
+}
+.tutorial-arrow {
+    position: fixed;
+    font-size: 30px;
+    color: #ef4444;
+    z-index: 10002;
+    pointer-events: none;
+    line-height: 1;
+    filter: drop-shadow(0 0 2px rgba(0,0,0,0.2));
+    transform: translateY(-50%);
+    animation: bounceRight 0.5s infinite alternate ease-in-out;
+}
+@keyframes bounceRight {
+    from { margin-left: 2px; }
+    to { margin-left: 10px; }
+}
+@keyframes bounceDown {
+    from { margin-top: 0px; }
+    to { margin-top: -8px; }
+}
+
+/* Responsive adjustments (mobile) */
+@media (max-width: 640px) {
+    .stats {
+        font-size: 0.75rem;
+        gap: 0.75rem;
+    }
+    .action-bar {
+        gap: 0.5rem;
+        padding: 0.5rem;
+    }
+    .action-btn, .nav-btn, .submit-btn {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.75rem;
+    }
+    .question-text {
+        font-size: 1.2rem;
+    }
+    .choice-btn {
+        padding: 0.6rem 0.75rem;
+        font-size: 0.85rem;
+    }
+    .result-title {
+        font-size: 1.75rem;
+    }
+    .result-content {
+        width: 95%;
+        padding: 1rem;
+    }
+    .tutorial-btn {
+        bottom: 0.75rem;
+        right: 0.75rem;
+        width: 2.5rem;
+        height: 2.5rem;
+        font-size: 1.25rem;
+    }
+    .help-panel {
+        bottom: 0.5rem;
+        left: 0.5rem;
+        width: 240px;
+    }
+}
+
+/* Optional extra-large breakpoint for very wide screens */
+@media (min-width: 2500px) {
+    .app-container {
+        max-width: 1800px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: auto;
+    }
+    .result-content {
+        max-width: 1100px;
+    }
+}
+  </style>
+</head>
+<body>
+    <div class="app-container" id="mainContainer">
+        <!-- ==================== QUIZ VIEW ==================== -->
+        <div id="quizView" class="quiz-view">
+            <!-- Collapsible Header -->
+            <div class="header" id="quizHeader">
+                <div class="header-main">
+                    <div class="stats" id="headerStats">
+                        <span>📊 <span id="totalCount">0</span></span>
+                        <span>✓ <span id="answeredCount">0</span></span>
+                        <span>⭐ <span id="correctCount">0</span></span>
+                        <span>👁️ <span id="peekCount">0</span></span>
+                    </div>
+                    <div class="upload-area" id="uploadArea">
+                        <div id="dropZone" class="drop-zone">
+                            <p>📁 Drag & drop JSON files here or <button id="uploadBtn" class="upload-btn">browse</button></p>
+                            <input type="file" id="fileUpload" accept=".json" multiple style="display: none;">
+                        </div>
+                        <div class="paste-area">
+                            <textarea id="jsonPasteArea" rows="3" class="json-paste-textarea" placeholder='Paste your JSON file here (e.g., [{"question": "...", "choices": ["...", ...], "correct": 0}])'></textarea>
+                            <button id="loadPastedJsonBtn" class="load-pasted-btn">📋 Load Pasted JSON</button>
+                        </div>
+                        <button id="downloadPromptBtn" class="download-prompt-btn">📥 Get Prompt</button>
+                        <button id="manageFilesBtn" class="manage-files-btn">🔄 Swap questions</button>
+                        <button id="settingsBtn" class="settings-btn">⚙️</button>
+                    </div>
+                </div>
+                <div class="header-collapsed-toggle">
+                    <span id="collapsedScore" class="collapsed-score">⭐ 0</span>
+                    <button id="headerToggleBtn" class="header-toggle">▲</button>
+                </div>
+            </div>
+
+            <!-- Quiz Content (hidden until questions loaded) -->
+            <div id="quizContent" class="quiz-content" style="display: none;">
+                <div class="quiz-scroll-area">
+                    <div class="question-text" id="questionText"></div>
+                    <div class="choices-container" id="choicesContainer"></div>
+                </div>
+                <!-- Unified Action Bar -->
+                <div class="action-bar">
+                    <button id="peekBtn" class="action-btn peek-btn">👁️ Peek</button>
+                    <button id="retryOnlyBtn" class="action-btn retry-only-btn">🔄 Retry Only</button>
+                    <button id="questionListToggleBtn" class="action-btn list-toggle-btn">📋 Show List</button>
+                    <div class="nav-controls">
+                        <button id="prevBtn" class="nav-btn" disabled>◀</button>
+                        <span id="questionCounter" class="counter">0 / 0</span>
+                        <button id="nextBtn" class="nav-btn" disabled>▶</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question List Panel (hidden initially) -->
+            <div id="questionListPanel" class="question-list-panel" style="display: none;">
+                <div class="panel-header">
+                    <h3>Questions</h3>
+                    <button id="closeListBtn" class="close-list-btn">✖</button>
+                </div>
+                <div class="filter-buttons">
+                    <button class="filter-btn" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="unanswered">Unanswered</button>
+                    <button class="filter-btn" data-filter="correct">Correct</button>
+                    <button class="filter-btn" data-filter="incorrect">Incorrect</button>
+                </div>
+                <div id="questionListContainer" class="question-list-container"></div>
+            </div>
+        </div>
+
+        <!-- ==================== RESULT PAGES (outside quiz-view) ==================== -->
+        <div id="successPage" class="result-page success-page" style="display: none;">
+            <div class="result-content">
+                <div class="success-icon">⭐</div>
+                <h1 class="result-title">Correct!</h1>
+                <div id="successExplanation" class="result-explanation"></div>
+                <p class="motivation-text">Great job! Keep learning.</p>
+                <button id="continueSuccessBtn" class="continue-btn">Continue</button>
+            </div>
+        </div>
+
+        <div id="failPage" class="result-page fail-page" style="display: none;">
+            <div class="result-content">
+                <h1 class="fail-title">Let's review that one</h1>
+                <div class="word-card">
+                    <div class="word-label">Question</div>
+                    <div id="failQuestion" class="fail-question"></div>
+                    <div class="word-label">Correct Answer</div>
+                    <div id="failCorrectAnswer" class="fail-correct"></div>
+                    <div class="word-label">Explanation</div>
+                    <div id="failExplanation" class="fail-explanation"></div>
+                </div>
+                <button id="continueFailBtn" class="continue-btn">Continue</button>
+            </div>
+        </div>
+
+        <div id="resultsPage" class="result-page results-page" style="display: none;">
+            <div class="result-content">
+                <div class="results-icon">🏆</div>
+                <h1 class="results-title">Quiz Completed!</h1>
+                <div class="results-score" id="finalScore"></div>
+                <div class="results-details" id="resultsDetails"></div>
+                <button id="restartQuizBtn" class="restart-btn">Take Another Quiz</button>
+            </div>
+        </div>
+
+        <!-- ==================== MODALS & MENUS ==================== -->
+        <div id="fileModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Manage Uploaded Files</h3>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div id="fileListContainer" class="file-list-container"></div>
+                <div class="modal-footer">
+                    <button id="closeModalBtn" class="modal-btn">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="settingsMenu" class="settings-menu" style="display: none;">
+            <div class="settings-section">
+                <label>
+                    <input type="checkbox" id="shuffleCheckbox"> Shuffle questions
+                </label>
+                <label>
+                    <input type="checkbox" id="retryModeCheckbox"> Enable retry queue (wrong answers reappear)
+                </label>
+            </div>
+            <hr class="settings-divider">
+         	<button id="reshuffleChoicesBtn" class="settings-item">🃏 Reshuffle unanswered choices</button>
+            <button class="settings-item" id="backupBtn">💾 Backup</button>
+            <button class="settings-item" id="restoreBtn">📂 Restore</button>
+            <button class="settings-item danger" id="resetDataBtn">⚠️ Reset All Progress</button>
+        </div>
+
+        <!-- Help Panel -->
+        <div id="helpPanel" class="help-panel">
+            <div class="help-header">
+                📘 Help & Tips
+                <span id="helpToggle">▼</span>
+            </div>
+            <div id="helpContent" class="help-content">
+                <p><strong>Quick guide:</strong></p>
+                <ul style="margin: 0.5rem 0; padding-left: 1rem;">
+                    <li>📁 Upload JSON files (array of questions)</li>
+                    <li>✅ Click an answer → Submit</li>
+                    <li>👁️ Peek to see correct answer (once per question)</li>
+                    <li>🔄 Retry Only: practice wrong/unanswered</li>
+                    <li>⚙️ Settings: auto‑advance, shuffle, backup/restore</li>
+                </ul>
+                <p>Need more help? <a href="https://chat.deepseek.com" target="_blank" class="help-link">Ask DeepSeek</a></p>
+                <p style="font-size:0.7rem; color:#6c757d; margin-top:0.5rem;">After backup, you'll get a DeepSeek link.</p>
+            </div>
+        </div>
+
+        <!-- Tutorial Button (floating) -->
+        <button id="tutorialBtn" class="tutorial-btn">❓</button>
+    </div>
+
+    <!-- Flash overlay -->
+    <div id="flashOverlay" class="flash-overlay"></div>
+
+    <!-- Full‑screen drop overlay -->
+    <div id="dropOverlay" class="drop-overlay">
+        <span>📂 Drop anywhere to upload</span>
+    </div>
+
+  <script>
+// ==================== GLOBAL STATE ====================
+let allQuestions = [];
+let visibleQuestions = [];
+let userAnswersMap = {};
+let peekedMap = {};
+let retryQueueIds = new Set();
+let fileList = [];
+let selectedFileIds = new Set();
+let nextId = 0;
+let currentIndex = 0;
+let selectedChoice = -1;
+let answerSubmitted = false;
+let quizCompleted = false;
+let quizMode = 'normal';
+let filteredIndices = [];
+let currentFilteredIndex = 0;
+let originalOrder = [];
+
+let shuffleEnabled = false;
+let retryModeEnabled = true;
+let autoAdvance = false;
+
+let autoAdvanceTimer = null;
+
+// DOM Elements
+const appContainer = document.getElementById('mainContainer');
+const quizView = document.getElementById('quizView');
+const header = document.getElementById('quizHeader');
+const headerToggle = document.getElementById('headerToggleBtn');
+const collapsedScoreSpan = document.getElementById('collapsedScore');
+const dropZone = document.getElementById('dropZone');
+const fileUpload = document.getElementById('fileUpload');
+const uploadBtn = document.getElementById('uploadBtn');
+const downloadPromptBtn = document.getElementById('downloadPromptBtn');
+const manageFilesBtn = document.getElementById('manageFilesBtn');
+const settingsBtn = document.getElementById('settingsBtn');
+const settingsMenu = document.getElementById('settingsMenu');
+const quizContent = document.getElementById('quizContent');
+const questionText = document.getElementById('questionText');
+const choicesContainer = document.getElementById('choicesContainer');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const submitBtn = document.getElementById('submitBtn');
+const peekBtn = document.getElementById('peekBtn');
+const retryOnlyBtn = document.getElementById('retryOnlyBtn');
+const listToggleBtn = document.getElementById('questionListToggleBtn');
+const questionListPanel = document.getElementById('questionListPanel');
+const closeListBtn = document.getElementById('closeListBtn');
+const questionListContainer = document.getElementById('questionListContainer');
+const fileModal = document.getElementById('fileModal');
+const fileListContainer = document.getElementById('fileListContainer');
+const closeModalBtn = document.getElementById('closeModalBtn');
+const modalCloseBtns = document.querySelectorAll('.modal-close');
+const autoAdvanceCheckbox = null; // checkbox removed
+const shuffleCheckbox = document.getElementById('shuffleCheckbox');
+const retryModeCheckbox = document.getElementById('retryModeCheckbox');
+const backupBtn = document.getElementById('backupBtn');
+const restoreBtn = document.getElementById('restoreBtn');
+const resetDataBtn = document.getElementById('resetDataBtn');
+const successPage = document.getElementById('successPage');
+const failPage = document.getElementById('failPage');
+const resultsPage = document.getElementById('resultsPage');
+const continueSuccessBtn = document.getElementById('continueSuccessBtn');
+const continueFailBtn = document.getElementById('continueFailBtn');
+const restartQuizBtn = document.getElementById('restartQuizBtn');
+const totalCountSpan = document.getElementById('totalCount');
+const answeredCountSpan = document.getElementById('answeredCount');
+const correctCountSpan = document.getElementById('correctCount');
+const peekCountSpan = document.getElementById('peekCount');
+const questionCounter = document.getElementById('questionCounter');
+const flashOverlay = document.getElementById('flashOverlay');
+const tutorialBtn = document.getElementById('tutorialBtn');
+const finalScoreSpan = document.getElementById('finalScore');
+const resultsDetailsDiv = document.getElementById('resultsDetails');
+const helpToggle = document.getElementById('helpToggle');
+const helpContent = document.getElementById('helpContent');
+const dropOverlay = document.getElementById('dropOverlay');
+document.getElementById('reshuffleChoicesBtn').addEventListener('click', reshuffleAllChoices);
+
+// ==================== UTILITIES ====================
+function flashScreen(color, duration = 400) {
+    flashOverlay.className = `flash-overlay flash-${color} active`;
+    setTimeout(() => flashOverlay.classList.remove('active'), duration);
+}
+
+function showNotification(message, duration = 1500) {
+    const notif = document.createElement('div');
+    notif.textContent = message;
+    notif.style.position = 'fixed';
+    notif.style.bottom = '20px';
+    notif.style.left = '50%';
+    notif.style.transform = 'translateX(-50%)';
+    notif.style.backgroundColor = '#333';
+    notif.style.color = '#fff';
+    notif.style.padding = '10px 20px';
+    notif.style.borderRadius = '30px';
+    notif.style.fontSize = '0.9rem';
+    notif.style.zIndex = '10001';
+    notif.style.opacity = '0';
+    notif.style.transition = 'opacity 0.2s';
+    document.body.appendChild(notif);
+    setTimeout(() => { notif.style.opacity = '1'; }, 10);
+    setTimeout(() => {
+        notif.style.opacity = '0';
+        setTimeout(() => notif.remove(), 200);
+    }, duration);
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
+}
+
+function saveData() {
+    const data = {
+        allQuestions,
+        userAnswersMap,
+        peekedMap,
+        retryQueueIds: Array.from(retryQueueIds),
+        fileList,
+        selectedFileIds: Array.from(selectedFileIds),
+        nextId,
+        currentIndex,
+        quizCompleted,
+        quizMode,
+        filteredIndices,
+        currentFilteredIndex,
+        originalOrder,
+        autoAdvance,
+        shuffleEnabled,
+        retryModeEnabled
+    };
+    localStorage.setItem('mcq_quiz_data', JSON.stringify(data));
+}
+
+function loadData() {
+    const saved = localStorage.getItem('mcq_quiz_data');
+    if (!saved) return false;
+    try {
+        const data = JSON.parse(saved);
+        allQuestions = data.allQuestions || [];
+        userAnswersMap = data.userAnswersMap || {};
+        peekedMap = data.peekedMap || {};
+        retryQueueIds = new Set(data.retryQueueIds || []);
+        fileList = data.fileList || [];
+        selectedFileIds = new Set(data.selectedFileIds || []);
+        nextId = data.nextId || 0;
+        currentIndex = data.currentIndex || 0;
+        quizCompleted = data.quizCompleted || false;
+        quizMode = data.quizMode || 'normal';
+        filteredIndices = data.filteredIndices || [];
+        currentFilteredIndex = data.currentFilteredIndex || 0;
+        originalOrder = data.originalOrder || [];
+        shuffleEnabled = data.shuffleEnabled || false;
+        retryModeEnabled = data.retryModeEnabled !== undefined ? data.retryModeEnabled : true;
+        rebuildVisibleQuestions();
+        return true;
+    } catch (e) {
+        console.warn('Failed to load data', e);
+        return false;
+    }
+}
+
+function rebuildVisibleQuestions() {
+    visibleQuestions = allQuestions.filter(q => selectedFileIds.has(q.fileId));
+    if (currentIndex >= visibleQuestions.length) {
+        currentIndex = Math.max(0, visibleQuestions.length - 1);
+    }
+    if (shuffleEnabled && !quizCompleted && visibleQuestions.length) {
+        originalOrder = [];
+        shuffleVisibleQuestions();
+    }
+    if (quizMode === 'retryOnly') {
+        const retryIndices = [];
+        for (let i = 0; i < visibleQuestions.length; i++) {
+            if (retryQueueIds.has(visibleQuestions[i].id)) retryIndices.push(i);
+        }
+        filteredIndices = retryIndices;
+        if (currentFilteredIndex >= filteredIndices.length) {
+            currentFilteredIndex = Math.max(0, filteredIndices.length - 1);
+        }
+        if (filteredIndices.length === 0) quizMode = 'normal';
+    }
+    updateStats();
+    renderQuestion();
+}
+
+function shuffleVisibleQuestions() {
+    if (originalOrder.length === 0) {
+        originalOrder = visibleQuestions.map((_, i) => i);
+    }
+    for (let i = visibleQuestions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [visibleQuestions[i], visibleQuestions[j]] = [visibleQuestions[j], visibleQuestions[i]];
+    }
+}
+
+function restoreOriginalOrder() {
+    if (originalOrder.length && originalOrder.length === visibleQuestions.length) {
+        const newOrder = [];
+        for (let i = 0; i < originalOrder.length; i++) {
+            newOrder.push(visibleQuestions[originalOrder[i]]);
+        }
+        visibleQuestions = newOrder;
+        originalOrder = [];
+    }
+}
+
+function updateStats() {
+    const total = visibleQuestions.length;
+    const answered = visibleQuestions.filter(q => userAnswersMap[q.id] !== undefined && userAnswersMap[q.id] !== -1).length;
+    const correct = visibleQuestions.filter(q => userAnswersMap[q.id] === q.correct).length;
+    totalCountSpan.textContent = total;
+    answeredCountSpan.textContent = answered;
+    correctCountSpan.textContent = correct;
+    const peekCount = Object.values(peekedMap).filter(v => v).length;
+    peekCountSpan.textContent = peekCount;
+    collapsedScoreSpan.textContent = `⭐ ${correct}`;
+    if (retryModeEnabled) {
+        retryQueueIds.clear();
+        for (let q of visibleQuestions) {
+            const ans = userAnswersMap[q.id];
+            if (ans === undefined || ans === -1 || ans !== q.correct) {
+                retryQueueIds.add(q.id);
+            }
+        }
+    }
+    saveData();
+}
+
+function updateNavigationAndSubmit() {
+    if (quizCompleted || !visibleQuestions.length) {
+        prevBtn.disabled = true;
+        nextBtn.disabled = true;
+        return;
+    }
+    const total = (quizMode === 'retryOnly') ? filteredIndices.length : visibleQuestions.length;
+    const current = (quizMode === 'retryOnly') ? currentFilteredIndex : currentIndex;
+    prevBtn.disabled = (current === 0);
+    nextBtn.disabled = (current === total - 1);
+    const q = (quizMode === 'retryOnly') ? visibleQuestions[filteredIndices[current]] : visibleQuestions[current];
+    if (!q) return;
+    const ans = userAnswersMap[q.id];
+    answerSubmitted = (ans !== undefined && ans !== -1);
+}
+
+function updateCounter() {
+    const total = (quizMode === 'retryOnly') ? filteredIndices.length : visibleQuestions.length;
+    const current = (quizMode === 'retryOnly') ? currentFilteredIndex + 1 : currentIndex + 1;
+    questionCounter.textContent = `${current} / ${total}`;
+}
+
+function renderQuestion() {
+    if (!visibleQuestions.length) {
+        quizContent.style.display = 'none';
+        questionText.textContent = 'No questions selected. Select files in Swap questions.';
+        choicesContainer.innerHTML = '';
+        updateNavigationAndSubmit();
+        return;
+    }
+    quizContent.style.display = 'flex';
+    let q;
+    if (quizMode === 'retryOnly') {
+        if (currentFilteredIndex >= filteredIndices.length) return;
+        q = visibleQuestions[filteredIndices[currentFilteredIndex]];
+    } else {
+        q = visibleQuestions[currentIndex];
+    }
+    if (!q) return;
+    questionText.textContent = q.text;
+    choicesContainer.innerHTML = '';
+    q.choices.forEach((choice, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.textContent = choice;
+        btn.addEventListener('click', () => selectChoice(idx));
+        choicesContainer.appendChild(btn);
+    });
+    const savedChoice = userAnswersMap[q.id];
+    if (savedChoice !== undefined && savedChoice !== -1) {
+        selectedChoice = savedChoice;
+        const btns = document.querySelectorAll('.choice-btn');
+        if (btns[savedChoice]) btns[savedChoice].classList.add('selected');
+        answerSubmitted = true;
+    } else {
+        selectedChoice = -1;
+        answerSubmitted = false;
+    }
+    const btns = document.querySelectorAll('.choice-btn');
+    btns.forEach(btn => btn.classList.remove('correct-feedback', 'wrong-feedback'));
+    if (answerSubmitted) {
+        const isCorrect = (savedChoice === q.correct);
+        if (!isCorrect && savedChoice !== undefined && savedChoice !== -1) {
+            btns[savedChoice]?.classList.add('wrong-feedback');
+        }
+        btns[q.correct]?.classList.add('correct-feedback');
+    }
+    // Disable peek button if already peeked this question
+    if (peekedMap[q.id]) {
+        peekBtn.disabled = true;
+    } else {
+        peekBtn.disabled = false;
+    }
+    updateNavigationAndSubmit();
+    updateCounter();
+    updateQuestionListPanel();
+}
+
+function selectChoice(idx) {
+    if (answerSubmitted || quizCompleted) return;
+    document.querySelectorAll('.choice-btn').forEach(btn => btn.classList.remove('selected'));
+    const btns = document.querySelectorAll('.choice-btn');
+    btns[idx].classList.add('selected');
+    selectedChoice = idx;
+    // Immediately submit the answer
+    submitAnswer();
+}
+
+function submitAnswer() {
+    if (answerSubmitted || quizCompleted) return;
+    let q;
+    if (quizMode === 'retryOnly') {
+        if (currentFilteredIndex >= filteredIndices.length) return;
+        q = visibleQuestions[filteredIndices[currentFilteredIndex]];
+    } else {
+        q = visibleQuestions[currentIndex];
+    }
+    if (!q || selectedChoice === -1) return;
+    const isCorrect = (selectedChoice === q.correct);
+    userAnswersMap[q.id] = selectedChoice;
+    answerSubmitted = true;
+    if (isCorrect && peekedMap[q.id]) peekedMap[q.id] = false;
+    updateStats();
+    if (isCorrect) {
+        flashScreen('green');
+        const explanation = q.explanation || 'Correct! Good job.';
+        document.getElementById('successExplanation').innerHTML = explanation;
+        quizView.style.display = 'none';
+        successPage.style.display = 'flex';
+        // Auto‑advance after 1.5 seconds (only on correct)
+        if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
+        autoAdvanceTimer = setTimeout(() => {
+            if (successPage.style.display === 'flex') {
+                continueToNext();
+            }
+        }, 1000);
+    } else {
+        flashScreen('red');
+        document.getElementById('failQuestion').textContent = q.text;
+        document.getElementById('failCorrectAnswer').textContent = q.choices[q.correct];
+        const explanation = q.explanation || 'No explanation provided.';
+        document.getElementById('failExplanation').textContent = explanation;
+        quizView.style.display = 'none';
+        failPage.style.display = 'flex';
+        // Do NOT auto‑advance on wrong – user must click Continue
+    }
+}
+
+function continueToNext() {
+    if (quizCompleted) return;
+    if (autoAdvanceTimer) {
+        clearTimeout(autoAdvanceTimer);
+        autoAdvanceTimer = null;
+    }
+    successPage.style.display = 'none';
+    failPage.style.display = 'none';
+    quizView.style.display = 'flex';
+    const savedCollapsed = localStorage.getItem('mcq_header_collapsed') === 'true';
+    setHeaderCollapsed(savedCollapsed);
+    const total = (quizMode === 'retryOnly') ? filteredIndices.length : visibleQuestions.length;
+    const current = (quizMode === 'retryOnly') ? currentFilteredIndex : currentIndex;
+    if (current < total - 1) {
+        if (quizMode === 'retryOnly') {
+            currentFilteredIndex++;
+        } else {
+            currentIndex++;
+        }
+        renderQuestion();
+    } else {
+        const allAnswered = visibleQuestions.every(q => userAnswersMap[q.id] !== undefined && userAnswersMap[q.id] !== -1);
+        if (allAnswered && quizMode !== 'retryOnly') {
+            completeQuiz();
+        } else if (quizMode === 'retryOnly') {
+            if (current === total - 1) {
+                exitRetryOnlyMode();
+            }
+        } else {
+            renderQuestion();
+        }
+    }
+}
+
+function completeQuiz() {
+    quizCompleted = true;
+    quizView.style.display = 'none';
+    resultsPage.style.display = 'flex';
+    const correct = visibleQuestions.filter(q => userAnswersMap[q.id] === q.correct).length;
+    const percentage = visibleQuestions.length ? Math.round((correct / visibleQuestions.length) * 100) : 0;
+    finalScoreSpan.textContent = `${correct} / ${visibleQuestions.length} (${percentage}%)`;
+    let detailsHtml = '';
+    for (let i = 0; i < visibleQuestions.length; i++) {
+        const q = visibleQuestions[i];
+        const userChoice = userAnswersMap[q.id];
+        const isCorrect = (userChoice === q.correct);
+        detailsHtml += `
+            <div style="margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 0.5rem;">
+                <strong>Q${i+1}:</strong> ${escapeHtml(q.text)}<br>
+                <span style="color: ${isCorrect ? '#a0f0a0' : '#ffaaaa'}">
+                    Your answer: ${userChoice !== undefined && userChoice !== -1 ? escapeHtml(q.choices[userChoice]) : 'Not answered'}
+                    ${isCorrect ? ' ✓' : ' ✗'}
+                </span>
+                ${!isCorrect ? `<br><span style="font-size: 0.9rem;">Correct: ${escapeHtml(q.choices[q.correct])}</span>` : ''}
+            </div>
+        `;
+    }
+    resultsDetailsDiv.innerHTML = detailsHtml;
+    saveData();
+}
+
+function peekAnswer() {
+    if (answerSubmitted || quizCompleted) return;
+    let q;
+    if (quizMode === 'retryOnly') {
+        if (currentFilteredIndex >= filteredIndices.length) return;
+        q = visibleQuestions[filteredIndices[currentFilteredIndex]];
+    } else {
+        q = visibleQuestions[currentIndex];
+    }
+    if (!q) return;
+    const btns = document.querySelectorAll('.choice-btn');
+    btns[q.correct].classList.add('correct-feedback');
+    peekedMap[q.id] = true;
+    peekBtn.disabled = true;
+    updateStats();
+    saveData();
+}
+
+function toggleRetryOnlyMode() {
+    if (quizCompleted) return;
+    if (quizMode === 'retryOnly') {
+        exitRetryOnlyMode();
+    } else {
+        enterRetryOnlyMode();
+    }
+}
+
+function enterRetryOnlyMode() {
+    const retryIndices = [];
+    for (let i = 0; i < visibleQuestions.length; i++) {
+        const q = visibleQuestions[i];
+        if (retryQueueIds.has(q.id)) retryIndices.push(i);
+    }
+    if (retryIndices.length === 0) {
+        flashScreen('red', 400);
+        alert('No questions to retry!');
+        return;
+    }
+    filteredIndices = retryIndices;
+    currentFilteredIndex = 0;
+    quizMode = 'retryOnly';
+    retryOnlyBtn.textContent = '📋 Exit Retry';
+    renderQuestion();
+    updateQuestionListPanel();
+}
+
+function exitRetryOnlyMode() {
+    quizMode = 'normal';
+    filteredIndices = [];
+    currentFilteredIndex = 0;
+    retryOnlyBtn.textContent = '🔄 Retry Only';
+    renderQuestion();
+    updateQuestionListPanel();
+}
+
+function toggleQuestionList() {
+    if (questionListPanel.style.display === 'none') {
+        updateQuestionListPanel('all');
+        questionListPanel.style.display = 'flex';
+    } else {
+        questionListPanel.style.display = 'none';
+    }
+}
+
+function updateQuestionListPanel(filter = 'all') {
+    if (!questionListContainer) return;
+    let indices = [];
+    for (let i = 0; i < visibleQuestions.length; i++) {
+        const q = visibleQuestions[i];
+        const ans = userAnswersMap[q.id];
+        let status = 'unanswered';
+        if (ans !== undefined && ans !== -1) {
+            status = (ans === q.correct) ? 'correct' : 'incorrect';
+        }
+        if (filter === 'all') indices.push(i);
+        else if (filter === 'unanswered' && status === 'unanswered') indices.push(i);
+        else if (filter === 'correct' && status === 'correct') indices.push(i);
+        else if (filter === 'incorrect' && status === 'incorrect') indices.push(i);
+    }
+    questionListContainer.innerHTML = indices.map(idx => {
+        const q = visibleQuestions[idx];
+        const ans = userAnswersMap[q.id];
+        let icon = '';
+        if (ans !== undefined && ans !== -1) {
+            icon = (ans === q.correct) ? '✅' : '❌';
+        } else {
+            icon = '⭕';
+        }
+        return `<div class="question-list-item" data-idx="${idx}">
+            <span class="status-icon">${icon}</span>
+            <span class="question-preview">${escapeHtml(q.text.substring(0, 50))}...</span>
+        </div>`;
+    }).join('');
+    document.querySelectorAll('.question-list-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const idx = parseInt(item.dataset.idx);
+            if (quizMode === 'retryOnly') {
+                const pos = filteredIndices.indexOf(idx);
+                if (pos !== -1) {
+                    currentFilteredIndex = pos;
+                    renderQuestion();
+                } else {
+                    alert('This question is not in retry mode. Exit retry mode to access it.');
+                }
+            } else {
+                currentIndex = idx;
+                renderQuestion();
+            }
+            questionListPanel.style.display = 'none';
+        });
+    });
+}
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const filter = btn.getAttribute('data-filter');
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        updateQuestionListPanel(filter);
+    });
+});
+function shuffleChoicesForQuestion(question) {
+    // question has: .choices (array) and .correct (original index)
+    const correctText = question.choices[question.correct];
+    // Shuffle choices array (Fisher-Yates)
+    for (let i = question.choices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [question.choices[i], question.choices[j]] = [question.choices[j], question.choices[i]];
+    }
+    // Find new index of the correct text
+    const newCorrectIndex = question.choices.indexOf(correctText);
+    question.correct = newCorrectIndex;
+    // Return the question (modified in place)
+    return question;
+}
+// ==================== FILE MANAGEMENT ====================
+function addQuestionsFromFile(fileName, fileId, questionsArray) {
+    const fileQuestions = [];
+    for (let q of questionsArray) {
+        const newId = nextId++;
+        let newQ = {
+            id: newId,
+            text: q.question,
+            choices: [...q.choices],          // copy to avoid mutating original
+            correct: q.correct,
+            explanation: q.explanation || '',
+            fileId: fileId,
+            topic: q.topic || '',
+            difficulty: q.difficulty || 'medium'
+        };
+        // Shuffle choices and recompute correct index
+        newQ = shuffleChoicesForQuestion(newQ);
+        fileQuestions.push(newQ);
+        userAnswersMap[newId] = -1;
+        peekedMap[newId] = false;
+    }
+    allQuestions.push(...fileQuestions);
+    // Do NOT automatically select the file here; selection will be handled in handleFileUpload
+    fileList.push({ name: fileName, id: fileId, questionCount: questionsArray.length });
+    // No rebuild here – will be rebuilt after selection in handleFileUpload
+    saveData();
+}
+function reshuffleAllChoices() {
+    for (let q of allQuestions) {
+        // Only reshuffle if the question hasn't been answered yet? 
+        // To keep fairness, you can reshuffle everything, but then existing answers become invalid.
+        // Safer: only reshuffle unanswered questions, or warn user.
+        const answered = (userAnswersMap[q.id] !== undefined && userAnswersMap[q.id] !== -1);
+        if (!answered) {
+            shuffleChoicesForQuestion(q);
+        }
+    }
+    // Clear any stored answers for reshuffled questions? 
+    // Actually we already only reshuffle unanswered ones, so no problem.
+    renderQuestion();
+    saveData();
+    showNotification("Choices reshuffled for unanswered questions");
+}
+function handleFileUpload(files) {
+    const newFileIds = [];
+    let processedCount = 0;
+    const totalFiles = files.length;
+    Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                let questionsArray = Array.isArray(data) ? data : data.questions;
+                if (!questionsArray || !Array.isArray(questionsArray)) throw new Error('Invalid format');
+                questionsArray.forEach((q, idx) => {
+                    if (!q.question || !Array.isArray(q.choices) || q.choices.length < 2 || q.choices.length > 4 || q.correct === undefined || q.correct < 0 || q.correct >= q.choices.length) {
+                        throw new Error(`Question ${idx+1} in ${file.name} is invalid`);
+                    }
+                });
+                const fileId = Date.now() + '_' + Math.random();
+                addQuestionsFromFile(file.name, fileId, questionsArray);
+                newFileIds.push(fileId);
+            } catch (err) {
+                alert(`Error parsing ${file.name}: ${err.message}`);
+            } finally {
+                processedCount++;
+                if (processedCount === totalFiles) {
+                    if (newFileIds.length > 0) {
+                        // Select only the newly uploaded files (replace previous selection)
+                        selectedFileIds.clear();
+                        newFileIds.forEach(id => selectedFileIds.add(id));
+                        rebuildVisibleQuestions();
+                        // Reset quiz state
+                        currentIndex = 0;
+                        selectedChoice = -1;
+                        answerSubmitted = false;
+                        quizCompleted = false;
+                        renderQuestion();
+                        flashScreen('green');
+                        // Auto‑collapse header if not already collapsed
+                        if (!header.classList.contains('header-collapsed')) {
+                            setHeaderCollapsed(true);
+                        }
+                    } else {
+                        // No valid files – just rebuild with existing selection
+                        rebuildVisibleQuestions();
+                        renderQuestion();
+                    }
+                }
+            }
+        };
+        reader.readAsText(file);
+    });
+}
+
+function loadPastedJson() {
+    const textarea = document.getElementById('jsonPasteArea');
+    const rawJson = textarea.value.trim();
+    if (!rawJson) {
+        alert('Please paste some JSON first.');
+        return;
+    }
+    try {
+        const data = JSON.parse(rawJson);
+        let questionsArray = Array.isArray(data) ? data : data.questions;
+        if (!questionsArray || !Array.isArray(questionsArray)) {
+            throw new Error('JSON must be an array or an object with a "questions" array.');
+        }
+        questionsArray.forEach((q, idx) => {
+            if (!q.question || !Array.isArray(q.choices) || q.choices.length < 2 || q.choices.length > 4 || q.correct === undefined || q.correct < 0 || q.correct >= q.choices.length) {
+                throw new Error(`Question ${idx+1} is invalid: each question must have "question", "choices" (2-4 items), and a correct index.`);
+            }
+        });
+        const fileId = Date.now() + '_pasted_' + Math.random();
+        // Add questions but do not auto-select yet; we will replace selection
+        addQuestionsFromFile('Pasted JSON', fileId, questionsArray);
+        // Replace selection with this pasted file only
+        selectedFileIds.clear();
+        selectedFileIds.add(fileId);
+        rebuildVisibleQuestions();
+        currentIndex = 0;
+        selectedChoice = -1;
+        answerSubmitted = false;
+        quizCompleted = false;
+        renderQuestion();
+        textarea.value = '';
+        if (!header.classList.contains('header-collapsed')) {
+            setHeaderCollapsed(true);
+        }
+        flashScreen('green');
+    } catch (err) {
+        alert('Invalid JSON: ' + err.message);
+        flashScreen('red');
+    }
+}
+
+function showFileModal() {
+    fileListContainer.innerHTML = '';
+    if (fileList.length === 0) {
+        fileListContainer.innerHTML = '<div style="padding: 1rem; text-align: center;">No files uploaded.</div>';
+    } else {
+        fileList.forEach(file => {
+            const isSelected = selectedFileIds.has(file.id);
+            const div = document.createElement('div');
+            div.className = 'file-item';
+            div.innerHTML = `
+                <label style="display: flex; align-items: center; gap: 0.5rem; flex: 1;">
+                    <input type="checkbox" class="file-select" data-id="${file.id}" ${isSelected ? 'checked' : ''}>
+                    <span class="file-name">${escapeHtml(file.name)} (${file.questionCount} questions)</span>
+                </label>
+                <button class="file-delete" data-id="${file.id}">🗑️</button>
+            `;
+            fileListContainer.appendChild(div);
+        });
+        document.querySelectorAll('.file-select').forEach(cb => {
+            cb.addEventListener('change', (e) => {
+                e.stopPropagation();
+                const fileId = cb.getAttribute('data-id');
+                const file = fileList.find(f => f.id === fileId);
+                if (cb.checked) {
+                    selectedFileIds.add(fileId);
+                    showNotification(`✅ Included: ${file.name}`);
+                } else {
+                    selectedFileIds.delete(fileId);
+                    showNotification(`❌ Excluded: ${file.name}`);
+                }
+                rebuildVisibleQuestions();
+                currentIndex = 0;
+                selectedChoice = -1;
+                answerSubmitted = false;
+                renderQuestion();
+                showFileModal(); // refresh modal to update checkboxes
+            });
+        });
+        document.querySelectorAll('.file-delete').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const fileId = btn.getAttribute('data-id');
+                deleteFile(fileId);
+            });
+        });
+    }
+    fileModal.style.display = 'flex';
+}
+
+function deleteFile(fileId) {
+    if (confirm('Delete this file and all its questions? Progress will be lost.')) {
+        const removedIds = new Set();
+        allQuestions = allQuestions.filter(q => {
+            if (q.fileId === fileId) {
+                removedIds.add(q.id);
+                return false;
+            }
+            return true;
+        });
+        for (let id of removedIds) {
+            delete userAnswersMap[id];
+            delete peekedMap[id];
+            retryQueueIds.delete(id);
+        }
+        fileList = fileList.filter(f => f.id !== fileId);
+        selectedFileIds.delete(fileId);
+        rebuildVisibleQuestions();
+        currentIndex = 0;
+        selectedChoice = -1;
+        answerSubmitted = false;
+        renderQuestion();
+        saveData();
+        if (fileModal.style.display === 'flex') showFileModal();
+        flashScreen('green');
+    }
+}
+
+// ==================== HEADER COLLAPSE ====================
+function setHeaderCollapsed(collapsed) {
+    if (collapsed) {
+        header.classList.add('header-collapsed');
+    } else {
+        header.classList.remove('header-collapsed');
+    }
+    localStorage.setItem('mcq_header_collapsed', collapsed);
+}
+
+function toggleHeader() {
+    const isCollapsed = header.classList.contains('header-collapsed');
+    setHeaderCollapsed(!isCollapsed);
+}
+
+// Load saved header collapse state
+const savedCollapsed = localStorage.getItem('mcq_header_collapsed') === 'true';
+if (savedCollapsed && visibleQuestions.length > 0) {
+    setHeaderCollapsed(true);
+} else {
+    setHeaderCollapsed(false);
+}
+headerToggle.addEventListener('click', toggleHeader);
+
+// ==================== SETTINGS & BACKUP ====================
+function toggleSettings() {
+    settingsMenu.style.display = settingsMenu.style.display === 'none' ? 'block' : 'none';
+}
+settingsBtn.addEventListener('click', toggleSettings);
+document.addEventListener('click', (e) => {
+    if (!settingsMenu.contains(e.target) && e.target !== settingsBtn) {
+        settingsMenu.style.display = 'none';
+    }
+});
+
+shuffleCheckbox.addEventListener('change', () => {
+    shuffleEnabled = shuffleCheckbox.checked;
+    if (shuffleEnabled && !quizCompleted && visibleQuestions.length) {
+        originalOrder = [];
+        shuffleVisibleQuestions();
+        renderQuestion();
+    } else if (!shuffleEnabled && originalOrder.length) {
+        restoreOriginalOrder();
+        renderQuestion();
+    }
+    saveData();
+});
+retryModeCheckbox.addEventListener('change', () => {
+    retryModeEnabled = retryModeCheckbox.checked;
+    if (!retryModeEnabled) retryQueueIds.clear();
+    updateStats();
+    saveData();
+});
+
+function backupData() {
+    const exportData = {
+        allQuestions,
+        userAnswersMap,
+        peekedMap,
+        retryQueueIds: Array.from(retryQueueIds),
+        fileList,
+        selectedFileIds: Array.from(selectedFileIds),
+        nextId,
+        currentIndex,
+        quizCompleted,
+        quizMode,
+        filteredIndices,
+        currentFilteredIndex,
+        originalOrder,
+        autoAdvance,
+        shuffleEnabled,
+        retryModeEnabled
+    };
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `mcq_quiz_backup_${new Date().toISOString().slice(0,19)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    // DeepSeek prompt after backup
+    setTimeout(() => {
+        const link = confirm("Backup created. Need help? Click OK to open DeepSeek chat.");
+        if (link) window.open("https://chat.deepseek.com", "_blank");
+    }, 100);
+}
+
+function restoreData() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json';
+    input.onchange = (e) => {
+        if (!e.target.files[0]) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            try {
+                const data = JSON.parse(ev.target.result);
+                if (!data.allQuestions || !Array.isArray(data.allQuestions)) throw new Error('Invalid backup file');
+                allQuestions = data.allQuestions;
+                userAnswersMap = data.userAnswersMap || {};
+                peekedMap = data.peekedMap || {};
+                retryQueueIds = new Set(data.retryQueueIds || []);
+                fileList = data.fileList || [];
+                selectedFileIds = new Set(data.selectedFileIds || []);
+                nextId = data.nextId || 0;
+                currentIndex = data.currentIndex || 0;
+                quizCompleted = data.quizCompleted || false;
+                quizMode = data.quizMode || 'normal';
+                filteredIndices = data.filteredIndices || [];
+                currentFilteredIndex = data.currentFilteredIndex || 0;
+                originalOrder = data.originalOrder || [];
+                shuffleEnabled = data.shuffleEnabled || false;
+                retryModeEnabled = data.retryModeEnabled !== undefined ? data.retryModeEnabled : true;
+                shuffleCheckbox.checked = shuffleEnabled;
+                retryModeCheckbox.checked = retryModeEnabled;
+                rebuildVisibleQuestions();
+                flashScreen('green');
+                alert('Restore successful!');
+            } catch (err) {
+                alert('Invalid backup file: ' + err.message);
+            }
+        };
+        reader.readAsText(input.files[0]);
+    };
+    input.click();
+}
+
+function resetAllData() {
+    if (confirm('⚠️ Reset all progress? This will delete all questions and answers. You cannot undo this.')) {
+        localStorage.removeItem('mcq_quiz_data');
+        allQuestions = [];
+        visibleQuestions = [];
+        userAnswersMap = {};
+        peekedMap = {};
+        retryQueueIds.clear();
+        fileList = [];
+        selectedFileIds.clear();
+        nextId = 0;
+        currentIndex = 0;
+        quizCompleted = false;
+        quizMode = 'normal';
+        filteredIndices = [];
+        currentFilteredIndex = 0;
+        originalOrder = [];
+        autoAdvance = false;
+        shuffleEnabled = false;
+        retryModeEnabled = true;
+        shuffleCheckbox.checked = false;
+        retryModeCheckbox.checked = true;
+        if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
+        updateStats();
+        renderQuestion();
+        flashScreen('green');
+    }
+}
+
+// ==================== DOWNLOAD PROMPT JSON ====================
+function downloadPromptJson() {
+const promptContent = {
+    name: "Quiz Extractor",
+    version: "5.0",
+    description: "Ultimate cheat‑proof quiz generator for any subject. Enforces randomization, deceptive distractors, and non‑leaking explanations.",
+    instructions: {
+        task: "Read the provided document thoroughly. Extract multiple-choice questions that test key concepts.",
+        audience: "Learners, including non‑native English speakers. Use simple, clear language. Define technical terms the first time they appear.",
+        question_format: {
+            question: "string – The full question text.",
+            choices: ["string", "string", "string (optional)", "string (optional)"],
+            min_choices: 2,
+            max_choices: 4,
+            correct: "integer (0‑based index) – Determined AFTER shuffling choices (see generation protocol).",
+            explanation: "string – A helpful explanation that NEVER reveals future answers (see explanation_rules).",
+            difficulty: "easy | medium | hard (optional)",
+            topic: "string – Optional chapter or section name",
+            tags: ["string"],
+            image_search: "string – Optional search query for Google Images"
+        },
+        scoring_notes: {
+            stars_basis: "Number of stars = number of choices. Correct answer earns all stars, wrong earns 0.",
+            difficulty_adjustment: "Handled by app."
+        },
+        batch_handling: {
+            batch_size: 100,
+            next_batch_command: "continue",
+            session_management: "Include a session ID (e.g., timestamp) in the first response and reuse it for continuation."
+        },
+        validation: {
+            self_check: "Verify each question: choices length 2‑4, correct index within range, all choices distinct.",
+            source_citation: "If document lacks answers, search credible sources and cite them."
+        },
+        special_characters: "Use Unicode for symbols (e.g., α, β, °, ²). For subscripts, use plain text (e.g., H₂O).",
+
+        // ---------- CONTENT TYPE DETECTION (to adapt strategies) ----------
+        content_type_guidance: {
+            description: "Automatically detect the type of content from the document and apply appropriate distractor strategies.",
+            types: {
+                sequential_text: "Word‑by‑word or sentence‑by‑entence sequences (e.g., Preamble, poem, script). Use temporal lures, previous/next items, and famous misquotes.",
+                factual_knowledge: "History, geography, biology, etc. Use common misconceptions, semantic neighbors, attribution errors.",
+                mathematical: "Equations, formulas, calculations. Use numerical errors (off‑by‑one, wrong operation, unit conversion mistakes), reversed operations, common pitfalls.",
+                language_learning: "Vocabulary, grammar, translations. Use false friends, similar‑looking words, grammatical near‑misses, common learner errors.",
+                logical_reasoning: "Puzzles, coding, patterns. Use off‑by‑index, reversed logic, edge cases, common off‑by‑one errors."
+            }
+        },
+
+        // =============== MANDATORY GENERATION PROTOCOL ===============
+        generation_protocol: {
+            description: "You MUST follow these steps for every question. Randomization is critical.",
+            steps: [
+                "Step 0: Detect the content type from the document (sequential, factual, mathematical, language, logical).",
+                "Step 1: Determine the correct answer text from the document.",
+                "Step 2: Generate 2‑4 deceptive distractors using the strategies in cheat_proofing.distractors. Distractors MUST be: same part of speech, same grammatical function, similar length (±2 chars), and plausible in the blank. Use external sources (common misquotes, synonyms, false collocations, numerical errors, etc.) appropriate to the content type.",
+                "Step 3: Combine correct answer and distractors into `raw_choices`.",
+                "Step 4: Shuffle `raw_choices` (Fisher‑Yates). Result is `final_choices`.",
+                "Step 5: Find the index of the correct answer in `final_choices`. That is the `correct` field.",
+                "Step 6: Output question with `choices: final_choices`, `correct: that_index`, and an explanation that follows the explanation_rules (never leak future answers).",
+                "Step 7: Keep a running list of last 3 correct indices. Never repeat same index more than twice consecutively. Over a batch of 100, each index (0‑3) appears 22‑28 times."
+            ],
+            critical_warning: "UNDER NO CIRCUMSTANCES output a fixed correct index (e.g., always 0). You MUST shuffle per question. Also, explanations must not contain any word that appears later in a sequence quiz.",
+            example_of_correct_variation: [
+                { "question": "We.", "correct": 2 },
+                { "question": "the.", "correct": 0 },
+                { "question": "People.", "correct": 3 },
+                { "question": "of.", "correct": 1 }
+            ]
+        },
+
+        // =============== CHEAT PROOFING (Domain‑Agnostic) ===============
+        cheat_proofing: {
+            meta: {
+                version: "5.0",
+                designer: "Expert panel (Assessment, Psychometrics, Security, Linguistics, Cognitive Science, Math Education)",
+                coverage: "Randomization, deceptive distractors, explanation non‑leakage, grammar matching, external lures, content‑type adaptation."
+            },
+            randomization: {
+                correct_index: {
+                    algorithm: "Fisher‑Yates shuffle per question, with constraints: no same index >2 consecutive, uniform over batch."
+                },
+                choice_order: "Shuffled per user per question. Frontend may reshuffle again."
+            },
+            distractors: {
+                mandatory_filters: [
+                    "All distractors must be factually wrong but contextually plausible.",
+                    "Same part of speech (POS) as correct answer (noun, verb, determiner, preposition, etc.).",
+                    "Same verb tense, number (singular/plural), and formality level.",
+                    "Character length within ±2 of correct answer (to block length‑based guessing).",
+                    "No antonym or direct negation (except for True/False where it's unavoidable).",
+                    "No distractor that is a substring or simple typo of correct answer.",
+                    "No distractor that appears as a correct answer elsewhere in the same quiz (unless quiz length >100)."
+                ],
+                generation_strategies: [
+                    { name: "Grammatical twin", description: "Word/phrase that is grammatically identical but wrong (e.g., 'a' vs 'the', 'are' vs 'have', 'addition' vs 'multiplication')." },
+                    { name: "False collocation", description: "Forms a common phrase with the given context but is incorrect here (e.g., 'We are' instead of 'We the', 'solve for x' instead of 'evaluate')." },
+                    { name: "External lure", description: "From similar famous text or common knowledge (e.g., 'hold' from Declaration of Independence, 'Einstein discovered penicillin' as attribution error)." },
+                    { name: "Semantic neighbor", description: "Same category but wrong instance (e.g., 'Nations' instead of 'States', 'Oxygen' instead of 'Nitrogen')." },
+                    { name: "Temporal lure", description: "For sequences: item that appears ±1 or ±2 steps away. For history: off‑by‑one year or event." },
+                    { name: "Numerical error", description: "For math: off by one, missing conversion, wrong operator, reversed order (e.g., 6*7=42 → distractor 48)." },
+                    { name: "Common misconception", description: "Popular wrong answer from educational research (e.g., 'humans have 5 senses' – actually more)." },
+                    { name: "Attribution error", description: "Assign fact to wrong person/place (e.g., 'Einstein discovered penicillin')." },
+                    { name: "False friend", description: "For language learning: similar word with different meaning (e.g., 'embarazada' ≠ 'embarrassed')." },
+                    { name: "Reversal", description: "Reverse cause/effect, input/output, left/right (but not antonym)." }
+                ],
+                distractor_pool_size: "Generate at least 5 candidate distractors per question, then select the 2‑3 most plausible (least obvious).",
+                plausibility_scoring: "Score each distractor 0‑1 using: a) semantic distance, b) error frequency in real exams, c) grammatical fit, d) content‑type appropriateness. Keep only score ≥ 0.6.",
+                contextual_coherence: "Distractors must be plausible within the same sentence or paragraph of the original document. For math, distractors must be possible results of common errors. For sequences, use items from elsewhere in the sequence.",
+                external_sources_allowed: "Yes. Use synonyms, misquotes, or related terms even if they are not in the original document. The goal is to deceive, not to restrict."
+            },
+            explanation_rules: {
+                do_not_reveal_position: "Never say 'Choice A is wrong' or 'The second option is correct'.",
+                do_not_list_distractors: "Avoid enumerating distractors. Focus on the correct answer.",
+                positive_justification: "Start with 'The correct answer is X because...' then explain the concept.",
+                for_calculations: "Show formula and steps, but do not reference which numeric choice was the trap.",
+                for_true_false: "Explain why the statement is true or false, not why the other choice is wrong.",
+                for_sequence_quizzes: "STRICT RULE: The explanation may ONLY contain the given word and the correct answer word. It must NOT contain any other word from the document, especially words that appear later. Example: 'We.' correct 'the.' → explanation: 'After \"We\" comes \"the\".' (NOT 'We the People' because 'People' leaks the next question)."
+            },
+            anti_pattern: {
+                online_detection: {
+                    enabled: true,
+                    triggers: [
+                        "User answers 3 consecutive questions using the same choice position.",
+                        "User answers >70% correct on first 10 questions (possible bot).",
+                        "Response time < 0.8 seconds consistently."
+                    ],
+                    actions: [
+                        "Reshuffle current question's choices and reset position counter.",
+                        "Inject a honeypot question with no correct answer – if user picks any, flag as bot.",
+                        "Increase distractor similarity for next 5 questions."
+                    ]
+                },
+                static_prevention: {
+                    no_position_bias: "Over entire quiz, correct answer appears in each position with frequency deviation ≤5% from uniform.",
+                    no_sequential_pattern: "Sequence of correct indices must pass runs test (p > 0.05).",
+                    no_distractor_repetition: "Same distractor string cannot appear in more than 2 questions per batch."
+                },
+                metadata_hiding: {
+                    server_side_correct: "The `correct` index is never sent to client. Client sends selected choice text; server validates.",
+                    explanation_timing: "Explanation shown only after answer submission."
+                }
+            },
+            edge_cases: {
+                two_choices: {
+                    correct_distribution: "Alternate, max 3 same index consecutively, max 7 of 10 same.",
+                    distractor_quality: "The single distractor must be the logical opposite or a very common confusion (e.g., True/False, Yes/No)."
+                },
+                three_choices: {
+                    correct_distribution: "Each index ~1/3 over 30 questions, max 2 repeats.",
+                    distractor_sources: "One grammatical twin, one external lure."
+                },
+                four_choices: {
+                    correct_distribution: "Uniform over 100, max 2 repeats.",
+                    distractor_sources: "Use at least three different generation strategies from the list above."
+                }
+            },
+            statistical_guarantees: {
+                uniformity_test: "After every 50 questions, run chi‑square test for uniform distribution of correct indices (α = 0.05). If p < 0.05, re‑randomize next 10 questions.",
+                runs_test: "Check for excessive runs of same index; if runs > expected + 2σ, reshuffle pending questions.",
+                distractor_distribution: "No distractor appears in more than 5% of all questions across a batch."
+            },
+            compliant_examples: [
+                {
+                    question: "We.",
+                    choices: ["the.", "are.", "have.", "hold."],
+                    correct: 0,
+                    explanation: "After 'We' comes 'the'.",
+                    note: "All choices are grammatically possible after 'We'. Only 'the' is correct for the Preamble."
+                },
+                {
+                    question: "What is the square root of 64?",
+                    choices: ["6", "7", "8", "9"],
+                    correct: 2,
+                    explanation: "8 × 8 = 64, so the square root is 8.",
+                    note: "Distractors are nearby integers, all plausible numeric answers."
+                },
+                {
+                    question: "Which gas is most abundant in Earth's atmosphere?",
+                    choices: ["Oxygen", "Carbon Dioxide", "Nitrogen", "Argon"],
+                    correct: 2,
+                    explanation: "Nitrogen makes up about 78% of Earth's atmosphere.",
+                    note: "Distractors are other atmospheric gases, all plausible."
+                },
+                {
+                    question: "What is the past tense of 'go'?",
+                    choices: ["goed", "went", "gone", "goes"],
+                    correct: 1,
+                    explanation: "'Went' is the irregular past tense of 'go'.",
+                    note: "Distractors include common learner errors (regularized form, past participle, third person singular)."
+                }
+            ]
+        }
+    },
+    example_questions: [
+        {
+            question: "What does the prefix 'a-' mean in medical terminology?",
+            choices: ["without, absence of", "toward, near", "together", "away from"],
+            correct: 0,
+            explanation: "The prefix 'a-' means 'without'. Example: 'asymptomatic' means without symptoms.",
+            difficulty: "easy",
+            topic: "Prefixes"
+        },
+        {
+            question: "True or False: The heart pumps deoxygenated blood to the lungs.",
+            choices: ["True", "False"],
+            correct: 0,
+            explanation: "True. The right ventricle pumps deoxygenated blood to the lungs via the pulmonary artery.",
+            difficulty: "easy",
+            topic: "Cardiovascular System"
+        }
+    ],
+    output_format: "A JSON object with a 'questions' array.",
+    user_instructions: "Save this file as prompt.json. Upload it with your document to an AI to generate a cheat‑proof quiz for any subject."
+};
+    const dataStr = JSON.stringify(promptContent, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'prompt.json';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+// ==================== DRAG & DROP OVERLAY ====================
+function setupGlobalDrop() {
+    let dragCounter = 0;
+    document.body.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (dragCounter === 0) dropOverlay.classList.add('active');
+        dragCounter++;
+    });
+    document.body.addEventListener('dragleave', (e) => {
+        dragCounter--;
+        if (dragCounter === 0) dropOverlay.classList.remove('active');
+    });
+    document.body.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dragCounter = 0;
+        dropOverlay.classList.remove('active');
+        const files = e.dataTransfer.files;
+        if (files.length) handleFileUpload(files);
+    });
+    // Also keep existing drop zone for visual consistency
+    dropZone.addEventListener('dragover', (e) => e.preventDefault());
+    dropZone.addEventListener('dragleave', () => {});
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const files = e.dataTransfer.files;
+        if (files.length) handleFileUpload(files);
+    });
+}
+
+// ==================== TUTORIAL ====================
+let tutorialActive = false;
+let tutorialSteps = [];
+let stepCompletionFlags = [];
+let arrowDiv = null;
+
+function buildTutorialSteps() {
+    tutorialSteps = [
+        { title: "🎓 Welcome to Quiz!", desc: "Create your own exams by uploading JSON files with questions.", requiredAction: null, arrowTarget: null, demo: null },
+        { title: "Step 1. Get the Prompt", desc: "Click '📥 Get Prompt JSON' to download a file that tells the AI (chat.deepseek.com) how to extract questions from your documents.", requiredAction: null, arrowTarget: "#downloadPromptBtn", demo: null },
+        { title: "2. Upload Questions", desc: "Drag & drop JSON files here, or click to browse. Each file should contain an array of questions (2-4 choices each).", requiredAction: null, arrowTarget: ".drop-zone", demo: null },
+        { title: "3. Manage Files", desc: "Use 'Swap questions' to select which files to include in the quiz, or delete files.", requiredAction: null, arrowTarget: "#manageFilesBtn", demo: null },
+        { title: "4. Answer a Question", desc: "Click one of the choices, then press Submit.", requiredAction: null, arrowTarget: "#choicesContainer", demo: null },
+        { title: "5. Peek", desc: "If you're stuck, click Peek to see the correct answer without marking it.", requiredAction: null, arrowTarget: "#peekBtn", demo: null },
+        { title: "6. Retry Mode", desc: "Click 'Retry Only' to practice only the questions you got wrong.", requiredAction: null, arrowTarget: "#retryOnlyBtn", demo: null },
+        { title: "7. Question List", desc: "Click 'Show List' to see all questions and jump to any one.", requiredAction: null, arrowTarget: "#questionListToggleBtn", demo: null },
+        { title: "8. Settings", desc: "The gear icon lets you backup/restore, reset, or change settings like auto-advance and shuffle.", requiredAction: null, arrowTarget: "#settingsBtn", demo: null },
+        { title: "🎉 Ready!", desc: "You're all set. Upload your first JSON file and start quizzing!", requiredAction: null, arrowTarget: null, demo: null }
+    ];
+}
+function highlightElement(selector) {
+    removeHighlight();
+    const el = document.querySelector(selector);
+    if (el) el.classList.add('highlight-target');
+}
+function removeHighlight() {
+    document.querySelectorAll('.highlight-target').forEach(el => el.classList.remove('highlight-target'));
+}
+function removeArrow() {
+    if (arrowDiv) {
+        arrowDiv.remove();
+        arrowDiv = null;
+    }
+}
+function addArrowToElement(selector) {
+    removeArrow();
+    const target = document.querySelector(selector);
+    if (!target) return;
+    const rect = target.getBoundingClientRect();
+    const viewWidth = window.innerWidth;
+    let side = 'right';
+    const spaceRight = viewWidth - rect.right;
+    const spaceLeft = rect.left;
+    if (spaceRight < 50 && spaceLeft > spaceRight) side = 'left';
+    arrowDiv = document.createElement('div');
+    arrowDiv.className = 'tutorial-arrow';
+    if (side === 'right') {
+        arrowDiv.innerHTML = '⬅';
+        arrowDiv.style.left = `${rect.right + 5}px`;
+        arrowDiv.style.top = `${rect.top + rect.height / 2}px`;
+        arrowDiv.style.animation = 'bounceRight 0.5s infinite alternate ease-in-out';
+    } else {
+        arrowDiv.innerHTML = '➡';
+        arrowDiv.style.left = `${rect.left - 35}px`;
+        arrowDiv.style.top = `${rect.top + rect.height / 2}px`;
+        arrowDiv.style.animation = 'bounceRight 0.5s infinite alternate ease-in-out';
+    }
+    document.body.appendChild(arrowDiv);
+}
+function highlightTutorialNextButton() {
+    removeHighlight();
+    removeArrow();
+    const nextBtn = document.getElementById('tutorialNextBtn');
+    if (nextBtn) {
+        nextBtn.classList.add('highlight-target');
+        addArrowToElement('#tutorialNextBtn');
+    }
+}
+function endTutorial() {
+    tutorialActive = false;
+    const overlay = document.querySelector('.tutorial-overlay');
+    if (overlay) overlay.remove();
+    removeHighlight();
+    removeArrow();
+}
+function showStep(stepIndex) {
+    removeHighlight();
+    removeArrow();
+    const step = tutorialSteps[stepIndex];
+    if (!step) return;
+    let tooltipHtml = `<div class="tutorial-card">
+        <button class="tutorial-close" id="tutorialCloseBtn">&times;</button>
+        <div class="tutorial-title">${step.title}</div>
+        <div class="tutorial-desc">${step.desc}</div>`;
+    const prevDisabled = stepIndex === 0 ? 'disabled' : '';
+    const nextDisabled = step.requiredAction && !stepCompletionFlags[stepIndex] ? 'disabled' : '';
+    tooltipHtml += `<div class="tutorial-nav">
+        <button id="tutorialPrevBtn" ${prevDisabled}>← Previous</button>
+        <div class="tutorial-checkbox">
+            <input type="checkbox" id="tutorialDontShowAgain"> <label for="tutorialDontShowAgain">Don't show again</label>
+        </div>
+        <button id="tutorialNextBtn" class="primary" ${nextDisabled}>${stepIndex === tutorialSteps.length-1 ? 'Finish' : 'Next →'}</button>
+    </div></div>`;
+    let overlay = document.querySelector('.tutorial-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.className = 'tutorial-overlay';
+        document.body.appendChild(overlay);
+    }
+    overlay.innerHTML = tooltipHtml;
+    overlay.style.display = 'flex';
+    let targetElement = step.arrowTarget;
+    if (targetElement) {
+        setTimeout(() => {
+            highlightElement(targetElement);
+            addArrowToElement(targetElement);
+        }, 10);
+    }
+    if (!step.requiredAction && stepIndex < tutorialSteps.length - 1) {
+        setTimeout(() => highlightTutorialNextButton(), 900);
+    }
+    document.getElementById('tutorialCloseBtn').onclick = endTutorial;
+    document.getElementById('tutorialPrevBtn').onclick = () => { if (stepIndex > 0) showStep(stepIndex-1); };
+    document.getElementById('tutorialNextBtn').onclick = () => {
+        if (stepIndex === tutorialSteps.length-1) {
+            endTutorial();
+        } else {
+            showStep(stepIndex+1);
+        }
+    };
+    const chk = document.getElementById('tutorialDontShowAgain');
+    if (chk) {
+        chk.checked = localStorage.getItem('tutorial_dont_show_again') === 'true';
+        chk.onchange = (e) => localStorage.setItem('tutorial_dont_show_again', e.target.checked ? 'true' : 'false');
+    }
+}
+function startTutorial() {
+    if (tutorialActive) return;
+    tutorialActive = true;
+    stepCompletionFlags = tutorialSteps.map(() => false);
+    showStep(0);
+}
+function initTutorial() {
+    buildTutorialSteps();
+    const dontShow = localStorage.getItem('tutorial_dont_show_again') === 'true';
+    if (!dontShow) setTimeout(() => startTutorial(), 500);
+    tutorialBtn.addEventListener('click', () => startTutorial());
+}
+
+// ==================== HELP PANEL ====================
+helpToggle.addEventListener('click', () => {
+    helpContent.classList.toggle('visible');
+    helpToggle.textContent = helpContent.classList.contains('visible') ? '▲' : '▼';
+});
+
+// ==================== INITIALIZATION ====================
+function init() {
+    if (!loadData()) {
+        resetAllData();
+    } else {
+        shuffleCheckbox.checked = shuffleEnabled;
+        retryModeCheckbox.checked = retryModeEnabled;
+        renderQuestion();
+    }
+    // Force shuffle all questions (unanswered only, to preserve progress)
+    for (let q of allQuestions) {
+        if (userAnswersMap[q.id] === undefined || userAnswersMap[q.id] === -1) {
+            shuffleChoicesForQuestion(q);
+        }
+    }
+    renderQuestion();
+    // Global drag & drop border effect (for visual feedback)
+    document.body.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        document.body.classList.add('global-drag-over');
+    });
+    document.body.addEventListener('dragleave', () => {
+        document.body.classList.remove('global-drag-over');
+    });
+    document.body.addEventListener('drop', (e) => {
+        e.preventDefault();
+        document.body.classList.remove('global-drag-over');
+        if (e.dataTransfer.files.length) handleFileUpload(e.dataTransfer.files);
+    });
+    setupGlobalDrop();  // adds the translucent overlay
+    // Drop zone highlight
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('drag-over');
+    });
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('drag-over');
+    });
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+        if (e.dataTransfer.files.length) handleFileUpload(e.dataTransfer.files);
+    });
+    uploadBtn.addEventListener('click', () => fileUpload.click());
+    fileUpload.addEventListener('change', (e) => {
+        if (e.target.files.length) handleFileUpload(e.target.files);
+    });
+    document.getElementById('loadPastedJsonBtn').addEventListener('click', loadPastedJson);
+    downloadPromptBtn.addEventListener('click', downloadPromptJson);
+    manageFilesBtn.addEventListener('click', showFileModal);
+    closeModalBtn.addEventListener('click', () => fileModal.style.display = 'none');
+    modalCloseBtns.forEach(btn => btn.addEventListener('click', () => fileModal.style.display = 'none'));
+    backupBtn.addEventListener('click', backupData);
+    restoreBtn.addEventListener('click', restoreData);
+    resetDataBtn.addEventListener('click', resetAllData);
+    prevBtn.addEventListener('click', () => {
+        if (quizCompleted) return;
+        if (quizMode === 'retryOnly') {
+            if (currentFilteredIndex > 0) {
+                currentFilteredIndex--;
+                renderQuestion();
+            }
+        } else {
+            if (currentIndex > 0) {
+                currentIndex--;
+                renderQuestion();
+            }
+        }
+    });
+    nextBtn.addEventListener('click', () => {
+        if (quizCompleted) return;
+        const total = (quizMode === 'retryOnly') ? filteredIndices.length : visibleQuestions.length;
+        const current = (quizMode === 'retryOnly') ? currentFilteredIndex : currentIndex;
+        if (current < total - 1) {
+            if (quizMode === 'retryOnly') {
+                currentFilteredIndex++;
+                renderQuestion();
+            } else {
+                currentIndex++;
+                renderQuestion();
+            }
+        } else if (current === total - 1) {
+            const allAnswered = visibleQuestions.every(q => userAnswersMap[q.id] !== undefined && userAnswersMap[q.id] !== -1);
+            if (allAnswered && quizMode !== 'retryOnly') {
+                completeQuiz();
+            } else if (quizMode === 'retryOnly') {
+                exitRetryOnlyMode();
+            }
+        }
+    });
+    peekBtn.addEventListener('click', peekAnswer);
+    retryOnlyBtn.addEventListener('click', toggleRetryOnlyMode);
+    listToggleBtn.addEventListener('click', toggleQuestionList);
+    closeListBtn.addEventListener('click', () => questionListPanel.style.display = 'none');
+    continueSuccessBtn.addEventListener('click', continueToNext);
+    continueFailBtn.addEventListener('click', continueToNext);
+    restartQuizBtn.addEventListener('click', () => {
+        resetAllData();
+        resultsPage.style.display = 'none';
+        quizView.style.display = 'flex';
+        const savedCollapsed = localStorage.getItem('mcq_header_collapsed') === 'true';
+        setHeaderCollapsed(savedCollapsed);
+    });
+    initTutorial();
+    window.addEventListener('beforeunload', () => saveData());
+}
+
+init();
+  </script>
+</body>
+</html>

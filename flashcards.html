@@ -1,0 +1,2608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Medical Terminology Flashcards – Prefixes, Roots, Suffixes</title>
+  <style>
+/* Tailwind CSS CDN for utility classes */
+@import url('https://cdn.jsdelivr.net/npm/tailwindcss@2/dist/tailwind.min.css');
+
+/* Custom styles */
+body {
+    background: #eef2f7;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    overflow: hidden;
+    height: 100%;
+}
+
+.app-container {
+    max-width: 700px;
+    width: 100%;
+    background: white;
+    box-shadow: 0 20px 35px -10px rgba(0,0,0,0.1);
+    overflow: hidden;
+    position: relative;
+    height: 100dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.study-view {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Header */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #f0f0f0;
+    background: white;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+.star-counter {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #eab308;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+.star-counter:active {
+    transform: scale(0.95);
+}
+.mode-toggle {
+    display: flex;
+    background: #f3f4f6;
+    border-radius: 9999px;
+    padding: 0.25rem;
+}
+.mode-btn {
+    padding: 0.25rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: bold;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.mode-btn.active {
+    background: white;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    color: #1f2937;
+}
+.mode-btn:not(.active) {
+    color: #6b7280;
+}
+.gear-btn {
+    font-size: 1.25rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 9999px;
+    transition: background 0.2s;
+}
+.gear-btn:hover {
+    background: #f3f4f6;
+}
+
+/* Settings menu */
+.settings-menu {
+    position: absolute;
+    top: 4rem;
+    right: 1rem;
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+    padding: 0.5rem;
+    z-index: 200;
+    min-width: 140px;
+}
+.settings-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    background: none;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background 0.1s;
+}
+.settings-item:hover {
+    background: #f3f4f6;
+}
+.settings-item.danger {
+    color: #ef4444;
+}
+.settings-divider {
+    margin: 0.5rem 0;
+    border-top: 1px solid #e5e7eb;
+}
+
+/* Chapter navbar */
+.chapter-navbar {
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 0.5rem;
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: thin;
+    position: sticky;
+    top: 4rem;
+    z-index: 9;
+}
+.chapter-list {
+    display: inline-flex;
+    gap: 0.5rem;
+}
+.chapter-btn {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 2rem;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #1f2937;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.chapter-btn:hover {
+    background: #eef2ff;
+}
+.chapter-btn.active {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: white;
+}
+
+/* Instruction text */
+.instruction-text {
+    text-align: center;
+    color: #9ca3af;
+    font-size: 0.75rem;
+    margin-top: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+/* Flashcard area */
+.flashcard-area {
+    flex: 1;
+    padding: 1rem;
+}
+.flip-card {
+    width: 100%;
+    height: 30vh;
+    min-height: 150px;
+    perspective: 1000px;
+    cursor: pointer;
+}
+.flip-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+}
+.flip-card-front, .flip-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+    box-sizing: border-box;
+}
+.flip-card-front {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+}
+.flip-card-back {
+    background-color: #eef2fa;
+    transform: rotateY(180deg);
+    border: 1px solid #cbd5e1;
+}
+.definition-text {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #1e2f3a;
+    text-align: center;
+}
+.term-text {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #2c7da0;
+    text-align: center;
+}
+@media (max-width: 640px) {
+    .definition-text { font-size: 1.1rem; }
+    .term-text { font-size: 1.3rem; }
+    .flip-card { height: 160px; }
+}
+@media (max-height: 700px) {
+    .flip-card { height: 140px; }
+    .definition-text { font-size: 1rem; }
+    .term-text { font-size: 1.2rem; }
+}
+
+/* Answer input */
+.dropdown-area {
+    padding: 0 1rem 0.5rem;
+}
+.input-wrapper {
+    position: relative;
+}
+.answer-input {
+    width: 100%;
+    border: 1px solid #d1d5db;
+    border-radius: 9999px;
+    padding: 0.5rem 0.75rem;
+    text-align: center;
+    font-size: 1.125rem;
+    outline: none;
+    transition: box-shadow 0.2s;
+}
+.answer-input:focus {
+    box-shadow: 0 0 0 2px #3b82f6;
+    border-color: transparent;
+}
+
+/* Suggestions dropdown */
+.suggestions-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-top: none;
+    border-radius: 0 0 1rem 1rem;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.suggestion-item {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: background 0.1s;
+    font-size: 0.9rem;
+}
+.suggestion-item:hover {
+    background: #f3f4f6;
+}
+.suggestion-item.active {
+    background: #e5e7eb;
+}
+
+.peek-message {
+    text-align: center;
+    padding: 0.75rem;
+    background: #fef9c3;
+    border-radius: 1rem;
+    color: #854d0e;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+
+/* Action buttons */
+.buttons-area {
+    padding: 0 1rem 0.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+}
+.action-btn {
+    padding: 0.25rem 1rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    background: #e5e7eb;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.action-btn.primary {
+    background: #2563eb;
+    color: white;
+}
+.action-btn.primary:hover {
+    background: #1d4ed8;
+}
+.action-btn.review {
+    background: #f3e8ff;
+    color: #6b21a5;
+}
+.action-btn.review:hover {
+    background: #e9d5ff;
+}
+.action-btn:not(.primary):not(.review):hover {
+    background: #d1d5db;
+}
+.tutorial-btn {
+    background: #e2e8f0;
+    border: none;
+    border-radius: 9999px;
+    font-weight: 600;
+    padding: 0.25rem 1rem;
+    cursor: pointer;
+}
+.tutorial-btn:hover {
+    background: #cbd5e1;
+}
+
+/* Stats area */
+.stats-area {
+    padding: 0 1rem 1rem;
+    text-align: center;
+}
+.stats-text {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-bottom: 0.5rem;
+}
+
+/* Flash overlay */
+.flash-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.1s ease;
+}
+.flash-overlay.active {
+    opacity: 0.9;
+}
+.flash-green {
+    background-color: #28a745;
+}
+.flash-red {
+    background-color: #dc3545;
+}
+
+/* Bounce animation for Next button */
+@keyframes gentleBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+}
+.bounce-next {
+    animation: gentleBounce 0.6s ease-in-out infinite;
+}
+
+/* Result pages */
+.result-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 100vh;
+    width: 100%;
+    padding: 2rem;
+    box-sizing: border-box;
+}
+.success-page {
+    background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
+    color: white;
+}
+.fail-page {
+    background: linear-gradient(135deg, #4b5563, #374151);
+    color: #e5e7eb;
+}
+.result-content {
+    max-width: 320px;
+    width: 100%;
+    margin: 0 auto;
+}
+.success-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    animation: pulse 1s infinite;
+}
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+.result-title {
+    font-size: 2.25rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+.result-translation {
+    font-size: 1.125rem;
+    opacity: 0.9;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+}
+.motivation-text {
+    font-style: italic;
+    font-size: 1rem;
+    max-width: 280px;
+    margin: 0 auto 2rem auto;
+}
+.fail-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+}
+.fail-subtitle {
+    color: #6b7280;
+    margin-bottom: 1.5rem;
+}
+.word-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    margin-bottom: 1.5rem;
+}
+.word-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #9ca3af;
+    margin-bottom: 0.25rem;
+}
+.oromo-word {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #2563eb;
+    margin-bottom: 0.75rem;
+}
+.english-word {
+    font-size: 1.25rem;
+    color: #374151;
+}
+.retry-note {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    margin-bottom: 2rem;
+}
+.continue-btn {
+    background: #2563eb;
+    color: white;
+    font-weight: bold;
+    padding: 0.75rem 2rem;
+    border-radius: 9999px;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+}
+.continue-btn:hover {
+    background: #1d4ed8;
+    transform: scale(1.02);
+}
+.continue-btn:active {
+    transform: scale(0.98);
+}
+
+/* Keyboard-open adjustments (mobile) */
+.keyboard-open .flashcard-area {
+    height: 25vh !important;
+    min-height: 120px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    flex: 0 0 auto !important;
+}
+.keyboard-open .flip-card {
+    height: 120px !important;
+    min-height: 100px !important;
+}
+.keyboard-open .flip-card-front,
+.keyboard-open .flip-card-back {
+    padding: 0.25rem !important;
+}
+.keyboard-open .definition-text,
+.keyboard-open .term-text {
+    font-size: 1rem !important;
+}
+.keyboard-open .dropdown-area {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+.keyboard-open .answer-input {
+    padding: 0.5rem !important;
+    font-size: 1rem !important;
+}
+.keyboard-open .buttons-area {
+    padding: 0.25rem 0 !important;
+    margin: 0 !important;
+    gap: 0.25rem !important;
+}
+.keyboard-open .action-btn {
+    padding: 0.25rem 0.75rem !important;
+    font-size: 0.75rem !important;
+}
+.keyboard-open .stats-area,
+.keyboard-open .instruction-text {
+    display: none !important;
+}
+.keyboard-open .study-view {
+    justify-content: flex-start !important;
+}
+  </style>
+</head>
+<body>
+    <div class="app-container" id="mainContainer">
+        <!-- ==================== STUDY VIEW ==================== -->
+        <div id="studyView" class="study-view">
+            <!-- Header -->
+            <div class="header">
+                <div id="starCounter" class="star-counter">
+                    ⭐ <span id="knownCountDisplay">0</span>
+                </div>
+                <!-- Compact mode toggles (short labels) -->
+                <div class="mode-toggle">
+                    <button id="modePrefixBtn" class="mode-btn active">Prefix</button>
+                    <button id="modeRootBtn" class="mode-btn">Root</button>
+                    <button id="modeSuffixBtn" class="mode-btn">Suffix</button>
+                </div>
+                <button id="gearBtn" class="gear-btn">⚙️</button>
+            </div>
+
+            <!-- Settings menu (hidden by default) -->
+            <div id="settingsMenu" class="settings-menu" style="display: none;">
+                <button class="settings-item" id="backupBtn">💾 Backup</button>
+                <button class="settings-item" id="restoreBtn">📂 Restore</button>
+                <hr class="settings-divider">
+                <button class="settings-item danger" id="resetBtn">⚠️ Reset</button>
+            </div>
+
+            <!-- Chapter navbar (hidden initially, triggered by mode toggles) -->
+            <div id="chapterNavbar" class="chapter-navbar" style="display: flex;">
+                <div class="chapter-list">
+                    <button class="chapter-btn" data-chapter="general">General</button>
+                    <button class="chapter-btn" data-chapter="4">4</button>
+                    <button class="chapter-btn" data-chapter="5">5</button>
+                    <button class="chapter-btn" data-chapter="6">6</button>
+                    <button class="chapter-btn" data-chapter="7">7</button>
+                    <button class="chapter-btn" data-chapter="8">8</button>
+                    <button class="chapter-btn" data-chapter="9">9</button>
+                    <button class="chapter-btn" data-chapter="10">10</button>
+                    <button class="chapter-btn" data-chapter="11">11</button>
+                    <button class="chapter-btn" data-chapter="12">12</button>
+                    <button class="chapter-btn" data-chapter="13">13</button>
+                    <button class="chapter-btn" data-chapter="14">14</button>
+                    <button class="chapter-btn" data-chapter="15">15</button>
+                    <button class="chapter-btn" data-chapter="16">16</button>
+                </div>
+            </div>
+
+            <!-- Dynamic instruction line (updated based on mode) -->
+            <div id="instructionText" class="instruction-text">Guess the meaning of this prefix</div>
+
+            <!-- Flashcard area -->
+            <div class="flashcard-area">
+                <div class="flip-card" id="flipCard">
+                    <div class="flip-card-inner" id="flipInner">
+                        <div class="flip-card-front">
+                            <div id="frontPrompt" class="definition-text">Loading...</div>
+                        </div>
+                        <div class="flip-card-back">
+                            <div id="backAnswer" class="term-text">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Answer input & suggestions -->
+            <div class="dropdown-area">
+                <div class="input-wrapper">
+                    <div class="input-wrapper" style="position: relative;">
+                        <input id="answerInput" class="answer-input" placeholder="Type or select your answer" autocomplete="off">
+                        <div id="suggestionsDropdown" class="suggestions-dropdown" style="display: none;"></div>
+                    </div>
+                    <div id="peekMessage" class="peek-message" style="display: none;">
+                        🔍 You've peeked at the answer. Use the <strong>Next</strong> button to continue.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="buttons-area">
+                <button id="checkBtn" class="action-btn primary">✓ Check</button>
+                <button id="flipBtn" class="action-btn">🔄 Flip</button>
+                <button id="nextBtn" class="action-btn">🎲 Next</button>
+                <button id="reviewKnownBtn" class="action-btn review">⭐ Review Known</button>
+                <button id="tutorialBtn" class="tutorial-btn">❓</button>
+            </div>
+
+            <!-- Stats area -->
+            <div class="stats-area">
+                <div id="stats" class="stats-text">
+                    Known: <span id="knownCount">0</span> &nbsp;|&nbsp;
+                    Pending retry: <span id="retryCount">0</span> &nbsp;|&nbsp;
+                    Peeked: <span id="peekedCount">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SUCCESS PAGE ==================== -->
+        <div id="successPage" class="result-page success-page" style="display: none;">
+            <div class="result-content">
+                <div class="success-icon">⭐</div>
+                <h1 class="result-title">Correct!</h1>
+                <div id="successTranslation" class="result-translation"></div>
+                <div id="successGuidance" class="guidance-text" style="font-size: 0.85rem; opacity: 0.8; margin-top: 0.5rem;"></div>
+                <p class="motivation-text">¡Excelente! You're mastering medical terminology!</p>
+                <button id="continueSuccessBtn" class="continue-btn">Continue</button>
+            </div>
+        </div>
+
+        <!-- ==================== FAIL PAGE ==================== -->
+        <div id="failPage" class="result-page fail-page" style="display: none;">
+            <div class="result-content">
+                <h1 class="fail-title">Don't worry! It doesn't count against you.</h1>
+                <p class="fail-subtitle">Let's learn this one:</p>
+                <div class="word-card">
+                    <div class="word-label">Medical Term</div>
+                    <div id="failTerm" class="oromo-word"></div>
+                    <div class="word-label">Meaning</div>
+                    <div id="failMeaning" class="english-word"></div>
+                </div>
+                <p class="retry-note">This question will be back in 20 questions to help you memorize it.</p>
+                <button id="continueFailBtn" class="continue-btn">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="flashOverlay" class="flash-overlay"></div>
+  <script>
+// -------------------- FULL VOCABULARY DATA --------------------
+const vocabulary = {
+  prefixes: [
+    { name: "a-", meaning: "without, absence of", example: "asymptomatic", chapter: "general" },
+    { name: "ab-", meaning: "away from", example: "abduct", chapter: "general" },
+    { name: "ad-", meaning: "toward, near", example: "adduct", chapter: "general" },
+    { name: "ambi-", meaning: "both", example: "ambidextrous", chapter: "general" },
+    { name: "amphi-", meaning: "around, both", example: "amphibian", chapter: "general" },
+    { name: "ana-", meaning: "up, apart", example: "anatomy", chapter: "general" },
+    { name: "ante-", meaning: "before", example: "antepartum", chapter: "general" },
+    { name: "anti-", meaning: "against", example: "antibiotic", chapter: "general" },
+    { name: "apo-", meaning: "away, separate", example: "apoptosis", chapter: "general" },
+    { name: "auto-", meaning: "self", example: "autoimmune", chapter: "general" },
+    { name: "bi-", meaning: "two, double", example: "bilateral", chapter: "general" },
+    { name: "brady-", meaning: "slow", example: "bradycardia", chapter: "8" },
+    { name: "cata-", meaning: "down, under", example: "catabolism", chapter: "general" },
+    { name: "circum-", meaning: "around", example: "circumcision", chapter: "general" },
+    { name: "co-", meaning: "together", example: "coenzyme", chapter: "general" },
+    { name: "contra-", meaning: "against", example: "contraindication", chapter: "general" },
+    { name: "de-", meaning: "down, removal", example: "dehydration", chapter: "general" },
+    { name: "di-", meaning: "two, double", example: "diploid", chapter: "general" },
+    { name: "dia-", meaning: "through, across", example: "diaphragm", chapter: "general" },
+    { name: "dis-", meaning: "apart, separation", example: "dislocation", chapter: "general" },
+    { name: "dys-", meaning: "bad, difficult", example: "dyspnea", chapter: "general" },
+    { name: "e-", meaning: "out, from", example: "evacuate", chapter: "general" },
+    { name: "ecto-", meaning: "outside", example: "ectoderm", chapter: "general" },
+    { name: "endo-", meaning: "within", example: "endocardium", chapter: "general" },
+    { name: "epi-", meaning: "upon, above", example: "epidermis", chapter: "general" },
+    { name: "eu-", meaning: "good, normal", example: "euthyroid", chapter: "general" },
+    { name: "ex-", meaning: "out, away from", example: "exhalation", chapter: "general" },
+    { name: "exo-", meaning: "outside", example: "exocrine", chapter: "general" },
+    { name: "extra-", meaning: "outside, beyond", example: "extracellular", chapter: "general" },
+    { name: "hemi-", meaning: "half", example: "hemisphere", chapter: "general" },
+    { name: "hetero-", meaning: "different", example: "heterozygous", chapter: "general" },
+    { name: "homo-", meaning: "same", example: "homogeneous", chapter: "general" },
+    { name: "hyper-", meaning: "excessive, above", example: "hypertension", chapter: "8" },
+    { name: "hypo-", meaning: "deficient, below", example: "hypoglycemia", chapter: "8" },
+    { name: "in-", meaning: "in, into; not", example: "injection, inactive", chapter: "general" },
+    { name: "infra-", meaning: "below", example: "infrared", chapter: "general" },
+    { name: "inter-", meaning: "between", example: "intercostal", chapter: "general" },
+    { name: "intra-", meaning: "within", example: "intravenous", chapter: "general" },
+    { name: "intro-", meaning: "into, within", example: "introvert", chapter: "general" },
+    { name: "iso-", meaning: "equal", example: "isothermal", chapter: "general" },
+    { name: "macro-", meaning: "large", example: "macrophage", chapter: "general" },
+    { name: "mal-", meaning: "bad", example: "malformation", chapter: "general" },
+    { name: "mega-", meaning: "large, great", example: "megacolon", chapter: "general" },
+    { name: "meso-", meaning: "middle", example: "mesoderm", chapter: "general" },
+    { name: "meta-", meaning: "beyond, change", example: "metabolism", chapter: "general" },
+    { name: "micro-", meaning: "small", example: "microscope", chapter: "general" },
+    { name: "multi-", meaning: "many", example: "multicellular", chapter: "general" },
+    { name: "neo-", meaning: "new", example: "neonate", chapter: "general" },
+    { name: "non-", meaning: "not", example: "noninvasive", chapter: "general" },
+    { name: "oligo-", meaning: "few, scant", example: "oliguria", chapter: "11" },
+    { name: "pan-", meaning: "all", example: "pandemic", chapter: "general" },
+    { name: "para-", meaning: "beside, abnormal", example: "parathyroid", chapter: "14" },
+    { name: "patho-", meaning: "disease", example: "pathogen", chapter: "general" },
+    { name: "per-", meaning: "through", example: "percutaneous", chapter: "general" },
+    { name: "peri-", meaning: "around", example: "pericardium", chapter: "8" },
+    { name: "poly-", meaning: "many", example: "polymorphism", chapter: "general" },
+    { name: "post-", meaning: "after", example: "postoperative", chapter: "general" },
+    { name: "pre-", meaning: "before", example: "preoperative", chapter: "general" },
+    { name: "pro-", meaning: "before, forward", example: "prognosis", chapter: "general" },
+    { name: "pseudo-", meaning: "false", example: "pseudocyst", chapter: "general" },
+    { name: "re-", meaning: "again, back", example: "regeneration", chapter: "general" },
+    { name: "retro-", meaning: "backward", example: "retroperitoneal", chapter: "general" },
+    { name: "semi-", meaning: "half", example: "semiconscious", chapter: "general" },
+    { name: "sub-", meaning: "under", example: "subcutaneous", chapter: "general" },
+    { name: "super-", meaning: "above, beyond", example: "superficial", chapter: "general" },
+    { name: "supra-", meaning: "above", example: "supraclavicular", chapter: "general" },
+    { name: "sym-", meaning: "together", example: "symbiosis", chapter: "general" },
+    { name: "syn-", meaning: "together", example: "synergy", chapter: "general" },
+    { name: "tachy-", meaning: "fast", example: "tachycardia", chapter: "8" },
+    { name: "tele-", meaning: "distant", example: "telemedicine", chapter: "general" },
+    { name: "trans-", meaning: "across, through", example: "transdermal", chapter: "general" },
+    { name: "tri-", meaning: "three", example: "triplet", chapter: "general" },
+    { name: "ultra-", meaning: "beyond", example: "ultrasound", chapter: "general" },
+    { name: "uni-", meaning: "one", example: "unilateral", chapter: "general" }
+  ],
+  roots: [
+    { name: "abdomin", meaning: "abdomen", example: "abdominal", chapter: "4" },
+    { name: "acanth", meaning: "spine, thorn", example: "acanthosis", chapter: "5" },
+    { name: "acetabul", meaning: "acetabulum (hip socket)", example: "acetabular", chapter: "10" },
+    { name: "acous", meaning: "hearing", example: "acoustic", chapter: "16" },
+    { name: "acr", meaning: "extremity", example: "acromegaly", chapter: "14" },
+    { name: "actin", meaning: "ray, radiation", example: "actinic", chapter: "5" },
+    { name: "acu", meaning: "needle, sharp", example: "acupuncture", chapter: "general" },
+    { name: "aden", meaning: "gland", example: "adenoma", chapter: "14" },
+    { name: "adip", meaning: "fat", example: "adipose", chapter: "4" },
+    { name: "adren", meaning: "adrenal gland", example: "adrenaline", chapter: "14" },
+    { name: "aer", meaning: "air, gas", example: "aerobic", chapter: "7" },
+    { name: "alge", meaning: "pain", example: "analgesic", chapter: "15" },
+    { name: "aliment", meaning: "food, nourishment", example: "alimentary", chapter: "6" },
+    { name: "alveol", meaning: "alveolus (air sac)", example: "alveolar", chapter: "7" },
+    { name: "amni", meaning: "amnion", example: "amniotic", chapter: "12" },
+    { name: "amyl", meaning: "starch", example: "amylase", chapter: "6" },
+    { name: "an", meaning: "anus", example: "anal", chapter: "6" },
+    { name: "andr", meaning: "male", example: "androgen", chapter: "13" },
+    { name: "aneurysm", meaning: "widening", example: "aneurysm", chapter: "8" },
+    { name: "angi", meaning: "vessel", example: "angiogram", chapter: "8" },
+    { name: "ankyl", meaning: "stiff, bent", example: "ankylosis", chapter: "10" },
+    { name: "anter", meaning: "front", example: "anterior", chapter: "4" },
+    { name: "anthrac", meaning: "coal, black", example: "anthracosis", chapter: "7" },
+    { name: "anthrop", meaning: "human", example: "anthropometry", chapter: "general" },
+    { name: "aort", meaning: "aorta", example: "aortic", chapter: "8" },
+    { name: "apic", meaning: "apex", example: "apical", chapter: "7" },
+    { name: "append", meaning: "appendix", example: "appendicitis", chapter: "6" },
+    { name: "arachn", meaning: "spider", example: "arachnoid", chapter: "15" },
+    { name: "arteri", meaning: "artery", example: "arterial", chapter: "8" },
+    { name: "arthr", meaning: "joint", example: "arthritis", chapter: "10" },
+    { name: "articul", meaning: "joint", example: "articular", chapter: "10" },
+    { name: "asc", meaning: "climbing", example: "ascending", chapter: "general" },
+    { name: "aspir", meaning: "breathing in", example: "aspiration", chapter: "7" },
+    { name: "asthen", meaning: "weakness", example: "asthenia", chapter: "10" },
+    { name: "atel", meaning: "incomplete", example: "atelectasis", chapter: "7" },
+    { name: "ather", meaning: "plaque", example: "atherosclerosis", chapter: "8" },
+    { name: "atrium", meaning: "atrium", example: "atrial", chapter: "8" },
+    { name: "audit", meaning: "hearing", example: "auditory", chapter: "16" },
+    { name: "aur", meaning: "ear", example: "auricle", chapter: "16" },
+    { name: "axill", meaning: "armpit", example: "axillary", chapter: "4" },
+    { name: "bacill", meaning: "bacillus", example: "bacillary", chapter: "general" },
+    { name: "bacteri", meaning: "bacteria", example: "bactericidal", chapter: "general" },
+    { name: "balan", meaning: "glans penis", example: "balanitis", chapter: "13" },
+    { name: "bar", meaning: "weight, pressure", example: "baroreceptor", chapter: "8" },
+    { name: "bas", meaning: "base", example: "basal", chapter: "general" },
+    { name: "bi", meaning: "life", example: "biology", chapter: "general" },
+    { name: "bil", meaning: "bile", example: "biliary", chapter: "6" },
+    { name: "bio", meaning: "life", example: "biopsy", chapter: "general" },
+    { name: "blast", meaning: "germ, bud", example: "blastocyst", chapter: "12" },
+    { name: "blephar", meaning: "eyelid", example: "blepharitis", chapter: "16" },
+    { name: "brachi", meaning: "arm", example: "brachial", chapter: "10" },
+    { name: "brachy", meaning: "short", example: "brachytherapy", chapter: "general" },
+    { name: "brady", meaning: "slow", example: "bradycardia", chapter: "8" },
+    { name: "bronch", meaning: "bronchus", example: "bronchitis", chapter: "7" },
+    { name: "bucc", meaning: "cheek", example: "buccal", chapter: "6" },
+    { name: "burs", meaning: "bursa", example: "bursitis", chapter: "10" },
+    { name: "calc", meaning: "calcium", example: "calcification", chapter: "10" },
+    { name: "calic", meaning: "calyx", example: "caliceal", chapter: "11" },
+    { name: "calor", meaning: "heat", example: "calorie", chapter: "general" },
+    { name: "cap", meaning: "head", example: "capitate", chapter: "10" },
+    { name: "capill", meaning: "capillary", example: "capillary", chapter: "8" },
+    { name: "capsul", meaning: "capsule", example: "capsular", chapter: "11" },
+    { name: "carcin", meaning: "cancer", example: "carcinoma", chapter: "general" },
+    { name: "cardi", meaning: "heart", example: "cardiac", chapter: "8" },
+    { name: "carp", meaning: "wrist", example: "carpal", chapter: "10" },
+    { name: "cata", meaning: "down", example: "catabolism", chapter: "general" },
+    { name: "cath", meaning: "catheter", example: "catheterization", chapter: "general" },
+    { name: "caud", meaning: "tail", example: "caudal", chapter: "4" },
+    { name: "caus", meaning: "burning", example: "causalgia", chapter: "15" },
+    { name: "cav", meaning: "hollow", example: "cavity", chapter: "4" },
+    { name: "cec", meaning: "cecum", example: "cecal", chapter: "6" },
+    { name: "cel", meaning: "abdomen", example: "celiac", chapter: "6" },
+    { name: "cell", meaning: "cell", example: "cellular", chapter: "general" },
+    { name: "cent", meaning: "center", example: "central", chapter: "15" },
+    { name: "cephal", meaning: "head", example: "cephalic", chapter: "4" },
+    { name: "cerat", meaning: "horn", example: "keratin", chapter: "5" },
+    { name: "cerebell", meaning: "cerebellum", example: "cerebellar", chapter: "15" },
+    { name: "cerebr", meaning: "cerebrum", example: "cerebral", chapter: "15" },
+    { name: "cervic", meaning: "neck", example: "cervical", chapter: "10" },
+    { name: "cheil", meaning: "lip", example: "cheilitis", chapter: "6" },
+    { name: "chem", meaning: "chemical", example: "chemotherapy", chapter: "general" },
+    { name: "chir", meaning: "hand", example: "chiropractic", chapter: "10" },
+    { name: "chlor", meaning: "green", example: "chlorophyll", chapter: "general" },
+    { name: "chol", meaning: "bile", example: "cholesterol", chapter: "6" },
+    { name: "chondr", meaning: "cartilage", example: "chondrocyte", chapter: "10" },
+    { name: "chord", meaning: "cord", example: "chordate", chapter: "15" },
+    { name: "chori", meaning: "chorion", example: "chorionic", chapter: "12" },
+    { name: "chrom", meaning: "color", example: "chromosome", chapter: "general" },
+    { name: "chron", meaning: "time", example: "chronic", chapter: "general" },
+    { name: "chyl", meaning: "chyle", example: "chylothorax", chapter: "6" },
+    { name: "cili", meaning: "eyelash, cilium", example: "ciliary", chapter: "16" },
+    { name: "circum", meaning: "around", example: "circumcision", chapter: "13" },
+    { name: "clav", meaning: "clavicle", example: "clavicular", chapter: "10" },
+    { name: "coagul", meaning: "clotting", example: "coagulation", chapter: "9" },
+    { name: "coccyg", meaning: "coccyx", example: "coccygeal", chapter: "10" },
+    { name: "cochle", meaning: "cochlea", example: "cochlear", chapter: "16" },
+    { name: "col", meaning: "colon", example: "colitis", chapter: "6" },
+    { name: "coll", meaning: "glue", example: "collagen", chapter: "5" },
+    { name: "colp", meaning: "vagina", example: "colposcopy", chapter: "12" },
+    { name: "coni", meaning: "dust", example: "coniosis", chapter: "7" },
+    { name: "conjunctiv", meaning: "conjunctiva", example: "conjunctivitis", chapter: "16" },
+    { name: "cor", meaning: "heart", example: "coronary", chapter: "8" },
+    { name: "cord", meaning: "cord", example: "cordotomy", chapter: "15" },
+    { name: "corne", meaning: "cornea", example: "corneal", chapter: "16" },
+    { name: "coron", meaning: "crown", example: "coronary", chapter: "8" },
+    { name: "corpor", meaning: "body", example: "corporal", chapter: "4" },
+    { name: "cortic", meaning: "cortex", example: "cortical", chapter: "15" },
+    { name: "cost", meaning: "rib", example: "costal", chapter: "10" },
+    { name: "cox", meaning: "hip", example: "coxal", chapter: "10" },
+    { name: "crani", meaning: "skull", example: "cranial", chapter: "10" },
+    { name: "crin", meaning: "secrete", example: "endocrine", chapter: "14" },
+    { name: "crypt", meaning: "hidden", example: "cryptorchidism", chapter: "13" },
+    { name: "cubit", meaning: "elbow", example: "cubital", chapter: "10" },
+    { name: "culd", meaning: "cul-de-sac", example: "culdocentesis", chapter: "12" },
+    { name: "cutane", meaning: "skin", example: "cutaneous", chapter: "5" },
+    { name: "cyan", meaning: "blue", example: "cyanosis", chapter: "8" },
+    { name: "cycl", meaning: "circle, ciliary body", example: "cycloplegia", chapter: "16" },
+    { name: "cyst", meaning: "bladder, sac", example: "cystitis", chapter: "11" },
+    { name: "cyt", meaning: "cell", example: "cytoplasm", chapter: "general" },
+    { name: "dacry", meaning: "tear", example: "dacryocystitis", chapter: "16" },
+    { name: "dactyl", meaning: "finger", example: "dactylitis", chapter: "10" },
+    { name: "de", meaning: "away", example: "dehydration", chapter: "general" },
+    { name: "dent", meaning: "tooth", example: "dental", chapter: "6" },
+    { name: "derm", meaning: "skin", example: "dermatology", chapter: "5" },
+    { name: "desm", meaning: "ligament", example: "desmoplasia", chapter: "10" },
+    { name: "dextr", meaning: "right", example: "dextrose", chapter: "general" },
+    { name: "di", meaning: "two", example: "diploid", chapter: "general" },
+    { name: "dia", meaning: "through", example: "diagnosis", chapter: "general" },
+    { name: "digit", meaning: "finger", example: "digital", chapter: "10" },
+    { name: "dips", meaning: "thirst", example: "polydipsia", chapter: "14" },
+    { name: "disc", meaning: "disk", example: "discectomy", chapter: "10" },
+    { name: "dors", meaning: "back", example: "dorsal", chapter: "4" },
+    { name: "duoden", meaning: "duodenum", example: "duodenal", chapter: "6" },
+    { name: "dur", meaning: "hard", example: "dura mater", chapter: "15" },
+    { name: "dynam", meaning: "power", example: "dynamic", chapter: "general" },
+    { name: "echin", meaning: "spiny", example: "echinoderm", chapter: "5" },
+    { name: "echo", meaning: "sound", example: "echocardiogram", chapter: "8" },
+    { name: "ect", meaning: "outside", example: "ectopic", chapter: "general" },
+    { name: "ectop", meaning: "displaced", example: "ectopic", chapter: "general" },
+    { name: "edem", meaning: "swelling", example: "edema", chapter: "general" },
+    { name: "elast", meaning: "elastic", example: "elastin", chapter: "5" },
+    { name: "electr", meaning: "electricity", example: "electrocardiogram", chapter: "8" },
+    { name: "embol", meaning: "plug", example: "embolism", chapter: "8" },
+    { name: "embry", meaning: "embryo", example: "embryology", chapter: "12" },
+    { name: "emesis", meaning: "vomiting", example: "hematemesis", chapter: "6" },
+    { name: "encephal", meaning: "brain", example: "encephalitis", chapter: "15" },
+    { name: "end", meaning: "within", example: "endoscope", chapter: "general" },
+    { name: "enter", meaning: "intestine", example: "enteritis", chapter: "6" },
+    { name: "eosin", meaning: "rosy", example: "eosinophil", chapter: "9" },
+    { name: "ependym", meaning: "ependyma", example: "ependymoma", chapter: "15" },
+    { name: "epididym", meaning: "epididymis", example: "epididymitis", chapter: "13" },
+    { name: "epiglott", meaning: "epiglottis", example: "epiglottitis", chapter: "7" },
+    { name: "episi", meaning: "vulva", example: "episiotomy", chapter: "12" },
+    { name: "epithel", meaning: "epithelium", example: "epithelial", chapter: "general" },
+    { name: "equin", meaning: "horse", example: "equine", chapter: "general" },
+    { name: "erect", meaning: "erect", example: "erectile", chapter: "13" },
+    { name: "erg", meaning: "work", example: "ergonomics", chapter: "general" },
+    { name: "erythem", meaning: "redness", example: "erythema", chapter: "5" },
+    { name: "erythr", meaning: "red", example: "erythrocyte", chapter: "9" },
+    { name: "esophag", meaning: "esophagus", example: "esophageal", chapter: "6" },
+    { name: "esthesi", meaning: "sensation", example: "anesthesia", chapter: "15" },
+    { name: "eti", meaning: "cause", example: "etiology", chapter: "general" },
+    { name: "eu", meaning: "good", example: "euthyroid", chapter: "14" },
+    { name: "ex", meaning: "out", example: "excision", chapter: "general" },
+    { name: "faci", meaning: "face", example: "facial", chapter: "10" },
+    { name: "falc", meaning: "sickle", example: "falciform", chapter: "general" },
+    { name: "fasc", meaning: "band", example: "fascia", chapter: "10" },
+    { name: "femor", meaning: "femur", example: "femoral", chapter: "10" },
+    { name: "fer", meaning: "carry", example: "transferrin", chapter: "9" },
+    { name: "fibr", meaning: "fiber", example: "fibrosis", chapter: "5" },
+    { name: "fibul", meaning: "fibula", example: "fibular", chapter: "10" },
+    { name: "fil", meaning: "thread", example: "filament", chapter: "general" },
+    { name: "filum", meaning: "thread", example: "filum terminale", chapter: "15" },
+    { name: "fimbri", meaning: "fringe", example: "fimbriae", chapter: "12" },
+    { name: "flav", meaning: "yellow", example: "flavoprotein", chapter: "general" },
+    { name: "flex", meaning: "bend", example: "flexion", chapter: "10" },
+    { name: "flu", meaning: "flow", example: "fluent", chapter: "general" },
+    { name: "foll", meaning: "follicle", example: "follicular", chapter: "5" },
+    { name: "foramen", meaning: "opening", example: "foramen", chapter: "10" },
+    { name: "form", meaning: "shape", example: "formation", chapter: "general" },
+    { name: "fossa", meaning: "depression", example: "fossa", chapter: "4" },
+    { name: "front", meaning: "forehead", example: "frontal", chapter: "10" },
+    { name: "fund", meaning: "bottom", example: "fundus", chapter: "6" },
+    { name: "fung", meaning: "fungus", example: "fungal", chapter: "general" },
+    { name: "galact", meaning: "milk", example: "galactorrhea", chapter: "12" },
+    { name: "gangli", meaning: "ganglion", example: "ganglion", chapter: "15" },
+    { name: "gastr", meaning: "stomach", example: "gastric", chapter: "6" },
+    { name: "gen", meaning: "produce, origin", example: "genetics", chapter: "general" },
+    { name: "gingiv", meaning: "gums", example: "gingivitis", chapter: "6" },
+    { name: "glaci", meaning: "ice", example: "glacial", chapter: "general" },
+    { name: "gland", meaning: "gland", example: "glandular", chapter: "14" },
+    { name: "glen", meaning: "socket", example: "glenoid", chapter: "10" },
+    { name: "gli", meaning: "glue", example: "glioma", chapter: "15" },
+    { name: "glob", meaning: "sphere", example: "globulin", chapter: "9" },
+    { name: "glomerul", meaning: "glomerulus", example: "glomerular", chapter: "11" },
+    { name: "gloss", meaning: "tongue", example: "glossitis", chapter: "6" },
+    { name: "glott", meaning: "glottis", example: "glottic", chapter: "7" },
+    { name: "gluc", meaning: "sugar", example: "glucose", chapter: "14" },
+    { name: "glyc", meaning: "sugar", example: "glycogen", chapter: "14" },
+    { name: "gnath", meaning: "jaw", example: "gnathic", chapter: "10" },
+    { name: "gon", meaning: "seed, gonad", example: "gonad", chapter: "12" },
+    { name: "gonad", meaning: "gonad", example: "gonadal", chapter: "12" },
+    { name: "grad", meaning: "step", example: "gradient", chapter: "general" },
+    { name: "graph", meaning: "write", example: "graphite", chapter: "general" },
+    { name: "grav", meaning: "heavy", example: "gravity", chapter: "general" },
+    { name: "gyn", meaning: "woman", example: "gynecology", chapter: "12" },
+    { name: "hallux", meaning: "great toe", example: "hallux valgus", chapter: "10" },
+    { name: "hapl", meaning: "simple", example: "haploid", chapter: "general" },
+    { name: "hem", meaning: "blood", example: "hematology", chapter: "9" },
+    { name: "hepat", meaning: "liver", example: "hepatitis", chapter: "6" },
+    { name: "hidr", meaning: "sweat", example: "hyperhidrosis", chapter: "5" },
+    { name: "hist", meaning: "tissue", example: "histology", chapter: "general" },
+    { name: "hol", meaning: "whole", example: "holistic", chapter: "general" },
+    { name: "homeo", meaning: "similar", example: "homeostasis", chapter: "general" },
+    { name: "hom", meaning: "same", example: "homologous", chapter: "general" },
+    { name: "horm", meaning: "urge", example: "hormone", chapter: "14" },
+    { name: "humer", meaning: "humerus", example: "humeral", chapter: "10" },
+    { name: "hydr", meaning: "water", example: "hydration", chapter: "general" },
+    { name: "hygr", meaning: "moisture", example: "hygrometer", chapter: "general" },
+    { name: "hymen", meaning: "membrane", example: "hymen", chapter: "12" },
+    { name: "hypn", meaning: "sleep", example: "hypnosis", chapter: "15" },
+    { name: "hypophys", meaning: "pituitary", example: "hypophysis", chapter: "14" },
+    { name: "hyster", meaning: "uterus", example: "hysterectomy", chapter: "12" },
+    { name: "iatr", meaning: "healer", example: "pediatrics", chapter: "general" },
+    { name: "ichthy", meaning: "fish", example: "ichthyosis", chapter: "5" },
+    { name: "icter", meaning: "jaundice", example: "icterus", chapter: "6" },
+    { name: "ile", meaning: "ileum", example: "ileal", chapter: "6" },
+    { name: "ili", meaning: "ilium", example: "iliac", chapter: "10" },
+    { name: "immun", meaning: "safe", example: "immune", chapter: "9" },
+    { name: "in", meaning: "in", example: "injection", chapter: "general" },
+    { name: "infra", meaning: "below", example: "infrared", chapter: "general" },
+    { name: "inguin", meaning: "groin", example: "inguinal", chapter: "4" },
+    { name: "insul", meaning: "island", example: "insulin", chapter: "14" },
+    { name: "inter", meaning: "between", example: "interstitial", chapter: "general" },
+    { name: "intra", meaning: "within", example: "intracellular", chapter: "general" },
+    { name: "iod", meaning: "violet", example: "iodine", chapter: "14" },
+    { name: "ion", meaning: "ion", example: "ionic", chapter: "general" },
+    { name: "irid", meaning: "iris", example: "iridectomy", chapter: "16" },
+    { name: "isch", meaning: "block", example: "ischemia", chapter: "8" },
+    { name: "ischi", meaning: "ischium", example: "ischial", chapter: "10" },
+    { name: "iso", meaning: "equal", example: "isometric", chapter: "general" },
+    { name: "jejun", meaning: "jejunum", example: "jejunal", chapter: "6" },
+    { name: "jugul", meaning: "throat", example: "jugular", chapter: "8" },
+    { name: "kary", meaning: "nucleus", example: "karyotype", chapter: "general" },
+    { name: "kerat", meaning: "horn, cornea", example: "keratin", chapter: "5" },
+    { name: "kin", meaning: "movement", example: "kinesiology", chapter: "10" },
+    { name: "kinesi", meaning: "movement", example: "kinesis", chapter: "10" },
+    { name: "klept", meaning: "steal", example: "kleptomania", chapter: "15" },
+    { name: "kyph", meaning: "humpback", example: "kyphosis", chapter: "10" },
+    { name: "labi", meaning: "lip", example: "labial", chapter: "6" },
+    { name: "lacrim", meaning: "tear", example: "lacrimal", chapter: "16" },
+    { name: "lact", meaning: "milk", example: "lactation", chapter: "12" },
+    { name: "lamin", meaning: "layer", example: "laminectomy", chapter: "10" },
+    { name: "lapar", meaning: "abdomen", example: "laparoscopy", chapter: "6" },
+    { name: "laryng", meaning: "larynx", example: "laryngitis", chapter: "7" },
+    { name: "later", meaning: "side", example: "lateral", chapter: "4" },
+    { name: "lens", meaning: "lens", example: "lenticular", chapter: "16" },
+    { name: "lept", meaning: "thin", example: "leptospirosis", chapter: "general" },
+    { name: "leuc", meaning: "white", example: "leukocyte", chapter: "9" },
+    { name: "leuk", meaning: "white", example: "leukemia", chapter: "9" },
+    { name: "lingu", meaning: "tongue", example: "lingual", chapter: "6" },
+    { name: "lip", meaning: "fat", example: "liposuction", chapter: "4" },
+    { name: "lith", meaning: "stone", example: "lithotripsy", chapter: "11" },
+    { name: "lob", meaning: "lobe", example: "lobectomy", chapter: "7" },
+    { name: "log", meaning: "study", example: "biology", chapter: "general" },
+    { name: "lord", meaning: "bent", example: "lordosis", chapter: "10" },
+    { name: "lumb", meaning: "loin", example: "lumbar", chapter: "10" },
+    { name: "lumen", meaning: "light, opening", example: "lumen", chapter: "general" },
+    { name: "lun", meaning: "moon", example: "lunate", chapter: "10" },
+    { name: "lymph", meaning: "lymph", example: "lymphocyte", chapter: "9" },
+    { name: "lys", meaning: "break down", example: "lysis", chapter: "general" },
+    { name: "macul", meaning: "spot", example: "macular", chapter: "16" },
+    { name: "magn", meaning: "large", example: "magnum", chapter: "general" },
+    { name: "mal", meaning: "bad", example: "malignant", chapter: "general" },
+    { name: "malle", meaning: "hammer", example: "malleus", chapter: "16" },
+    { name: "mamm", meaning: "breast", example: "mammogram", chapter: "12" },
+    { name: "mandibul", meaning: "mandible", example: "mandibular", chapter: "10" },
+    { name: "mast", meaning: "breast", example: "mastectomy", chapter: "12" },
+    { name: "maxill", meaning: "maxilla", example: "maxillary", chapter: "10" },
+    { name: "mediastin", meaning: "mediastinum", example: "mediastinal", chapter: "7" },
+    { name: "medic", meaning: "heal", example: "medicine", chapter: "general" },
+    { name: "medull", meaning: "marrow", example: "medullary", chapter: "15" },
+    { name: "megal", meaning: "large", example: "megacolon", chapter: "6" },
+    { name: "melan", meaning: "black", example: "melanoma", chapter: "5" },
+    { name: "men", meaning: "month", example: "menstruation", chapter: "12" },
+    { name: "mening", meaning: "meninges", example: "meningitis", chapter: "15" },
+    { name: "menisc", meaning: "crescent", example: "meniscus", chapter: "10" },
+    { name: "mer", meaning: "part", example: "merozoite", chapter: "general" },
+    { name: "mes", meaning: "middle", example: "mesoderm", chapter: "4" },
+    { name: "mesenter", meaning: "mesentery", example: "mesenteric", chapter: "6" },
+    { name: "met", meaning: "beyond", example: "metamorphosis", chapter: "general" },
+    { name: "metabol", meaning: "change", example: "metabolism", chapter: "general" },
+    { name: "metacarp", meaning: "metacarpus", example: "metacarpal", chapter: "10" },
+    { name: "metatars", meaning: "metatarsus", example: "metatarsal", chapter: "10" },
+    { name: "metr", meaning: "uterus", example: "metritis", chapter: "12" },
+    { name: "micro", meaning: "small", example: "microscope", chapter: "general" },
+    { name: "micturi", meaning: "urination", example: "micturition", chapter: "11" },
+    { name: "mid", meaning: "middle", example: "midline", chapter: "4" },
+    { name: "milk", meaning: "milk", example: "milky", chapter: "12" },
+    { name: "mill", meaning: "thousand", example: "milliliter", chapter: "general" },
+    { name: "mit", meaning: "thread", example: "mitochondrion", chapter: "general" },
+    { name: "moll", meaning: "soft", example: "molluscum", chapter: "5" },
+    { name: "mon", meaning: "single", example: "monocyte", chapter: "9" },
+    { name: "morph", meaning: "form", example: "morphology", chapter: "general" },
+    { name: "mort", meaning: "death", example: "mortality", chapter: "general" },
+    { name: "motor", meaning: "movement", example: "motor", chapter: "15" },
+    { name: "muc", meaning: "mucus", example: "mucous", chapter: "7" },
+    { name: "multi", meaning: "many", example: "multicellular", chapter: "general" },
+    { name: "muscul", meaning: "muscle", example: "muscular", chapter: "10" },
+    { name: "mut", meaning: "change", example: "mutation", chapter: "general" },
+    { name: "my", meaning: "muscle", example: "myalgia", chapter: "10" },
+    { name: "myc", meaning: "fungus", example: "mycosis", chapter: "5" },
+    { name: "myel", meaning: "marrow, spinal cord", example: "myelitis", chapter: "15" },
+    { name: "myocard", meaning: "heart muscle", example: "myocardium", chapter: "8" },
+    { name: "myos", meaning: "muscle", example: "myositis", chapter: "10" },
+    { name: "myring", meaning: "eardrum", example: "myringotomy", chapter: "16" },
+    { name: "myx", meaning: "mucus", example: "myxoma", chapter: "5" },
+    { name: "narc", meaning: "stupor", example: "narcolepsy", chapter: "15" },
+    { name: "nas", meaning: "nose", example: "nasal", chapter: "7" },
+    { name: "necr", meaning: "death", example: "necrosis", chapter: "general" },
+    { name: "nemat", meaning: "thread", example: "nematode", chapter: "general" },
+    { name: "neo", meaning: "new", example: "neoplasm", chapter: "general" },
+    { name: "nephr", meaning: "kidney", example: "nephritis", chapter: "11" },
+    { name: "neur", meaning: "nerve", example: "neuralgia", chapter: "15" },
+    { name: "nict", meaning: "blink", example: "nictitating", chapter: "16" },
+    { name: "nitr", meaning: "nitrogen", example: "nitrate", chapter: "general" },
+    { name: "noc", meaning: "harm", example: "nociceptor", chapter: "15" },
+    { name: "noct", meaning: "night", example: "nocturnal", chapter: "general" },
+    { name: "nod", meaning: "knot", example: "nodule", chapter: "general" },
+    { name: "norm", meaning: "normal", example: "normal", chapter: "general" },
+    { name: "nos", meaning: "disease", example: "nosocomial", chapter: "general" },
+    { name: "nuch", meaning: "back of neck", example: "nuchal", chapter: "10" },
+    { name: "nucle", meaning: "nucleus", example: "nuclear", chapter: "general" },
+    { name: "null", meaning: "none", example: "nullipara", chapter: "12" },
+    { name: "nutri", meaning: "nourish", example: "nutrition", chapter: "6" },
+    { name: "ob", meaning: "against", example: "obstruction", chapter: "general" },
+    { name: "ocul", meaning: "eye", example: "ocular", chapter: "16" },
+    { name: "odont", meaning: "tooth", example: "odontology", chapter: "6" },
+    { name: "odor", meaning: "smell", example: "odoriferous", chapter: "general" },
+    { name: "olecran", meaning: "elbow", example: "olecranon", chapter: "10" },
+    { name: "olfact", meaning: "smell", example: "olfactory", chapter: "16" },
+    { name: "olig", meaning: "few", example: "oliguria", chapter: "11" },
+    { name: "oment", meaning: "omentum", example: "omental", chapter: "6" },
+    { name: "omphal", meaning: "navel", example: "omphalocele", chapter: "6" },
+    { name: "onc", meaning: "tumor", example: "oncology", chapter: "general" },
+    { name: "onych", meaning: "nail", example: "onychomycosis", chapter: "5" },
+    { name: "oo", meaning: "egg", example: "oocyte", chapter: "12" },
+    { name: "oophor", meaning: "ovary", example: "oophorectomy", chapter: "12" },
+    { name: "ophthalm", meaning: "eye", example: "ophthalmology", chapter: "16" },
+    { name: "optic", meaning: "eye", example: "optical", chapter: "16" },
+    { name: "or", meaning: "mouth", example: "oral", chapter: "6" },
+    { name: "orch", meaning: "testis", example: "orchitis", chapter: "13" },
+    { name: "orth", meaning: "straight", example: "orthopedics", chapter: "10" },
+    { name: "os", meaning: "bone, mouth", example: "osseous", chapter: "10" },
+    { name: "oss", meaning: "bone", example: "ossification", chapter: "10" },
+    { name: "oste", meaning: "bone", example: "osteoporosis", chapter: "10" },
+    { name: "ot", meaning: "ear", example: "otitis", chapter: "16" },
+    { name: "ov", meaning: "egg", example: "ovulation", chapter: "12" },
+    { name: "ovari", meaning: "ovary", example: "ovarian", chapter: "12" },
+    { name: "ox", meaning: "oxygen", example: "oximetry", chapter: "7" },
+    { name: "pachy", meaning: "thick", example: "pachymeningitis", chapter: "15" },
+    { name: "palat", meaning: "palate", example: "palatal", chapter: "6" },
+    { name: "palliat", meaning: "soothe", example: "palliative", chapter: "general" },
+    { name: "palm", meaning: "palm", example: "palmar", chapter: "10" },
+    { name: "pan", meaning: "all", example: "pandemic", chapter: "general" },
+    { name: "pancreat", meaning: "pancreas", example: "pancreatitis", chapter: "6" },
+    { name: "papill", meaning: "nipple", example: "papillary", chapter: "5" },
+    { name: "par", meaning: "beside", example: "parathyroid", chapter: "14" },
+    { name: "parathyroid", meaning: "parathyroid", example: "parathyroidectomy", chapter: "14" },
+    { name: "pariet", meaning: "wall", example: "parietal", chapter: "4" },
+    { name: "parot", meaning: "parotid", example: "parotitis", chapter: "6" },
+    { name: "patell", meaning: "kneecap", example: "patellar", chapter: "10" },
+    { name: "path", meaning: "disease", example: "pathology", chapter: "general" },
+    { name: "pect", meaning: "chest", example: "pectoral", chapter: "10" },
+    { name: "ped", meaning: "child, foot", example: "pediatric", chapter: "general" },
+    { name: "pelv", meaning: "pelvis", example: "pelvic", chapter: "10" },
+    { name: "pen", meaning: "penis", example: "penile", chapter: "13" },
+    { name: "peps", meaning: "digest", example: "pepsin", chapter: "6" },
+    { name: "per", meaning: "through", example: "perforation", chapter: "general" },
+    { name: "perine", meaning: "perineum", example: "perineal", chapter: "12" },
+    { name: "periost", meaning: "periosteum", example: "periosteal", chapter: "10" },
+    { name: "peritone", meaning: "peritoneum", example: "peritoneal", chapter: "6" },
+    { name: "phac", meaning: "lens", example: "phacoemulsification", chapter: "16" },
+    { name: "phag", meaning: "eat", example: "phagocyte", chapter: "9" },
+    { name: "phalang", meaning: "phalanges", example: "phalangeal", chapter: "10" },
+    { name: "pharmac", meaning: "drug", example: "pharmacology", chapter: "general" },
+    { name: "pharyng", meaning: "pharynx", example: "pharyngitis", chapter: "7" },
+    { name: "phleb", meaning: "vein", example: "phlebitis", chapter: "8" },
+    { name: "phob", meaning: "fear", example: "phobia", chapter: "15" },
+    { name: "phon", meaning: "sound", example: "phonation", chapter: "7" },
+    { name: "phor", meaning: "carry", example: "anaphora", chapter: "general" },
+    { name: "phot", meaning: "light", example: "photosynthesis", chapter: "general" },
+    { name: "phren", meaning: "mind, diaphragm", example: "phrenic", chapter: "7" },
+    { name: "phthir", meaning: "lice", example: "phthiriasis", chapter: "5" },
+    { name: "phylact", meaning: "protect", example: "prophylactic", chapter: "general" },
+    { name: "phyll", meaning: "leaf", example: "phylloquinone", chapter: "general" },
+    { name: "phys", meaning: "nature", example: "physiology", chapter: "general" },
+    { name: "physi", meaning: "nature", example: "physical", chapter: "general" },
+    { name: "phyx", meaning: "fix", example: "pyxis", chapter: "general" },
+    { name: "pigment", meaning: "color", example: "pigmentation", chapter: "5" },
+    { name: "pil", meaning: "hair", example: "piloerection", chapter: "5" },
+    { name: "pineal", meaning: "pineal gland", example: "pinealoma", chapter: "14" },
+    { name: "pituit", meaning: "pituitary", example: "pituitary", chapter: "14" },
+    { name: "plac", meaning: "flat", example: "placenta", chapter: "12" },
+    { name: "placent", meaning: "placenta", example: "placental", chapter: "12" },
+    { name: "plak", meaning: "platelet", example: "thromboplastin", chapter: "9" },
+    { name: "plasm", meaning: "formation", example: "cytoplasm", chapter: "general" },
+    { name: "plast", meaning: "mold", example: "plastic", chapter: "general" },
+    { name: "plat", meaning: "flat", example: "platypus", chapter: "general" },
+    { name: "ple", meaning: "side", example: "pleural", chapter: "7" },
+    { name: "pleur", meaning: "pleura", example: "pleurisy", chapter: "7" },
+    { name: "plex", meaning: "network", example: "plexus", chapter: "15" },
+    { name: "pneum", meaning: "air, lung", example: "pneumonia", chapter: "7" },
+    { name: "pneumat", meaning: "air", example: "pneumatocoele", chapter: "7" },
+    { name: "pod", meaning: "foot", example: "podiatry", chapter: "10" },
+    { name: "poikil", meaning: "varied", example: "poikilothermia", chapter: "15" },
+    { name: "pol", meaning: "city", example: "metropolis", chapter: "general" },
+    { name: "polio", meaning: "gray", example: "poliomyelitis", chapter: "15" },
+    { name: "poly", meaning: "many", example: "polycythemia", chapter: "9" },
+    { name: "por", meaning: "opening", example: "pore", chapter: "5" },
+    { name: "poster", meaning: "back", example: "posterior", chapter: "4" },
+    { name: "prand", meaning: "meal", example: "postprandial", chapter: "6" },
+    { name: "pre", meaning: "before", example: "precancerous", chapter: "general" },
+    { name: "presby", meaning: "old age", example: "presbyopia", chapter: "16" },
+    { name: "prim", meaning: "first", example: "primary", chapter: "general" },
+    { name: "proct", meaning: "rectum", example: "proctology", chapter: "6" },
+    { name: "prostat", meaning: "prostate", example: "prostatectomy", chapter: "13" },
+    { name: "prot", meaning: "first", example: "prototype", chapter: "general" },
+    { name: "prote", meaning: "protein", example: "protease", chapter: "general" },
+    { name: "pseud", meaning: "false", example: "pseudocyst", chapter: "general" },
+    { name: "psych", meaning: "mind", example: "psychiatry", chapter: "15" },
+    { name: "pt", meaning: "fall", example: "ptosis", chapter: "general" },
+    { name: "ptyal", meaning: "saliva", example: "ptyalism", chapter: "6" },
+    { name: "pub", meaning: "pubis", example: "pubic", chapter: "10" },
+    { name: "pulmon", meaning: "lung", example: "pulmonary", chapter: "7" },
+    { name: "pulp", meaning: "pulp", example: "pulpectomy", chapter: "6" },
+    { name: "pupill", meaning: "pupil", example: "pupillary", chapter: "16" },
+    { name: "py", meaning: "pus", example: "pyogenic", chapter: "general" },
+    { name: "pylor", meaning: "pylorus", example: "pyloric", chapter: "6" },
+    { name: "pyram", meaning: "pyramid", example: "pyramidal", chapter: "15" },
+    { name: "pyrex", meaning: "fever", example: "pyrexia", chapter: "general" },
+    { name: "quadr", meaning: "four", example: "quadriceps", chapter: "10" },
+    { name: "quin", meaning: "five", example: "quintuplet", chapter: "general" },
+    { name: "rach", meaning: "spine", example: "rachitis", chapter: "10" },
+    { name: "rad", meaning: "root, radiation", example: "radiology", chapter: "general" },
+    { name: "radi", meaning: "ray", example: "radiant", chapter: "general" },
+    { name: "radio", meaning: "radius", example: "radial", chapter: "10" },
+    { name: "re", meaning: "again", example: "regeneration", chapter: "general" },
+    { name: "rect", meaning: "straight", example: "rectum", chapter: "6" },
+    { name: "ren", meaning: "kidney", example: "renal", chapter: "11" },
+    { name: "reticul", meaning: "network", example: "reticulum", chapter: "9" },
+    { name: "retin", meaning: "retina", example: "retinal", chapter: "16" },
+    { name: "retro", meaning: "backward", example: "retrograde", chapter: "general" },
+    { name: "rhach", meaning: "spine", example: "rhachis", chapter: "10" },
+    { name: "rhag", meaning: "break", example: "rhagades", chapter: "5" },
+    { name: "rhe", meaning: "flow", example: "rheumatism", chapter: "10" },
+    { name: "rheumat", meaning: "flow", example: "rheumatoid", chapter: "10" },
+    { name: "rhin", meaning: "nose", example: "rhinitis", chapter: "7" },
+    { name: "rhiz", meaning: "root", example: "rhizotomy", chapter: "15" },
+    { name: "rhod", meaning: "red", example: "rhodopsin", chapter: "16" },
+    { name: "rhomb", meaning: "rhombus", example: "rhomboid", chapter: "10" },
+    { name: "rhytid", meaning: "wrinkle", example: "rhytidectomy", chapter: "5" },
+    { name: "rot", meaning: "wheel", example: "rotation", chapter: "10" },
+    { name: "sac", meaning: "sac", example: "sacral", chapter: "10" },
+    { name: "sacchar", meaning: "sugar", example: "saccharin", chapter: "14" },
+    { name: "sacr", meaning: "sacrum", example: "sacral", chapter: "10" },
+    { name: "salping", meaning: "tube", example: "salpingitis", chapter: "12" },
+    { name: "sanguin", meaning: "blood", example: "sanguineous", chapter: "9" },
+    { name: "sap", meaning: "wise", example: "sapient", chapter: "general" },
+    { name: "sarco", meaning: "flesh", example: "sarcoma", chapter: "10" },
+    { name: "scapul", meaning: "shoulder blade", example: "scapular", chapter: "10" },
+    { name: "schiz", meaning: "split", example: "schizophrenia", chapter: "15" },
+    { name: "sci", meaning: "know", example: "science", chapter: "general" },
+    { name: "scirrh", meaning: "hard", example: "scirrhous", chapter: "general" },
+    { name: "scler", meaning: "hard", example: "sclerosis", chapter: "15" },
+    { name: "scoli", meaning: "curved", example: "scoliosis", chapter: "10" },
+    { name: "scop", meaning: "look", example: "endoscope", chapter: "general" },
+    { name: "scrot", meaning: "scrotum", example: "scrotal", chapter: "13" },
+    { name: "seb", meaning: "sebum", example: "sebaceous", chapter: "5" },
+    { name: "sect", meaning: "cut", example: "section", chapter: "general" },
+    { name: "sed", meaning: "sit", example: "sedentary", chapter: "general" },
+    { name: "semin", meaning: "seed", example: "seminiferous", chapter: "13" },
+    { name: "semi", meaning: "half", example: "semicircular", chapter: "general" },
+    { name: "sen", meaning: "old", example: "senile", chapter: "general" },
+    { name: "sept", meaning: "wall, seven", example: "septum", chapter: "8" },
+    { name: "septic", meaning: "infection", example: "sepsis", chapter: "general" },
+    { name: "ser", meaning: "serum", example: "serum", chapter: "9" },
+    { name: "serr", meaning: "saw", example: "serratus", chapter: "10" },
+    { name: "sial", meaning: "saliva", example: "sialadenitis", chapter: "6" },
+    { name: "sigmoid", meaning: "sigmoid", example: "sigmoidoscopy", chapter: "6" },
+    { name: "sin", meaning: "cavity", example: "sinus", chapter: "7" },
+    { name: "sinistr", meaning: "left", example: "sinistral", chapter: "general" },
+    { name: "sinus", meaning: "cavity", example: "sinusitis", chapter: "7" },
+    { name: "situ", meaning: "place", example: "in situ", chapter: "general" },
+    { name: "skel", meaning: "skeleton", example: "skeletal", chapter: "10" },
+    { name: "solen", meaning: "channel", example: "solenoid", chapter: "general" },
+    { name: "solut", meaning: "loosen", example: "solution", chapter: "general" },
+    { name: "somat", meaning: "body", example: "somatic", chapter: "4" },
+    { name: "somni", meaning: "sleep", example: "insomnia", chapter: "15" },
+    { name: "son", meaning: "sound", example: "sonography", chapter: "general" },
+    { name: "spas", meaning: "draw", example: "spasm", chapter: "10" },
+    { name: "spect", meaning: "look", example: "inspection", chapter: "general" },
+    { name: "sperm", meaning: "seed", example: "spermatozoon", chapter: "13" },
+    { name: "sphen", meaning: "wedge", example: "sphenoid", chapter: "10" },
+    { name: "spher", meaning: "ball", example: "sphere", chapter: "general" },
+    { name: "sphinct", meaning: "squeeze", example: "sphincter", chapter: "6" },
+    { name: "spin", meaning: "spine", example: "spinal", chapter: "10" },
+    { name: "splen", meaning: "spleen", example: "splenectomy", chapter: "9" },
+    { name: "spondyl", meaning: "vertebra", example: "spondylosis", chapter: "10" },
+    { name: "squam", meaning: "scale", example: "squamous", chapter: "5" },
+    { name: "staphyl", meaning: "cluster", example: "staphylococcus", chapter: "general" },
+    { name: "stear", meaning: "fat", example: "stearic", chapter: "general" },
+    { name: "sten", meaning: "narrow", example: "stenosis", chapter: "8" },
+    { name: "stern", meaning: "sternum", example: "sternal", chapter: "10" },
+    { name: "steth", meaning: "chest", example: "stethoscope", chapter: "8" },
+    { name: "sthen", meaning: "strength", example: "asthenia", chapter: "10" },
+    { name: "stom", meaning: "mouth", example: "stoma", chapter: "6" },
+    { name: "stomat", meaning: "mouth", example: "stomatitis", chapter: "6" },
+    { name: "strab", meaning: "squint", example: "strabismus", chapter: "16" },
+    { name: "strept", meaning: "twisted", example: "streptococcus", chapter: "general" },
+    { name: "striat", meaning: "striped", example: "striatum", chapter: "15" },
+    { name: "stric", meaning: "draw tight", example: "stricture", chapter: "6" },
+    { name: "strom", meaning: "bed", example: "stroma", chapter: "general" },
+    { name: "styl", meaning: "pillar", example: "styloid", chapter: "10" },
+    { name: "sub", meaning: "under", example: "subcutaneous", chapter: "5" },
+    { name: "suc", meaning: "juice", example: "succus", chapter: "6" },
+    { name: "sudor", meaning: "sweat", example: "sudoriferous", chapter: "5" },
+    { name: "sulc", meaning: "groove", example: "sulcus", chapter: "15" },
+    { name: "super", meaning: "above", example: "superficial", chapter: "4" },
+    { name: "supra", meaning: "above", example: "suprarenal", chapter: "14" },
+    { name: "sur", meaning: "over", example: "surgical", chapter: "general" },
+    { name: "sym", meaning: "together", example: "symbiosis", chapter: "general" },
+    { name: "syn", meaning: "together", example: "synapse", chapter: "15" },
+    { name: "syndesm", meaning: "ligament", example: "syndesmosis", chapter: "10" },
+    { name: "synov", meaning: "synovial", example: "synovitis", chapter: "10" },
+    { name: "tach", meaning: "fast", example: "tachycardia", chapter: "8" },
+    { name: "tact", meaning: "touch", example: "tactile", chapter: "5" },
+    { name: "tal", meaning: "ankle", example: "talus", chapter: "10" },
+    { name: "tars", meaning: "ankle", example: "tarsal", chapter: "10" },
+    { name: "taste", meaning: "taste", example: "taste", chapter: "16" },
+    { name: "tax", meaning: "order", example: "taxonomy", chapter: "general" },
+    { name: "tect", meaning: "cover", example: "tectum", chapter: "15" },
+    { name: "teg", meaning: "cover", example: "tegument", chapter: "5" },
+    { name: "tel", meaning: "end", example: "telomere", chapter: "general" },
+    { name: "tempor", meaning: "time", example: "temporal", chapter: "15" },
+    { name: "ten", meaning: "tendon", example: "tenotomy", chapter: "10" },
+    { name: "tend", meaning: "stretch", example: "tendon", chapter: "10" },
+    { name: "terat", meaning: "monster", example: "teratoma", chapter: "12" },
+    { name: "test", meaning: "witness", example: "testis", chapter: "13" },
+    { name: "tetra", meaning: "four", example: "tetracycline", chapter: "general" },
+    { name: "thalam", meaning: "thalamus", example: "thalamic", chapter: "15" },
+    { name: "thalass", meaning: "sea", example: "thalassemia", chapter: "9" },
+    { name: "thec", meaning: "sheath", example: "theca", chapter: "12" },
+    { name: "therapeut", meaning: "treatment", example: "therapeutic", chapter: "general" },
+    { name: "therm", meaning: "heat", example: "thermometer", chapter: "general" },
+    { name: "thorac", meaning: "chest", example: "thoracic", chapter: "7" },
+    { name: "thromb", meaning: "clot", example: "thrombosis", chapter: "8" },
+    { name: "thym", meaning: "thymus", example: "thymoma", chapter: "9" },
+    { name: "thyroid", meaning: "thyroid", example: "thyroiditis", chapter: "14" },
+    { name: "tibi", meaning: "tibia", example: "tibial", chapter: "10" },
+    { name: "tinct", meaning: "color", example: "tincture", chapter: "general" },
+    { name: "tissue", meaning: "tissue", example: "tissue", chapter: "4" },
+    { name: "toc", meaning: "birth", example: "tocology", chapter: "12" },
+    { name: "ton", meaning: "tone", example: "tonicity", chapter: "10" },
+    { name: "top", meaning: "place", example: "topical", chapter: "5" },
+    { name: "tor", meaning: "twist", example: "torsion", chapter: "10" },
+    { name: "tors", meaning: "twist", example: "torsion", chapter: "10" },
+    { name: "tox", meaning: "poison", example: "toxin", chapter: "general" },
+    { name: "trache", meaning: "windpipe", example: "trachea", chapter: "7" },
+    { name: "trach", meaning: "rough", example: "trachoma", chapter: "16" },
+    { name: "tract", meaning: "draw", example: "traction", chapter: "10" },
+    { name: "trans", meaning: "across", example: "transverse", chapter: "general" },
+    { name: "traumat", meaning: "wound", example: "trauma", chapter: "10" },
+    { name: "tri", meaning: "three", example: "triad", chapter: "general" },
+    { name: "trich", meaning: "hair", example: "trichology", chapter: "5" },
+    { name: "tripsy", meaning: "crush", example: "lithotripsy", chapter: "11" },
+    { name: "troph", meaning: "nourish", example: "atrophy", chapter: "10" },
+    { name: "trop", meaning: "turn", example: "tropism", chapter: "general" },
+    { name: "tuber", meaning: "swelling", example: "tuberculosis", chapter: "7" },
+    { name: "tumor", meaning: "swelling", example: "tumor", chapter: "general" },
+    { name: "tun", meaning: "tunic", example: "tunica", chapter: "8" },
+    { name: "tympan", meaning: "eardrum", example: "tympanic", chapter: "16" },
+    { name: "ul", meaning: "gum", example: "ulcer", chapter: "6" },
+    { name: "uln", meaning: "ulna", example: "ulnar", chapter: "10" },
+    { name: "ultra", meaning: "beyond", example: "ultrasound", chapter: "general" },
+    { name: "umbilic", meaning: "navel", example: "umbilical", chapter: "6" },
+    { name: "ungu", meaning: "nail", example: "ungual", chapter: "5" },
+    { name: "uni", meaning: "one", example: "unilateral", chapter: "general" },
+    { name: "ur", meaning: "urine", example: "urinalysis", chapter: "11" },
+    { name: "ureter", meaning: "ureter", example: "ureteral", chapter: "11" },
+    { name: "urethr", meaning: "urethra", example: "urethritis", chapter: "11" },
+    { name: "uri", meaning: "urine", example: "urinary", chapter: "11" },
+    { name: "urin", meaning: "urine", example: "urination", chapter: "11" },
+    { name: "uter", meaning: "uterus", example: "uterine", chapter: "12" },
+    { name: "uve", meaning: "uvea", example: "uveitis", chapter: "16" },
+    { name: "uvul", meaning: "uvula", example: "uvular", chapter: "6" },
+    { name: "vagin", meaning: "vagina", example: "vaginal", chapter: "12" },
+    { name: "valv", meaning: "valve", example: "valvular", chapter: "8" },
+    { name: "varic", meaning: "varicose", example: "varicose", chapter: "8" },
+    { name: "vas", meaning: "vessel, duct", example: "vas deferens", chapter: "13" },
+    { name: "vascul", meaning: "vessel", example: "vascular", chapter: "8" },
+    { name: "ven", meaning: "vein", example: "venous", chapter: "8" },
+    { name: "ventr", meaning: "belly", example: "ventral", chapter: "4" },
+    { name: "ventricul", meaning: "ventricle", example: "ventricular", chapter: "8" },
+    { name: "ver", meaning: "true", example: "veritas", chapter: "general" },
+    { name: "verm", meaning: "worm", example: "vermicide", chapter: "general" },
+    { name: "vertebr", meaning: "vertebra", example: "vertebral", chapter: "10" },
+    { name: "vesic", meaning: "bladder", example: "vesical", chapter: "11" },
+    { name: "vestibul", meaning: "vestibule", example: "vestibular", chapter: "16" },
+    { name: "vibr", meaning: "shake", example: "vibration", chapter: "general" },
+    { name: "vill", meaning: "villus", example: "villous", chapter: "6" },
+    { name: "vir", meaning: "virus", example: "viral", chapter: "general" },
+    { name: "viscer", meaning: "internal organ", example: "visceral", chapter: "6" },
+    { name: "vit", meaning: "life", example: "vital", chapter: "general" },
+    { name: "vitre", meaning: "glass", example: "vitreous", chapter: "16" },
+    { name: "vivi", meaning: "alive", example: "vivisection", chapter: "general" },
+    { name: "volv", meaning: "roll", example: "volvulus", chapter: "6" },
+    { name: "vulv", meaning: "vulva", example: "vulvovaginitis", chapter: "12" },
+    { name: "xanth", meaning: "yellow", example: "xanthoma", chapter: "5" },
+    { name: "xen", meaning: "foreign", example: "xenotransplant", chapter: "general" },
+    { name: "xer", meaning: "dry", example: "xerosis", chapter: "5" },
+    { name: "xiph", meaning: "sword", example: "xiphoid", chapter: "10" },
+    { name: "zo", meaning: "animal", example: "zoology", chapter: "general" },
+    { name: "zyg", meaning: "yoke", example: "zygote", chapter: "12" },
+    { name: "zym", meaning: "ferment", example: "enzyme", chapter: "general" }
+  ],
+  suffixes: [
+    { name: "-ac", meaning: "pertaining to", example: "cardiac", chapter: "general" },
+    { name: "-acusis", meaning: "hearing", example: "paracusis", chapter: "16" },
+    { name: "-ad", meaning: "toward", example: "cephalad", chapter: "general" },
+    { name: "-al", meaning: "pertaining to", example: "neural", chapter: "general" },
+    { name: "-algia", meaning: "pain", example: "neuralgia", chapter: "general" },
+    { name: "-ar", meaning: "pertaining to", example: "ocular", chapter: "general" },
+    { name: "-ary", meaning: "pertaining to", example: "pulmonary", chapter: "general" },
+    { name: "-ase", meaning: "enzyme", example: "lipase", chapter: "general" },
+    { name: "-asthenia", meaning: "weakness", example: "myasthenia", chapter: "10" },
+    { name: "-atresia", meaning: "absence of opening", example: "esophageal atresia", chapter: "6" },
+    { name: "-blast", meaning: "immature cell", example: "osteoblast", chapter: "general" },
+    { name: "-cele", meaning: "hernia, swelling", example: "cystocele", chapter: "11" },
+    { name: "-centesis", meaning: "surgical puncture", example: "amniocentesis", chapter: "12" },
+    { name: "-chalasia", meaning: "relaxation", example: "achalasia", chapter: "6" },
+    { name: "-cidal", meaning: "killing", example: "bactericidal", chapter: "general" },
+    { name: "-cide", meaning: "killing", example: "germicide", chapter: "general" },
+    { name: "-clasia", meaning: "break", example: "osteoclasia", chapter: "10" },
+    { name: "-clasis", meaning: "break", example: "osteoclasis", chapter: "10" },
+    { name: "-clysis", meaning: "irrigation", example: "hypodermoclysis", chapter: "general" },
+    { name: "-coccus", meaning: "berry-shaped", example: "streptococcus", chapter: "general" },
+    { name: "-crine", meaning: "secrete", example: "endocrine", chapter: "14" },
+    { name: "-crit", meaning: "separate", example: "hematocrit", chapter: "9" },
+    { name: "-cyesis", meaning: "pregnancy", example: "pseudocyesis", chapter: "12" },
+    { name: "-cyte", meaning: "cell", example: "leukocyte", chapter: "general" },
+    { name: "-desis", meaning: "binding", example: "arthrodesis", chapter: "10" },
+    { name: "-dynia", meaning: "pain", example: "gastrodynia", chapter: "general" },
+    { name: "-ectasia", meaning: "dilation", example: "bronchiectasia", chapter: "7" },
+    { name: "-ectasis", meaning: "dilation", example: "atelectasis", chapter: "7" },
+    { name: "-ectomy", meaning: "surgical removal", example: "appendectomy", chapter: "general" },
+    { name: "-edema", meaning: "swelling", example: "lymphedema", chapter: "general" },
+    { name: "-ema", meaning: "condition", example: "empyema", chapter: "7" },
+    { name: "-emia", meaning: "blood condition", example: "anemia", chapter: "9" },
+    { name: "-emesis", meaning: "vomiting", example: "hematemesis", chapter: "6" },
+    { name: "-esis", meaning: "condition", example: "emesis", chapter: "general" },
+    { name: "-esthesia", meaning: "sensation", example: "anesthesia", chapter: "15" },
+    { name: "-ferent", meaning: "carrying", example: "efferent", chapter: "15" },
+    { name: "-form", meaning: "shaped like", example: "cruciform", chapter: "general" },
+    { name: "-fuge", meaning: "driving away", example: "vermifuge", chapter: "general" },
+    { name: "-gen", meaning: "producing", example: "pathogen", chapter: "general" },
+    { name: "-genesis", meaning: "formation", example: "osteogenesis", chapter: "10" },
+    { name: "-genic", meaning: "producing", example: "carcinogenic", chapter: "general" },
+    { name: "-gnosia", meaning: "knowledge", example: "diagnosis", chapter: "general" },
+    { name: "-gram", meaning: "record", example: "electrocardiogram", chapter: "8" },
+    { name: "-graph", meaning: "instrument for recording", example: "electrocardiograph", chapter: "8" },
+    { name: "-graphy", meaning: "process of recording", example: "angiography", chapter: "8" },
+    { name: "-ia", meaning: "condition", example: "anorexia", chapter: "general" },
+    { name: "-iasis", meaning: "condition", example: "cholelithiasis", chapter: "6" },
+    { name: "-ic", meaning: "pertaining to", example: "gastric", chapter: "general" },
+    { name: "-ical", meaning: "pertaining to", example: "anatomical", chapter: "general" },
+    { name: "-ile", meaning: "pertaining to", example: "fertile", chapter: "general" },
+    { name: "-ism", meaning: "condition", example: "hyperthyroidism", chapter: "14" },
+    { name: "-ismus", meaning: "spasm, contraction", example: "laryngismus", chapter: "7" },
+    { name: "-itis", meaning: "inflammation", example: "gastritis", chapter: "general" },
+    { name: "-kinesis", meaning: "movement", example: "bradykinesis", chapter: "15" },
+    { name: "-lepsy", meaning: "seizure", example: "epilepsy", chapter: "15" },
+    { name: "-logist", meaning: "specialist", example: "cardiologist", chapter: "general" },
+    { name: "-logy", meaning: "study of", example: "cardiology", chapter: "general" },
+    { name: "-lysis", meaning: "destruction", example: "hemolysis", chapter: "9" },
+    { name: "-lytic", meaning: "destructive", example: "hemolytic", chapter: "9" },
+    { name: "-malacia", meaning: "softening", example: "osteomalacia", chapter: "10" },
+    { name: "-mania", meaning: "madness", example: "kleptomania", chapter: "15" },
+    { name: "-megaly", meaning: "enlargement", example: "cardiomegaly", chapter: "8" },
+    { name: "-meter", meaning: "instrument to measure", example: "thermometer", chapter: "general" },
+    { name: "-metry", meaning: "measurement", example: "audiometry", chapter: "16" },
+    { name: "-oid", meaning: "resembling", example: "spheroid", chapter: "general" },
+    { name: "-ole", meaning: "small", example: "arteriole", chapter: "8" },
+    { name: "-oma", meaning: "tumor", example: "carcinoma", chapter: "general" },
+    { name: "-opia", meaning: "vision", example: "myopia", chapter: "16" },
+    { name: "-opsia", meaning: "vision", example: "hemianopsia", chapter: "16" },
+    { name: "-opsy", meaning: "view of", example: "biopsy", chapter: "general" },
+    { name: "-ory", meaning: "pertaining to", example: "auditory", chapter: "16" },
+    { name: "-ose", meaning: "full of, sugar", example: "adipose", chapter: "4" },
+    { name: "-osis", meaning: "abnormal condition", example: "tuberculosis", chapter: "general" },
+    { name: "-ostomy", meaning: "creation of an opening", example: "colostomy", chapter: "6" },
+    { name: "-otomy", meaning: "incision", example: "laparotomy", chapter: "6" },
+    { name: "-ous", meaning: "pertaining to", example: "venous", chapter: "general" },
+    { name: "-oxia", meaning: "oxygen", example: "hypoxia", chapter: "7" },
+    { name: "-paresis", meaning: "partial paralysis", example: "hemiparesis", chapter: "15" },
+    { name: "-pathy", meaning: "disease", example: "neuropathy", chapter: "general" },
+    { name: "-penia", meaning: "deficiency", example: "leukopenia", chapter: "9" },
+    { name: "-pepsia", meaning: "digestion", example: "dyspepsia", chapter: "6" },
+    { name: "-pexy", meaning: "fixation", example: "nephropexy", chapter: "11" },
+    { name: "-phagia", meaning: "eating, swallowing", example: "dysphagia", chapter: "6" },
+    { name: "-phagy", meaning: "eating", example: "geophagy", chapter: "6" },
+    { name: "-phasia", meaning: "speech", example: "aphasia", chapter: "15" },
+    { name: "-philia", meaning: "attraction", example: "hemophilia", chapter: "9" },
+    { name: "-phobia", meaning: "fear", example: "claustrophobia", chapter: "15" },
+    { name: "-phonia", meaning: "voice", example: "dysphonia", chapter: "7" },
+    { name: "-phoresis", meaning: "carrying", example: "electrophoresis", chapter: "general" },
+    { name: "-phoria", meaning: "bearing", example: "euphoria", chapter: "general" },
+    { name: "-phyte", meaning: "plant", example: "epiphyte", chapter: "general" },
+    { name: "-plasia", meaning: "formation", example: "hyperplasia", chapter: "general" },
+    { name: "-plasm", meaning: "formation", example: "cytoplasm", chapter: "general" },
+    { name: "-plasty", meaning: "surgical repair", example: "rhinoplasty", chapter: "7" },
+    { name: "-plegia", meaning: "paralysis", example: "quadriplegia", chapter: "15" },
+    { name: "-pnea", meaning: "breathing", example: "apnea", chapter: "7" },
+    { name: "-poiesis", meaning: "formation", example: "hematopoiesis", chapter: "9" },
+    { name: "-poietin", meaning: "substance that forms", example: "erythropoietin", chapter: "9" },
+    { name: "-praxia", meaning: "movement", example: "apraxia", chapter: "15" },
+    { name: "-ptosis", meaning: "drooping", example: "blepharoptosis", chapter: "16" },
+    { name: "-ptysis", meaning: "spitting", example: "hemoptysis", chapter: "7" },
+    { name: "-rrhage", meaning: "bursting forth", example: "hemorrhage", chapter: "8" },
+    { name: "-rrhagia", meaning: "bursting forth", example: "menorrhagia", chapter: "12" },
+    { name: "-rrhaphy", meaning: "suturing", example: "herniorrhaphy", chapter: "6" },
+    { name: "-rrhea", meaning: "flow, discharge", example: "diarrhea", chapter: "6" },
+    { name: "-rrhexis", meaning: "rupture", example: "amniorrhexis", chapter: "12" },
+    { name: "-sarcoma", meaning: "malignant tumor", example: "osteosarcoma", chapter: "10" },
+    { name: "-schisis", meaning: "split", example: "cleft", chapter: "general" },
+    { name: "-sclerosis", meaning: "hardening", example: "arteriosclerosis", chapter: "8" },
+    { name: "-scope", meaning: "instrument to view", example: "endoscope", chapter: "general" },
+    { name: "-scopy", meaning: "visual examination", example: "colonoscopy", chapter: "6" },
+    { name: "-sis", meaning: "condition", example: "psychosis", chapter: "15" },
+    { name: "-spasm", meaning: "involuntary contraction", example: "blepharospasm", chapter: "16" },
+    { name: "-stalsis", meaning: "contraction", example: "peristalsis", chapter: "6" },
+    { name: "-stasis", meaning: "standing still", example: "hemostasis", chapter: "9" },
+    { name: "-stenosis", meaning: "narrowing", example: "aortic stenosis", chapter: "8" },
+    { name: "-stomy", meaning: "opening", example: "tracheostomy", chapter: "7" },
+    { name: "-taxis", meaning: "arrangement", example: "chemotaxis", chapter: "general" },
+    { name: "-therapy", meaning: "treatment", example: "chemotherapy", chapter: "general" },
+    { name: "-thermy", meaning: "heat", example: "diathermy", chapter: "general" },
+    { name: "-thrombus", meaning: "clot", example: "thrombus", chapter: "8" },
+    { name: "-tocia", meaning: "birth", example: "dystocia", chapter: "12" },
+    { name: "-tome", meaning: "cutting instrument", example: "dermatome", chapter: "5" },
+    { name: "-tomy", meaning: "incision", example: "tracheotomy", chapter: "7" },
+    { name: "-tony", meaning: "tension", example: "hypertony", chapter: "10" },
+    { name: "-tresia", meaning: "opening", example: "atresia", chapter: "6" },
+    { name: "-tripsy", meaning: "crushing", example: "lithotripsy", chapter: "11" },
+    { name: "-trophy", meaning: "growth", example: "hypertrophy", chapter: "general" },
+    { name: "-ula", meaning: "small", example: "capsula", chapter: "general" },
+    { name: "-ule", meaning: "small", example: "vesicle", chapter: "general" },
+    { name: "-um", meaning: "structure", example: "endometrium", chapter: "12" },
+    { name: "-uria", meaning: "urine condition", example: "hematuria", chapter: "11" },
+    { name: "-us", meaning: "structure", example: "alveolus", chapter: "7" },
+    { name: "-y", meaning: "condition", example: "atony", chapter: "10" }
+  ]
+};
+
+const chapterNames = {
+    "general": "General Terms",
+    "4": "Body Structure",
+    "5": "Integumentary System",
+    "6": "Digestive System",
+    "7": "Respiratory System",
+    "8": "Cardiovascular System",
+    "9": "Blood, Lymphatic, and Immune Systems",
+    "10": "Musculoskeletal System",
+    "11": "Urinary System",
+    "12": "Female Reproductive System",
+    "13": "Male Reproductive System",
+    "14": "Endocrine System",
+    "15": "Nervous System",
+    "16": "Special Senses"
+};
+  // -------------------- STATE --------------------
+  let currentMode = "prefixes";   // "prefixes", "roots", "suffixes"
+  let currentChapter = "general";
+  let currentCard = null;
+  let flipped = false;
+  let hasChecked = false;
+  let hasPeeked = false;
+  let reviewMode = false;
+  let nextCardScheduled = false;
+  let autoNextTimer = null;
+
+  // Data per mode+chapter
+  let known = {};        // { key: [itemName, ...] }
+  let retry = {};        // { key: [cardObject, ...] }
+  let peeked = {};       // { key: [cardObject, ...] }
+  let cardsSinceLastPeek = {};   // { key: number }
+  let cardsSinceLastRetry = {};  // { key: number }
+
+  // Helper to get storage key
+  function getKey(mode, chapter) {
+    return `${mode}_${chapter}`;
+  }
+
+  // Load data from localStorage
+  function loadData() {
+    for (const mode of ["prefixes", "roots", "suffixes"]) {
+      for (const chapter of ["general", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"]) {
+        const key = getKey(mode, chapter);
+        const knownRaw = localStorage.getItem(`medical_known_${key}`);
+        if (knownRaw) known[key] = JSON.parse(knownRaw);
+        else known[key] = [];
+        const retryRaw = localStorage.getItem(`medical_retry_${key}`);
+        if (retryRaw) retry[key] = JSON.parse(retryRaw);
+        else retry[key] = [];
+        const peekedRaw = localStorage.getItem(`medical_peeked_${key}`);
+        if (peekedRaw) peeked[key] = JSON.parse(peekedRaw);
+        else peeked[key] = [];
+        const lastPeekRaw = localStorage.getItem(`medical_peek_counter_${key}`);
+        cardsSinceLastPeek[key] = lastPeekRaw ? parseInt(lastPeekRaw) : 0;
+        const lastRetryRaw = localStorage.getItem(`medical_retry_counter_${key}`);
+        cardsSinceLastRetry[key] = lastRetryRaw ? parseInt(lastRetryRaw) : 0;
+      }
+    }
+    updateStatsUI();
+  }
+
+  // Save known list for current mode+chapter
+  function saveKnown(itemName) {
+    const key = getKey(currentMode, currentChapter);
+    if (!known[key].includes(itemName)) {
+      known[key].push(itemName);
+      localStorage.setItem(`medical_known_${key}`, JSON.stringify(known[key]));
+      updateStatsUI();
+    }
+  }
+
+  // Remove from known (used in review mode when wrong)
+  function removeKnown(itemName) {
+    const key = getKey(currentMode, currentChapter);
+    const idx = known[key].indexOf(itemName);
+    if (idx !== -1) {
+      known[key].splice(idx, 1);
+      localStorage.setItem(`medical_known_${key}`, JSON.stringify(known[key]));
+      updateStatsUI();
+    }
+  }
+
+  // Add to retry list
+  function addRetry(card) {
+    const key = getKey(currentMode, currentChapter);
+    if (!retry[key].some(c => c.oromoWord === card.oromoWord)) {
+      retry[key].push(card);
+      localStorage.setItem(`medical_retry_${key}`, JSON.stringify(retry[key]));
+      updateStatsUI();
+    }
+  }
+
+  // Remove from retry (when answered correctly)
+  function removeRetry(card) {
+    const key = getKey(currentMode, currentChapter);
+    const idx = retry[key].findIndex(c => c.oromoWord === card.oromoWord);
+    if (idx !== -1) {
+      retry[key].splice(idx, 1);
+      localStorage.setItem(`medical_retry_${key}`, JSON.stringify(retry[key]));
+      updateStatsUI();
+    }
+  }
+
+  // Add to peeked list
+  function addPeeked(card) {
+    const key = getKey(currentMode, currentChapter);
+    if (!peeked[key].some(c => c.oromoWord === card.oromoWord)) {
+      peeked[key].push(card);
+      localStorage.setItem(`medical_peeked_${key}`, JSON.stringify(peeked[key]));
+      updateStatsUI();
+    }
+  }
+
+  // Remove from peeked (when answered correctly or after delay)
+  function removePeeked(card) {
+    const key = getKey(currentMode, currentChapter);
+    const idx = peeked[key].findIndex(c => c.oromoWord === card.oromoWord);
+    if (idx !== -1) {
+      peeked[key].splice(idx, 1);
+      localStorage.setItem(`medical_peeked_${key}`, JSON.stringify(peeked[key]));
+      updateStatsUI();
+    }
+  }
+
+  // Update counters in localStorage
+  function updateCounters() {
+    const key = getKey(currentMode, currentChapter);
+    localStorage.setItem(`medical_peek_counter_${key}`, cardsSinceLastPeek[key]);
+    localStorage.setItem(`medical_retry_counter_${key}`, cardsSinceLastRetry[key]);
+  }
+
+  // Increment counters (called after each card)
+  function incrementCounters() {
+    const key = getKey(currentMode, currentChapter);
+    cardsSinceLastPeek[key]++;
+    cardsSinceLastRetry[key]++;
+    updateCounters();
+  }
+
+  // Reset counters for the current key
+  function resetCounters() {
+    const key = getKey(currentMode, currentChapter);
+    cardsSinceLastPeek[key] = 0;
+    cardsSinceLastRetry[key] = 0;
+    updateCounters();
+  }
+
+  // Get known set for current mode+chapter
+  function getKnownSet() {
+    const key = getKey(currentMode, currentChapter);
+    return new Set(known[key]);
+  }
+
+  // Get retry list for current mode+chapter
+  function getRetryList() {
+    const key = getKey(currentMode, currentChapter);
+    return retry[key];
+  }
+
+  // Get peeked list for current mode+chapter
+  function getPeekedList() {
+    const key = getKey(currentMode, currentChapter);
+    return peeked[key];
+  }
+
+  // Get current items (from vocabulary, filtered by chapter)
+function getCurrentItems() {
+    let items = vocabulary[currentMode].filter(item => item.chapter === currentChapter || item.chapter === "general");
+    
+    // If the list is empty (like Roots in 'general'), return the whole list so it works
+    if (items.length === 0) {
+        return vocabulary[currentMode];
+    }
+    return items;
+}
+
+  // Update stats display
+  function updateStatsUI() {
+    const key = getKey(currentMode, currentChapter);
+    const knownCount = known[key].length;
+    const retryCount = retry[key].length;
+    const peekedCount = peeked[key].length;
+    document.getElementById("knownCount").innerText = knownCount;
+    document.getElementById("retryCount").innerText = retryCount;
+    document.getElementById("peekedCount").innerText = peekedCount;
+    document.getElementById("knownCountDisplay").innerText = knownCount;
+  }
+function updateInstructionText() {
+    const modeNames = {
+        prefixes: "prefix",
+        roots: "root",
+        suffixes: "suffix"
+    };
+    const modeType = modeNames[currentMode] || "term";
+    
+    let chapterDisplay = chapterNames[currentChapter] || `Chapter ${currentChapter}`;
+    // For general, we already have a friendly name
+    const instruction = `Guess the meaning of this ${chapterDisplay} ${modeType}`;
+    document.getElementById("instructionText").innerText = instruction;
+}
+function setChapterTooltips() {
+    document.querySelectorAll(".chapter-btn").forEach(btn => {
+        const chapter = btn.getAttribute("data-chapter");
+        const name = chapterNames[chapter] || `Chapter ${chapter}`;
+        btn.setAttribute("title", name);
+    });
+}
+  // -------------------- UTILITY FUNCTIONS --------------------
+  function cleanText(text) {
+    if (!text) return "";
+    return text.toLowerCase().trim().replace(/[‘’]/g, "'").replace(/\s+/g, ' ');
+  }
+
+  function getEditDistance(a, b) {
+    const matrix = Array(a.length + 1).fill().map(() => Array(b.length + 1).fill(0));
+    for (let i = 0; i <= a.length; i++) matrix[i][0] = i;
+    for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
+    for (let i = 1; i <= a.length; i++) {
+      for (let j = 1; j <= b.length; j++) {
+        const cost = a[i-1] === b[j-1] ? 0 : 1;
+        matrix[i][j] = Math.min(matrix[i-1][j] + 1, matrix[i][j-1] + 1, matrix[i-1][j-1] + cost);
+      }
+    }
+    return matrix[a.length][b.length];
+  }
+
+  function isContainedWord(word, text) {
+    const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp('\\b' + escaped + '\\b', 'i');
+    return regex.test(text);
+  }
+
+  function getMatchResult(userAnswer, correctValue) {
+    const cleanUser = cleanText(userAnswer);
+    const synonyms = correctValue.split(/[\/,]+|\s+or\s+/).map(s => cleanText(s));
+    // Exact match
+    if (synonyms.includes(cleanUser)) return { type: "perfect", correct: correctValue };
+    // Close match (typo tolerance)
+    for (const syn of synonyms) {
+      const distance = getEditDistance(cleanUser, syn);
+      const len = syn.length;
+      let allowed = 0;
+      if (len >= 4 && len <= 6) allowed = 1;
+      if (len >= 7) allowed = 2;
+      if (distance > 0 && distance <= allowed) return { type: "close", correct: syn };
+    }
+    // Contained word
+    for (const syn of synonyms) {
+      if (isContainedWord(syn, cleanUser)) return { type: "contained", correct: syn };
+    }
+    return { type: "wrong" };
+  }
+
+  function getTypoHint(user, correct) {
+    if (user.length < correct.length) return `Almost! You missed a letter in "${correct}".`;
+    if (user.length > correct.length) return `Close! You added an extra letter in "${correct}".`;
+    return `Watch your spelling! It should be "${correct}".`;
+  }
+
+  function escapeHtml(str) {
+    if (!str) return "";
+    return str.replace(/[&<>]/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[m]));
+  }
+
+  function flashScreen(color, duration = 400) {
+    const overlay = document.getElementById("flashOverlay");
+    overlay.className = `flash-overlay flash-${color} active`;
+    setTimeout(() => overlay.classList.remove("active"), duration);
+  }
+
+  // -------------------- CARD GENERATION --------------------
+  function generateRandomCard() {
+    const items = getCurrentItems();
+    if (items.length === 0) return null;
+    const item = items[Math.floor(Math.random() * items.length)];
+    const askForMeaning = Math.random() < 0.5;
+    if (askForMeaning) {
+      return {
+        type: "meaning",
+        oromoWord: item.name,
+        correctValue: item.meaning,
+        questionText: item.name,
+        answerText: item.meaning
+      };
+    } else {
+      return {
+        type: "term",
+        oromoWord: item.name,
+        correctValue: item.name,
+        questionText: item.meaning,
+        answerText: item.name
+      };
+    }
+  }
+
+  const RETRY_DELAY_THRESHOLD = 20;
+  function getNextCard() {
+    const retryList = getRetryList();
+    const peekedList = getPeekedList();
+    let retryCounter = cardsSinceLastRetry[getKey(currentMode, currentChapter)];
+    let peekCounter = cardsSinceLastPeek[getKey(currentMode, currentChapter)];
+
+    if (retryList.length > 0 && retryCounter >= RETRY_DELAY_THRESHOLD) {
+      resetCounters(); // reset both counters
+      return retryList.shift();
+    }
+    if (peekedList.length > 0 && peekCounter >= 20) {
+      resetCounters();
+      return peekedList.shift();
+    }
+    let attempts = 0;
+    let card = generateRandomCard();
+    const knownSet = getKnownSet();
+    while (attempts < 10 && knownSet.has(card.oromoWord)) {
+      card = generateRandomCard();
+      attempts++;
+    }
+    incrementCounters();
+    return card;
+  }
+
+  // -------------------- UI UPDATES --------------------
+  function resetCardUI() {
+    if (autoNextTimer) clearTimeout(autoNextTimer);
+    document.getElementById("nextBtn").classList.remove("bounce-next");
+    const answerInput = document.getElementById("answerInput");
+    answerInput.disabled = false;
+    answerInput.value = "";
+    answerInput.placeholder = "Type or select your answer";
+    document.getElementById("peekMessage").style.display = "none";
+    document.getElementById("checkBtn").style.display = "inline-block";
+    document.getElementById("flipBtn").disabled = false;
+    document.getElementById("nextBtn").disabled = false;
+    document.getElementById("reviewKnownBtn").disabled = false;
+    hasChecked = false;
+    hasPeeked = false;
+    nextCardScheduled = false;
+    reviewMode = false;
+    const inner = document.getElementById("flipInner");
+    inner.style.transform = "rotateY(0deg)";
+    flipped = false;
+  }
+
+  function displayCard(card) {
+    if (!card) return;
+    const front = document.getElementById("frontPrompt");
+    const back = document.getElementById("backAnswer");
+    if (card.type === "meaning") {
+      front.innerHTML = `<strong>${escapeHtml(card.questionText)}</strong>`;
+    } else {
+      front.innerHTML = `Medical term that means <strong>${escapeHtml(card.questionText)}</strong>`;
+    }
+    back.innerHTML = escapeHtml(card.answerText);
+    resetCardUI();
+    document.getElementById("answerInput").focus();
+  }
+
+  // -------------------- ACTIONS --------------------
+function checkAnswer() {
+    if (flipped) { flashScreen("red", 300); return; }
+    if (!currentCard || hasChecked) return;
+    const userAnswer = document.getElementById("answerInput").value.trim();
+    if (!userAnswer) { flashScreen("red", 300); return; }
+
+    const correct = currentCard.correctValue;
+    const term = currentCard.oromoWord;
+    const answerInput = document.getElementById("answerInput");
+    const checkBtn = document.getElementById("checkBtn");
+    const flipBtn = document.getElementById("flipBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const reviewBtn = document.getElementById("reviewKnownBtn");
+
+    hasChecked = true;
+    answerInput.disabled = true;
+    checkBtn.disabled = true;
+
+    let result = getMatchResult(userAnswer, correct);
+    let isCorrect = (result.type === "perfect" || result.type === "close" || result.type === "contained");
+    let closeMatch = (result.type === "close");
+    let isContainedMatch = (result.type === "contained");
+
+    if (isCorrect) {
+        flashScreen("green", 400);
+        let guidanceMsg = null;
+        if (isContainedMatch) {
+            guidanceMsg = `✓ Good! Your answer contained the word "${result.correct}".`;
+            answerInput.placeholder = "✓ Correct! (Partial match)";
+        } else if (closeMatch) {
+            guidanceMsg = getTypoHint(cleanText(userAnswer), result.correct);
+            answerInput.placeholder = guidanceMsg;
+        } else {
+            answerInput.placeholder = "✓ Correct!";
+        }
+
+        if (!reviewMode) {
+            saveKnown(term);
+            removeRetry(currentCard);
+            removePeeked(currentCard);
+        } // else: review mode, correct answer keeps it known
+
+        updateStatsUI();
+
+        // Trigger bounce animation on Next button
+        nextBtn.classList.add("bounce-next");
+        setTimeout(() => nextBtn.classList.remove("bounce-next"), 600);
+
+        answerInput.disabled = true;
+        checkBtn.disabled = true;
+        flipBtn.disabled = true;
+        nextBtn.disabled = true;
+        reviewBtn.disabled = true;
+
+        showSuccessPage(term, correct, guidanceMsg);
+    } else {
+        flashScreen("red", 400);
+        if (reviewMode) {
+            removeKnown(term);
+            addRetry(currentCard);
+            updateStatsUI();
+            answerInput.placeholder = "❌ Incorrect. Removed from known.";
+        } else {
+            addRetry(currentCard);
+            updateStatsUI();
+            answerInput.placeholder = `❌ Incorrect. Correct: ${correct}`;
+        }
+        answerInput.disabled = true;
+        checkBtn.disabled = true;
+        flipBtn.disabled = true;
+        nextBtn.disabled = true;
+        reviewBtn.disabled = true;
+
+        showFailPage(term, correct);
+    }
+}
+
+  function flipCard() {
+    if (nextCardScheduled) return;
+    const inner = document.getElementById("flipInner");
+    if (inner.style.transform === "rotateY(180deg)") {
+      inner.style.transform = "rotateY(0deg)";
+      flipped = false;
+    } else {
+      inner.style.transform = "rotateY(180deg)";
+      flipped = true;
+      if (!hasChecked && !hasPeeked) {
+        hasPeeked = true;
+        document.getElementById("answerInput").style.display = "none";
+        document.getElementById("checkBtn").style.display = "none";
+        document.getElementById("peekMessage").style.display = "block";
+        addPeeked(currentCard);
+        updateStatsUI();
+      }
+    }
+  }
+
+  function showNextCard() {
+    if (nextCardScheduled) return;
+    if (autoNextTimer) clearTimeout(autoNextTimer);
+    if (!confirmChange("next")) return;
+    currentCard = getNextCard();
+    if (currentCard) displayCard(currentCard);
+    else {
+      // No cards available? Show a message maybe
+      document.getElementById("frontPrompt").innerHTML = "No cards available for this selection.";
+      document.getElementById("backAnswer").innerHTML = "";
+    }
+    updateStatsUI();
+  }
+
+  function reviewKnown() {
+    if (nextCardScheduled) return;
+    if (!confirmChange("reviewKnown")) return;
+    const knownList = known[getKey(currentMode, currentChapter)];
+    if (knownList.length === 0) { flashScreen("red", 400); return; }
+    reviewMode = true;
+    const randomWord = knownList[Math.floor(Math.random() * knownList.length)];
+    const items = getCurrentItems();
+    const partObj = items.find(p => p.name === randomWord);
+    if (!partObj) {
+      currentCard = { type: "meaning", oromoWord: randomWord, correctValue: randomWord, questionText: randomWord, answerText: randomWord };
+    } else {
+      const askForMeaning = Math.random() < 0.5;
+      if (askForMeaning) {
+        currentCard = { type: "meaning", oromoWord: partObj.name, correctValue: partObj.meaning, questionText: partObj.name, answerText: partObj.meaning };
+      } else {
+        currentCard = { type: "term", oromoWord: partObj.name, correctValue: partObj.name, questionText: partObj.meaning, answerText: partObj.name };
+      }
+    }
+    displayCard(currentCard);
+    updateStatsUI();
+  }
+
+  function showSuccessPage(term, meaning, guidance) {
+    document.getElementById("successTranslation").innerHTML = `${escapeHtml(term)} | ${escapeHtml(meaning)}`;
+    const guidanceEl = document.getElementById("successGuidance");
+    if (guidance) {
+      guidanceEl.textContent = guidance;
+      guidanceEl.style.display = "block";
+    } else {
+      guidanceEl.style.display = "none";
+    }
+    document.getElementById("successPage").style.display = "flex";
+    document.getElementById("studyView").style.display = "none";
+    document.getElementById("continueSuccessBtn").focus();
+  }
+
+  function showFailPage(term, meaning) {
+    document.getElementById("failTerm").innerText = term;
+    document.getElementById("failMeaning").innerText = meaning;
+    document.getElementById("failPage").style.display = "flex";
+    document.getElementById("studyView").style.display = "none";
+    document.getElementById("continueFailBtn").focus();
+  }
+
+  function hideResultPagesAndContinue() {
+    document.getElementById("successPage").style.display = "none";
+    document.getElementById("failPage").style.display = "none";
+    document.getElementById("studyView").style.display = "flex";
+    showNextCard();
+  }
+
+  // -------------------- MODE & CHAPTER --------------------
+function setMode(mode) {
+    if (!confirmChange("mode")) return;
+    
+    currentMode = mode; 
+
+    // 1. Remove active class from ALL mode buttons
+    document.getElementById("modePrefixBtn").classList.remove("active");
+    document.getElementById("modeRootBtn").classList.remove("active");
+    document.getElementById("modeSuffixBtn").classList.remove("active");
+
+    // 2. Map the data names to your actual HTML IDs
+    const modeToIdMap = {
+        "prefixes": "modePrefixBtn",
+        "roots": "modeRootBtn",
+        "suffixes": "modeSuffixBtn"
+    };
+
+    // 3. Add active class to the correct button
+    const targetBtnId = modeToIdMap[mode];
+    const targetBtn = document.getElementById(targetBtnId); 
+    if (targetBtn) {
+        targetBtn.classList.add("active");
+    }
+
+    // 4. Logic for Chapters (Roots usually start at Ch 4)
+    if (mode === "roots" && currentChapter === "general") {
+        currentChapter = "4"; 
+    }
+
+    // 5. Update instruction text (now includes chapter)
+    updateInstructionText();
+
+    showChapterNavbar(true);
+    highlightActiveChapter();
+    updateStatsUI();
+    showNextCard();
+}
+
+function setChapter(chapter) {
+    if (!confirmChange("chapter")) return;
+    currentChapter = chapter;
+    highlightActiveChapter();
+    updateInstructionText();
+    updateStatsUI();
+    showNextCard();
+}
+
+  function highlightActiveChapter() {
+    document.querySelectorAll(".chapter-btn").forEach(btn => {
+      if (btn.getAttribute("data-chapter") === currentChapter) {
+        btn.classList.add("active");
+      } else {
+        btn.classList.remove("active");
+      }
+    });
+  }
+
+  // Chapter navbar visibility and close on outside click
+  let navbarVisible = false;
+  function showChapterNavbar(show) {
+    const navbar = document.getElementById("chapterNavbar");
+    navbar.style.display = show ? "flex" : "none";
+    navbarVisible = show;
+  }
+
+  function handleOutsideClick(e) {
+    if (!navbarVisible) return;
+    const navbar = document.getElementById("chapterNavbar");
+    const modeToggle = document.querySelector(".mode-toggle");
+    if (!navbar.contains(e.target) && !modeToggle.contains(e.target)) {
+      showChapterNavbar(false);
+    }
+  }
+
+  // Confirmation dialog for unsaved changes
+  function confirmChange(action) {
+    if (hasChecked || hasPeeked) return true;
+    if (!currentCard) return true;
+    if (nextCardScheduled) return true;
+    const messages = {
+      next: "🎲 Ready to move to the next card? Your current answer will be lost. Continue?",
+      reviewKnown: "⭐ Time to test your known words? This question will be left behind. Continue?",
+      mode: "🔄 Switching modes? Your unsaved answer will be lost. Continue?",
+      chapter: "📚 Changing chapters? Your unsaved answer will be lost. Continue?"
+    };
+    const msg = messages[action] || "You haven't answered this card. Are you sure you want to leave?";
+    return confirm(msg);
+  }
+
+  // -------------------- SETTINGS & BACKUP --------------------
+  function toggleSettings() {
+    const menu = document.getElementById("settingsMenu");
+    menu.style.display = menu.style.display === "none" ? "block" : "none";
+  }
+
+  function backupData() {
+    const exportObj = { known, retry, peeked, cardsSinceLastPeek, cardsSinceLastRetry };
+    const dataStr = JSON.stringify(exportObj, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `medical_flashcards_backup_${new Date().toISOString().slice(0,19)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function triggerRestore() {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "application/json";
+    input.onchange = (e) => {
+      if (e.target.files[0]) restoreData(e.target.files[0]);
+    };
+    input.click();
+  }
+
+  function restoreData(file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const imported = JSON.parse(e.target.result);
+        if (!imported.known || !imported.retry) throw new Error("Invalid file format");
+        known = imported.known;
+        retry = imported.retry;
+        peeked = imported.peeked || {};
+        cardsSinceLastPeek = imported.cardsSinceLastPeek || {};
+        cardsSinceLastRetry = imported.cardsSinceLastRetry || {};
+        // Save to localStorage
+        for (const key in known) localStorage.setItem(`medical_known_${key}`, JSON.stringify(known[key]));
+        for (const key in retry) localStorage.setItem(`medical_retry_${key}`, JSON.stringify(retry[key]));
+        for (const key in peeked) localStorage.setItem(`medical_peeked_${key}`, JSON.stringify(peeked[key]));
+        for (const key in cardsSinceLastPeek) localStorage.setItem(`medical_peek_counter_${key}`, cardsSinceLastPeek[key]);
+        for (const key in cardsSinceLastRetry) localStorage.setItem(`medical_retry_counter_${key}`, cardsSinceLastRetry[key]);
+        updateStatsUI();
+        showNextCard();
+        flashScreen("green", 300);
+        alert("Data restored successfully!");
+      } catch (err) { alert("Restore failed: " + err.message); }
+    };
+    reader.readAsText(file);
+  }
+
+  function resetAllData() {
+    if (confirm("⚠️ Reset all progress? This will delete all known, retry, and peeked cards for all modes and chapters. You cannot undo this.")) {
+      for (const mode of ["prefixes", "roots", "suffixes"]) {
+        for (const chapter of ["general", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"]) {
+          const key = getKey(mode, chapter);
+          localStorage.removeItem(`medical_known_${key}`);
+          localStorage.removeItem(`medical_retry_${key}`);
+          localStorage.removeItem(`medical_peeked_${key}`);
+          localStorage.removeItem(`medical_peek_counter_${key}`);
+          localStorage.removeItem(`medical_retry_counter_${key}`);
+        }
+      }
+      loadData(); // reload fresh empty data
+      currentCard = null;
+      hasChecked = false;
+      hasPeeked = false;
+      nextCardScheduled = false;
+      reviewMode = false;
+      updateStatsUI();
+      showNextCard();
+      flashScreen("green", 300);
+    }
+  }
+function buildTutorialSteps() {
+    tutorialSteps = [
+        { title: "🎓 Welcome!", desc: "Let's learn how to use this app in 30 seconds.", requiredAction: null, arrowTarget: null, demo: null },
+        { title: "1. The Challenge", desc: "Look at the word on this card.", demo: { front: "a-", back: "without / absence of", buttons: [], hasInput: false, disableOnFlip: false }, requiredAction: null, arrowTarget: "#demoFlashcard" },
+        { title: "2. Your Answer", desc: "Type the translation here. For this demo, type <b>without</b> (or one of its synonyms).", demo: { front: "a-", back: "without / absence of", buttons: [], feedbackId: "demoFeedback", hasInput: true, expectedAnswer: "without / absence of", disableOnFlip: false }, requiredAction: "type", arrowTarget: "#demoInput" },
+        { title: "3. Verify", desc: "Click Check to submit your answer.", demo: { front: "a-", back: "without / absence of", buttons: [{ label: "✓ Check", action: "check", class: "demo-btn-primary" }], feedbackId: "demoFeedback", hasInput: true, expectedAnswer: "without / absence of", disableOnFlip: false, prefillAnswer: true }, requiredAction: "check", arrowTarget: "#demoCheckBtn" },
+        { title: "4. Stuck?", desc: "Can't remember? Use Flip to peek, but this disables the 'Check' button for this card.", demo: { front: "a-", back: "without / absence of", buttons: [{ label: "🔄 Flip", action: "flip", class: "" }], feedbackId: "demoFeedback", hasInput: true, disableOnFlip: true, expectedAnswer: null }, requiredAction: "flip", arrowTarget: "#demoFlipBtn" },
+        { title: "🏷️ Mode Switch", desc: "Use Pre/Root/Suf toggles to switch between prefixes, roots, and suffixes.", requiredAction: null, arrowTarget: ".mode-toggle", demo: null },
+        { title: "📚 Chapter Selection", desc: "After picking a mode, tap the chapter bar to pick a topic.", requiredAction: null, arrowTarget: ".chapter-navbar", demo: null },
+        { title: "📊 Tracking", desc: "Watch your 'Known' count grow! Wrong answers go to 'Retry'.", requiredAction: null, arrowTarget: ".stats-area", demo: null },
+        { title: "🕹️ Feature Gallery", desc: `<div class="flex flex-col gap-2 mt-2"><div class="flex items-center gap-2"><button class="bg-red-500 text-white text-xs px-3 py-1 rounded-full">⚠️ Reset</button> <span class="text-xs">Deletes all progress.</span></div><div class="flex items-center gap-2"><button class="bg-blue-500 text-white text-xs px-3 py-1 rounded-full">💾 Backup</button> <span class="text-xs">Save progress to file.</span></div><div class="flex items-center gap-2"><button class="bg-green-500 text-white text-xs px-3 py-1 rounded-full">📂 Restore</button> <span class="text-xs">Load your saved data.</span></div><div class="flex items-center gap-2"><button class="bg-purple-100 text-purple-800 text-xs px-3 py-1 rounded-full">⭐ Review Known</button> <span class="text-xs">Practice mastered words.</span></div></div>`, requiredAction: null, arrowTarget: ".stats-area", demo: null },
+        { title: "🎉 Ready!", desc: "Start learning. You can reopen this tutorial anytime with the ❓ button.", requiredAction: null, arrowTarget: null, demo: null }
+    ];
+}
+// ---------- TUTORIAL (full interactive) ----------
+let tutorialActive = false;
+let currentStep = 0;
+let tutorialSteps = [];
+let stepCompletionFlags = [];
+let arrowDiv = null;
+
+function highlightElement(selector) {
+    removeHighlight();
+    const el = document.querySelector(selector);
+    if (el) el.classList.add('highlight-target');
+}
+function removeHighlight() {
+    document.querySelectorAll('.highlight-target').forEach(el => el.classList.remove('highlight-target'));
+}
+function removeArrow() {
+    if (arrowDiv) {
+        arrowDiv.remove();
+        arrowDiv = null;
+    }
+}
+function addArrowToElement(selector) {
+    removeArrow();
+    const target = document.querySelector(selector);
+    if (!target) return;
+    const rect = target.getBoundingClientRect();
+    const viewWidth = window.innerWidth;
+    const viewHeight = window.innerHeight;
+    let side = 'right';
+    const spaceRight = viewWidth - rect.right;
+    const spaceLeft = rect.left;
+    const spaceTop = rect.top;
+    if (spaceRight < 50 && spaceLeft > spaceRight) side = 'left';
+    if (spaceRight < 50 && spaceLeft < 50 && spaceTop > 60) side = 'top';
+    arrowDiv = document.createElement('div');
+    arrowDiv.className = 'tutorial-arrow';
+    switch (side) {
+        case 'right':
+            arrowDiv.innerHTML = '⬅';
+            arrowDiv.style.left = `${rect.right + 5}px`;
+            arrowDiv.style.top = `${rect.top + rect.height / 2}px`;
+            arrowDiv.style.animation = 'bounceRight 0.5s infinite alternate ease-in-out';
+            break;
+        case 'left':
+            arrowDiv.innerHTML = '➡';
+            arrowDiv.style.left = `${rect.left - 35}px`;
+            arrowDiv.style.top = `${rect.top + rect.height / 2}px`;
+            arrowDiv.style.animation = 'bounceRight 0.5s infinite alternate ease-in-out';
+            break;
+        case 'top':
+            arrowDiv.innerHTML = '⬇';
+            arrowDiv.style.left = `${rect.left + rect.width / 2 - 15}px`;
+            arrowDiv.style.top = `${rect.top - 35}px`;
+            arrowDiv.style.transform = 'none';
+            arrowDiv.style.animation = 'bounceDown 0.5s infinite alternate ease-in-out';
+            break;
+    }
+    document.body.appendChild(arrowDiv);
+}
+function highlightTutorialNextButton() {
+    removeHighlight();
+    removeArrow();
+    const nextBtn = document.getElementById('tutorialNextBtn');
+    if (nextBtn) {
+        nextBtn.classList.add('highlight-target');
+        addArrowToElement('#tutorialNextBtn');
+    }
+}
+function endTutorial() {
+    tutorialActive = false;
+    const overlay = document.querySelector('.tutorial-overlay');
+    if (overlay) overlay.remove();
+    removeHighlight();
+    removeArrow();
+}
+function showStep(stepIndex) {
+    removeHighlight();
+    removeArrow();
+    const step = tutorialSteps[stepIndex];
+    if (!step) return;
+    let tooltipHtml = `<div class="tutorial-card">
+        <button class="tutorial-close" id="tutorialCloseBtn">&times;</button>
+        <div class="tutorial-title">${step.title}</div>
+        <div class="tutorial-desc">${step.desc}</div>`;
+    if (step.demo) {
+        tooltipHtml += `<div class="demo-flashcard" id="demoFlashcard">
+            <div class="demo-inner" id="demoInner">
+                <div class="demo-front">${step.demo.front}</div>
+                <div class="demo-back">${step.demo.back}</div>
+            </div>
+        </div>`;
+        if (step.demo.hasInput) {
+            let prefillValue = '';
+            if (step.demo.prefillAnswer && step.demo.expectedAnswer) {
+                const firstSynonym = step.demo.expectedAnswer.split(/[\/,]+|\s+or\s+/)[0].trim();
+                prefillValue = ` value="${escapeHtml(firstSynonym)}"`;
+            }
+            tooltipHtml += `<div style="margin: 0.8rem 0;">
+                <input type="text" id="demoInput" placeholder="Type your answer here..."${prefillValue} style="width:100%; padding:0.5rem; border:1px solid #ccc; border-radius:2rem; text-align:center;">
+            </div>`;
+        }
+        if (step.demo.buttons && step.demo.buttons.length > 0) {
+            tooltipHtml += `<div class="demo-buttons">`;
+            for (const btn of step.demo.buttons) {
+                const id = btn.action === 'check' ? 'demoCheckBtn' : (btn.action === 'flip' ? 'demoFlipBtn' : '');
+                tooltipHtml += `<button ${id ? `id="${id}"` : ''} class="demo-btn ${btn.class || ''}" data-action="${btn.action}">${btn.label}</button>`;
+            }
+            tooltipHtml += `</div>`;
+        }
+        if (step.demo.feedbackId) {
+            tooltipHtml += `<div class="demo-feedback" id="demoFeedback"></div>`;
+        }
+    }
+    const prevDisabled = stepIndex === 0 ? 'disabled' : '';
+    const nextDisabled = step.requiredAction && !stepCompletionFlags[stepIndex] ? 'disabled' : '';
+    tooltipHtml += `<div class="tutorial-nav">
+        <button id="tutorialPrevBtn" ${prevDisabled}>← Previous</button>
+        <div class="tutorial-checkbox">
+            <input type="checkbox" id="tutorialDontShowAgain"> <label for="tutorialDontShowAgain">Don't show again</label>
+        </div>
+        <button id="tutorialNextBtn" class="primary" ${nextDisabled}>${stepIndex === tutorialSteps.length-1 ? 'Finish' : 'Next →'}</button>
+    </div></div>`;
+    let overlay = document.querySelector('.tutorial-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.className = 'tutorial-overlay';
+        document.body.appendChild(overlay);
+    }
+    overlay.innerHTML = tooltipHtml;
+    overlay.style.display = 'flex';
+    let targetElement = step.demo ? (step.arrowTarget || '#demoFlashcard') : step.arrowTarget;
+    if (targetElement) {
+        setTimeout(() => {
+            highlightElement(targetElement);
+            addArrowToElement(targetElement);
+        }, 10);
+    }
+    if (!step.requiredAction && stepIndex < tutorialSteps.length - 1) {
+        setTimeout(() => highlightTutorialNextButton(), 900);
+    }
+    // Demo interactions
+    if (step.demo) {
+        const demoInner = document.getElementById('demoInner');
+        const demoFeedback = document.getElementById('demoFeedback');
+        const demoInput = document.getElementById('demoInput');
+        const checkBtn = document.getElementById('demoCheckBtn') || document.querySelector('.demo-btn[data-action="check"]');
+        const flipBtns = document.querySelectorAll('.demo-btn[data-action="flip"]');
+        let demoFlipped = false;
+        if (step.demo.disableOnFlip && demoInput) {
+            demoInput.disabled = true;
+            if (checkBtn) checkBtn.disabled = true;
+        }
+        flipBtns.forEach(btn => {
+            btn.onclick = () => {
+                demoInner.style.transform = demoFlipped ? 'rotateY(0deg)' : 'rotateY(180deg)';
+                demoFlipped = !demoFlipped;
+                if (demoFeedback) demoFeedback.innerText = '';
+                if (step.demo.disableOnFlip && demoFlipped) {
+                    if (demoInput) demoInput.disabled = true;
+                    if (checkBtn) checkBtn.disabled = true;
+                    if (demoFeedback) demoFeedback.innerText = '⚠️ Flipping counts as a peek. Input & Check are now disabled.';
+                }
+                if (step.requiredAction === 'flip') {
+                    stepCompletionFlags[stepIndex] = true;
+                    const nextBtn = document.getElementById('tutorialNextBtn');
+                    if (nextBtn) nextBtn.disabled = false;
+                    highlightTutorialNextButton();
+                }
+            };
+        });
+        if (step.requiredAction === 'type' && demoInput) {
+            const handleType = () => {
+                if (demoInput.value.trim() !== '') {
+                    stepCompletionFlags[stepIndex] = true;
+                    const nextBtn = document.getElementById('tutorialNextBtn');
+                    if (nextBtn) nextBtn.disabled = false;
+                    highlightTutorialNextButton();
+                    demoInput.removeEventListener('input', handleType);
+                }
+            };
+            demoInput.addEventListener('input', handleType);
+        }
+        if (step.demo.hasInput && step.requiredAction === 'check') {
+            const handleCheck = () => {
+                if (step.demo.disableOnFlip && demoFlipped) {
+                    if (demoFeedback) demoFeedback.innerText = '❌ You already peeked – answer is disabled.';
+                    return;
+                }
+                if (!demoInput) return;
+                const userAnswer = demoInput.value.trim().toLowerCase();
+                const correctSynonyms = step.demo.expectedAnswer.split(/[\/,]+|\s+or\s+/).map(s => s.trim().toLowerCase());
+                if (correctSynonyms.includes(userAnswer)) {
+                    if (demoFeedback) demoFeedback.innerText = '✓ Correct! Good job.';
+                    stepCompletionFlags[stepIndex] = true;
+                    const nextBtn = document.getElementById('tutorialNextBtn');
+                    if (nextBtn) nextBtn.disabled = false;
+                    highlightTutorialNextButton();
+                } else {
+                    if (demoFeedback) demoFeedback.innerText = `❌ Incorrect. Try one of: ${correctSynonyms.join(', ')}`;
+                }
+            };
+            if (checkBtn) checkBtn.onclick = handleCheck;
+        }
+        const demoCard = document.getElementById('demoFlashcard');
+        if (demoCard && flipBtns.length > 0) {
+            demoCard.onclick = (e) => {
+                if (e.target === demoCard || e.target.classList.contains('demo-front') || e.target.classList.contains('demo-back')) {
+                    demoInner.style.transform = demoFlipped ? 'rotateY(0deg)' : 'rotateY(180deg)';
+                    demoFlipped = !demoFlipped;
+                    if (demoFeedback) demoFeedback.innerText = '';
+                    if (step.demo.disableOnFlip && demoFlipped) {
+                        if (demoInput) demoInput.disabled = true;
+                        if (checkBtn) checkBtn.disabled = true;
+                        if (demoFeedback) demoFeedback.innerText = '⚠️ Flipping counts as a peek. Input & Check are now disabled.';
+                    }
+                    if (step.requiredAction === 'flip') {
+                        stepCompletionFlags[stepIndex] = true;
+                        const nextBtn = document.getElementById('tutorialNextBtn');
+                        if (nextBtn) nextBtn.disabled = false;
+                        highlightTutorialNextButton();
+                    }
+                }
+            };
+        }
+    }
+    // Navigation events
+    document.getElementById('tutorialCloseBtn').onclick = endTutorial;
+    document.getElementById('tutorialPrevBtn').onclick = () => { if (stepIndex > 0) showStep(stepIndex-1); };
+    document.getElementById('tutorialNextBtn').onclick = () => {
+        if (stepIndex === tutorialSteps.length-1) {
+            endTutorial();
+        } else {
+            showStep(stepIndex+1);
+        }
+    };
+    const chk = document.getElementById('tutorialDontShowAgain');
+    if (chk) {
+        chk.checked = localStorage.getItem('tutorial_dont_show_again') === 'true';
+        chk.onchange = (e) => {
+            localStorage.setItem('tutorial_dont_show_again', e.target.checked ? 'true' : 'false');
+        };
+    }
+}
+function startTutorial() {
+    if (tutorialActive) return;
+    tutorialActive = true;
+    currentStep = 0;
+    stepCompletionFlags = tutorialSteps.map(() => false);
+    showStep(0);
+}
+function initTutorial() {
+    buildTutorialSteps();
+    const dontShow = localStorage.getItem('tutorial_dont_show_again') === 'true';
+    if (!dontShow) setTimeout(() => startTutorial(), 500);
+    document.getElementById('tutorialBtn').onclick = () => startTutorial();
+}
+
+  // -------------------- MOBILE KEYBOARD HANDLING --------------------
+  function isMobileDevice() {
+    return window.matchMedia("(max-width: 768px) and (pointer: coarse)").matches || ('ontouchstart' in window && window.innerWidth <= 768);
+  }
+  function handleKeyboardOpen() {
+    if (!isMobileDevice()) return;
+    const inputField = document.getElementById("answerInput");
+    inputField.addEventListener("focus", () => {
+      if (document.getElementById("studyView").style.display !== "none") {
+        document.body.classList.add("keyboard-open");
+        setTimeout(() => inputField.scrollIntoView({ behavior: "smooth", block: "center" }), 200);
+      }
+    });
+    inputField.addEventListener("blur", () => document.body.classList.remove("keyboard-open"));
+  }
+
+  // -------------------- EVENT LISTENERS --------------------
+  function bindEvents() {
+    document.getElementById("modePrefixBtn").addEventListener("click", () => setMode("prefixes"));
+    document.getElementById("modeRootBtn").addEventListener("click", () => setMode("roots"));
+    document.getElementById("modeSuffixBtn").addEventListener("click", () => setMode("suffixes"));
+    document.getElementById("gearBtn").addEventListener("click", toggleSettings);
+    document.getElementById("backupBtn").addEventListener("click", backupData);
+    document.getElementById("restoreBtn").addEventListener("click", triggerRestore);
+    document.getElementById("resetBtn").addEventListener("click", resetAllData);
+    document.getElementById("checkBtn").addEventListener("click", () => { if (!flipped && !hasChecked && !nextCardScheduled) checkAnswer(); else flashScreen("red", 300); });
+    document.getElementById("flipBtn").addEventListener("click", flipCard);
+    document.getElementById("nextBtn").addEventListener("click", () => { if (!nextCardScheduled) showNextCard(); });
+    document.getElementById("reviewKnownBtn").addEventListener("click", () => { if (!nextCardScheduled) reviewKnown(); });
+    document.getElementById("continueSuccessBtn").addEventListener("click", hideResultPagesAndContinue);
+    document.getElementById("continueFailBtn").addEventListener("click", hideResultPagesAndContinue);
+    document.querySelector(".flip-card").addEventListener("click", flipCard);
+    document.getElementById("answerInput").addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        if (!flipped && !hasChecked && !nextCardScheduled) checkAnswer();
+        else if (flipped) flashScreen("red", 300);
+      }
+    });
+    document.getElementById("answerInput").addEventListener("input", filterAndShowSuggestions);
+    document.getElementById("answerInput").addEventListener("blur", () => {
+      setTimeout(() => document.getElementById("suggestionsDropdown").style.display = "none", 150);
+    });
+    document.getElementById("answerInput").addEventListener("keydown", (e) => {
+      if (e.key === "Escape") document.getElementById("suggestionsDropdown").style.display = "none";
+    });
+    document.addEventListener("click", (e) => {
+      const menu = document.getElementById("settingsMenu");
+      const gear = document.getElementById("gearBtn");
+      if (menu.style.display === "block" && !menu.contains(e.target) && e.target !== gear) menu.style.display = "none";
+    });
+    // Chapter buttons: attach after they are created
+    document.querySelectorAll(".chapter-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        setChapter(btn.getAttribute("data-chapter"));
+      });
+    });
+    // Keyboard close result pages
+    document.addEventListener("keydown", (e) => {
+      const successPage = document.getElementById("successPage");
+      const failPage = document.getElementById("failPage");
+      if ((successPage.style.display === "flex" || failPage.style.display === "flex") && (e.key === "Enter" || e.key === " ")) {
+        e.preventDefault();
+        if (successPage.style.display === "flex") document.getElementById("continueSuccessBtn").click();
+        else document.getElementById("continueFailBtn").click();
+      }
+    });
+    window.addEventListener("beforeunload", function (e) {
+      if (!hasChecked && !hasPeeked && currentCard && !nextCardScheduled) {
+        e.preventDefault();
+        e.returnValue = "You haven't answered this card yet. Are you sure you want to leave?";
+        return e.returnValue;
+      }
+    });
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+            const menu = document.getElementById("settingsMenu");
+            if (menu.style.display === "block") {
+                menu.style.display = "none";
+            }
+        }
+    });
+  }
+
+  // Suggestions (simple)
+  function updateSuggestions() {
+    // Store current set for filtering
+    currentSuggestions = getCurrentItems().map(item => item.name);
+  }
+  let currentSuggestions = [];
+  function filterAndShowSuggestions() {
+    const input = document.getElementById("answerInput");
+    const dropdown = document.getElementById("suggestionsDropdown");
+    const query = input.value.trim().toLowerCase();
+    if (!query) {
+      dropdown.style.display = "none";
+      return;
+    }
+    const filtered = currentSuggestions.filter(item => item.toLowerCase().includes(query));
+    if (filtered.length === 0) {
+      dropdown.style.display = "none";
+      return;
+    }
+    dropdown.innerHTML = "";
+    filtered.forEach(suggestion => {
+      const div = document.createElement("div");
+      div.className = "suggestion-item";
+      div.textContent = suggestion;
+      div.onclick = (e) => {
+        input.value = suggestion;
+        dropdown.style.display = "none";
+        input.focus();
+      };
+      dropdown.appendChild(div);
+    });
+    dropdown.style.display = "block";
+  }
+
+  // -------------------- INITIALIZATION --------------------
+function init() {
+    loadData();
+    setMode("prefixes");
+    bindEvents();
+    initTutorial();
+    handleKeyboardOpen();
+    updateSuggestions();
+    setChapterTooltips();   // <-- add this line
+}
+
+  // Start when DOM ready
+  document.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>

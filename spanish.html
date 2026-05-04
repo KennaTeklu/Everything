@@ -1,0 +1,2029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Spanish Flashcards – Master Words & Phrases</title>
+    <!-- Styles will be added in next round -->
+<style>
+    /* Tailwind CSS CDN for utility classes */
+    @import url('https://cdn.jsdelivr.net/npm/tailwindcss@2/dist/tailwind.min.css');
+
+    /* Custom styles */
+    body {
+        background: #eef2f7;
+        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .app-container {
+        max-width: 700px;
+        width: 100%;
+        background: white;
+        border-radius: none;
+        box-shadow: 0 20px 35px -10px rgba(0,0,0,0.1);
+        overflow: hidden;
+        position: relative;
+        min-height: 100vh;
+    }
+
+    /* Study view */
+    .study-view {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .star-counter {
+        font-size: 1.25rem;
+        font-weight: bold;
+        color: #eab308;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        cursor: pointer;
+        transition: transform 0.1s;
+    }
+    .star-counter:active {
+        transform: scale(0.95);
+    }
+    .mode-toggle {
+        display: flex;
+        background: #f3f4f6;
+        border-radius: 9999px;
+        padding: 0.25rem;
+    }
+    .mode-btn {
+        padding: 0.25rem 1rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: bold;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .mode-btn.active {
+        background: white;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        color: #1f2937;
+    }
+    .mode-btn:not(.active) {
+        color: #6b7280;
+    }
+    .gear-btn {
+        font-size: 1.25rem;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0.25rem;
+        border-radius: 9999px;
+        transition: background 0.2s;
+    }
+    .gear-btn:hover {
+        background: #f3f4f6;
+    }
+
+    /* Settings menu */
+    .settings-menu {
+        position: absolute;
+        top: 4rem;
+        right: 1rem;
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        padding: 0.5rem;
+        z-index: 200;
+        min-width: 140px;
+    }
+    .settings-item {
+        display: block;
+        width: 100%;
+        text-align: left;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.75rem;
+        background: none;
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: background 0.1s;
+    }
+    .settings-item:hover {
+        background: #f3f4f6;
+    }
+    .settings-item.danger {
+        color: #ef4444;
+    }
+    .settings-divider {
+        margin: 0.5rem 0;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    /* Instruction text */
+    .instruction-text {
+        text-align: center;
+        color: #9ca3af;
+        font-size: 0.75rem;
+        margin-top: 1rem;
+        margin-bottom: 0.25rem;
+    }
+
+    /* Flashcard area */
+    .flashcard-area {
+        flex: 1;
+        padding: 1rem;
+    }
+    .flip-card {
+        width: 100%;
+        height: 30vh;
+        min-height: 150px;
+        perspective: 1000px;
+        cursor: pointer;
+    }
+    .flip-card-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        transition: transform 0.6s;
+        transform-style: preserve-3d;
+    }
+    .flip-card-front, .flip-card-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        border-radius: 1rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 1rem;
+        box-sizing: border-box;
+    }
+    .flip-card-front {
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+    }
+    .flip-card-back {
+        background-color: #eef2fa;
+        transform: rotateY(180deg);
+        border: 1px solid #cbd5e1;
+    }
+    .definition-text {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #1e2f3a;
+        text-align: center;
+    }
+    .term-text {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #2c7da0;
+        text-align: center;
+    }
+    @media (max-width: 640px) {
+        .definition-text { font-size: 1.1rem; }
+        .term-text { font-size: 1.3rem; }
+        .flip-card { height: 160px; }
+    }
+    @media (max-height: 700px) {
+        .flip-card { height: 140px; }
+        .definition-text { font-size: 1rem; }
+        .term-text { font-size: 1.2rem; }
+    }
+
+    /* Answer input */
+    .dropdown-area {
+        padding: 0 1rem 0.5rem;
+    }
+    .input-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .answer-input {
+        width: 100%;
+        border: 1px solid #d1d5db;
+        border-radius: 9999px;
+        padding: 0.5rem 0.75rem;
+        text-align: center;
+        font-size: 1.125rem;
+        outline: none;
+        transition: box-shadow 0.2s;
+    }
+    .answer-input:focus {
+        box-shadow: 0 0 0 2px #3b82f6;
+        border-color: transparent;
+    }
+
+    /* Action buttons */
+    .buttons-area {
+        padding: 0 1rem 0.5rem;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    .action-btn {
+        padding: 0.25rem 1rem;
+        border-radius: 9999px;
+        font-weight: 600;
+        background: #e5e7eb;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .action-btn.primary {
+        background: #2563eb;
+        color: white;
+    }
+    .action-btn.primary:hover {
+        background: #1d4ed8;
+    }
+    .action-btn.review {
+        background: #f3e8ff;
+        color: #6b21a5;
+    }
+    .action-btn.review:hover {
+        background: #e9d5ff;
+    }
+    .action-btn:not(.primary):not(.review):hover {
+        background: #d1d5db;
+    }
+
+    /* Stats area */
+    .stats-area {
+        padding: 0 1rem 1rem;
+        text-align: center;
+    }
+    .stats-text {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-bottom: 0.5rem;
+    }
+    .info-text {
+        font-size: 0.75rem;
+        color: #9ca3af;
+    }
+
+    /* Flash overlay */
+    .flash-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 9999;
+        opacity: 0;
+        transition: opacity 0.1s ease;
+    }
+    .flash-overlay.active {
+        opacity: 0.9;
+    }
+    .flash-green {
+        background-color: #28a745;
+    }
+    .flash-red {
+        background-color: #dc3545;
+    }
+
+    /* Bounce animation for Next button */
+    @keyframes gentleBounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-6px); }
+    }
+    .bounce-next {
+        animation: gentleBounce 0.6s ease-in-out infinite;
+    }
+
+    /* Result pages */
+    .result-page {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        min-height: 100vh;
+        width: 100%;
+        padding: 2rem;
+        box-sizing: border-box;
+    }
+    .success-page {
+        background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
+        color: white;
+    }
+    .fail-page {
+        background: linear-gradient(135deg, #4b5563, #374151);
+        color: #e5e7eb;
+    }
+    .result-content {
+        max-width: 320px;
+        width: 100%;
+        margin: 0 auto;
+    }
+    .success-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    .result-title {
+        font-size: 2.25rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    .result-translation {
+        font-size: 1.125rem;
+        opacity: 0.9;
+        margin-bottom: 1.5rem;
+        font-weight: 500;
+    }
+    .motivation-text {
+        font-style: italic;
+        font-size: 1rem;
+        max-width: 280px;
+        margin: 0 auto 2rem auto;
+    }
+    .fail-title {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+    }
+    .fail-subtitle {
+        color: #6b7280;
+        margin-bottom: 1.5rem;
+    }
+    .word-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        margin-bottom: 1.5rem;
+    }
+    .word-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #9ca3af;
+        margin-bottom: 0.25rem;
+    }
+    .oromo-word {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #2563eb;
+        margin-bottom: 0.75rem;
+    }
+    .english-word {
+        font-size: 1.25rem;
+        color: #374151;
+    }
+    .retry-note {
+        font-size: 0.75rem;
+        color: #9ca3af;
+        margin-bottom: 2rem;
+    }
+    .continue-btn {
+        background: #2563eb;
+        color: white;
+        font-weight: bold;
+        padding: 0.75rem 2rem;
+        border-radius: 9999px;
+        border: none;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    }
+    .continue-btn:hover {
+        background: #1d4ed8;
+        transform: scale(1.02);
+    }
+    .continue-btn:active {
+        transform: scale(0.98);
+    }
+/* ----- Tutorial styles – full‑screen, no dark overlay ----- */
+.tutorial-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+.tutorial-card {
+    background: white;
+    border-radius: 1.5rem;
+    max-height: 85dvh;
+    max-width: 340px;
+    width: 85%;
+    padding: 1rem;
+    box-shadow: 0 20px 35px -10px rgba(0,0,0,0.2);
+    position: relative;
+    animation: fadeInUp 0.2s ease;
+    overflow-y: auto;
+}
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.tutorial-close {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    background: none;
+    border: none;
+    font-size: 1.6rem;
+    cursor: pointer;
+    color: #666;
+    padding: 0 6px;
+    border-radius: 30px;
+}
+.tutorial-close:hover { background: #f0f0f0; }
+.tutorial-title {
+    font-weight: bold;
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+    padding-right: 2rem;
+}
+.tutorial-desc {
+    font-size: 0.9rem;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    line-height: 1.4;
+}
+.demo-flashcard {
+    width: 80%;
+    margin: 0.8rem auto;
+    height: 15vh;
+    max-height: 120px;
+    min-height: 80px;
+    position: relative;
+    perspective: 800px;
+    cursor: pointer;
+}
+.demo-inner {
+    width: 100%;
+    height: 100%;
+    transition: transform 0.5s;
+    transform-style: preserve-3d;
+    position: relative;
+}
+.demo-front, .demo-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 0.5rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    font-weight: 600;
+    font-size: 0.9rem;
+    line-height: 1.2;
+}
+.demo-back {
+    transform: rotateY(180deg);
+    background: #eef2fa;
+}
+.demo-buttons {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    margin: 0.8rem 0;
+}
+.demo-btn {
+    background: #e2e8f0;
+    border: none;
+    border-radius: 2rem;
+    padding: 0.3rem 0.9rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.1s;
+}
+.demo-btn-primary {
+    background: #3b82f6;
+    color: white;
+}
+.demo-feedback {
+    font-size: 0.8rem;
+    text-align: center;
+    margin-top: 0.5rem;
+    color: #2c7da0;
+}
+.tutorial-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.tutorial-nav button {
+    background: #e2e8f0;
+    border: none;
+    border-radius: 2rem;
+    padding: 0.4rem 1rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+.tutorial-nav button.primary {
+    background: #3b82f6;
+    color: white;
+}
+.tutorial-nav button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.tutorial-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+}
+.highlight-target {
+    outline: 4px solid #ef4444;
+    outline-offset: 4px;
+    z-index: 10001;
+    position: relative;
+}
+.tutorial-arrow {
+    position: fixed;
+    font-size: 30px;
+    color: #ef4444;
+    z-index: 10002;
+    pointer-events: none;
+    line-height: 1;
+    filter: drop-shadow(0 0 2px rgba(0,0,0,0.2));
+    transform: translateY(-50%);
+    animation: bounceRight 0.5s infinite alternate ease-in-out;
+}
+@keyframes bounceRight {
+    from { margin-left: 2px; }
+    to { margin-left: 10px; }
+}
+@keyframes bounceDown {
+    from { margin-top: 0px; }
+    to { margin-top: -8px; }
+}
+/* Custom suggestions dropdown */
+.input-wrapper {
+    position: relative;
+}
+.suggestions-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-top: none;
+    border-radius: 0 0 1rem 1rem;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.suggestion-item {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: background 0.1s;
+    font-size: 0.9rem;
+}
+.suggestion-item:hover {
+    background: #f3f4f6;
+}
+.suggestion-item.active {
+    background: #e5e7eb;
+}
+.guidance-text {
+    font-size: 0.85rem;
+    opacity: 0.8;
+    margin-top: 0.5rem;
+    font-style: italic;
+}
+.peek-message {
+    text-align: center;
+    padding: 0.75rem;
+    background: #fef9c3;
+    border-radius: 1rem;
+    color: #854d0e;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+body {
+    overflow: hidden;
+    height: 100%;
+}
+.app-container {
+    height: 100dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* smooth scroll on iOS */
+}
+#answerInput {
+    scroll-margin-top: 20px;
+    scroll-margin-bottom: 20px;
+}
+.keyboard-open .flashcard-area {
+    min-height: 160px;   /* or a comfortable height */
+}
+/* When keyboard is open, compress the layout */
+.keyboard-open .flashcard-area {
+    height: 25vh !important;      /* reduce from default ~30vh */
+    min-height: 120px !important;
+}
+.keyboard-open .flip-card {
+    min-height: 120px !important;
+}
+.keyboard-open .definition-text,
+.keyboard-open .term-text {
+    font-size: 1rem !important;   /* smaller text if needed */
+}
+.keyboard-open .dropdown-area {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+.keyboard-open .buttons-area {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    gap: 0.25rem !important;
+}
+.keyboard-open .action-btn {
+    padding: 0.25rem 0.75rem !important;
+    font-size: 0.75rem !important;
+}
+.keyboard-open .stats-area,
+.keyboard-open .instruction-text {
+    display: none !important;
+}
+/* Tighten vertical spacing when keyboard opens */
+.keyboard-open .flashcard-area {
+    padding: 0 !important;
+    margin: 0 !important;
+    flex: 0 0 auto !important;
+}
+.keyboard-open .flip-card {
+    height: 120px !important;
+    min-height: 100px !important;
+}
+.keyboard-open .flip-card-front,
+.keyboard-open .flip-card-back {
+    padding: 0.25rem !important;
+}
+.keyboard-open .definition-text,
+.keyboard-open .term-text {
+    font-size: 1rem !important;
+}
+.keyboard-open .dropdown-area {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+.keyboard-open .answer-input {
+    padding: 0.5rem !important;
+    font-size: 1rem !important;
+}
+.keyboard-open .buttons-area {
+    padding: 0.25rem 0 !important;
+    margin: 0 !important;
+}
+.keyboard-open .action-btn {
+    padding: 0.25rem 0.75rem !important;
+    font-size: 0.75rem !important;
+}
+.keyboard-open .stats-area,
+.keyboard-open .instruction-text {
+    display: none !important;
+}
+.keyboard-open .study-view {
+    justify-content: flex-start !important;
+}
+#answerInput {
+    scroll-margin-top: 10px;
+    scroll-margin-bottom: 10px;
+}
+</style>
+</head>
+<body>
+    <div class="app-container" id="mainContainer">
+        <!-- ==================== STUDY VIEW (main learning interface) ==================== -->
+        <div id="studyView" class="study-view">
+            <!-- Header: Star counter, mode toggle, gear -->
+            <div class="header">
+                <div id="starCounter" class="star-counter" onclick="reviewKnown()">
+                    ⭐ <span id="knownCountDisplay">0</span>
+                </div>
+                <div class="mode-toggle">
+                    <button id="modeWordsBtn" class="mode-btn active" onclick="setAppMode('words')">Words</button>
+                    <button id="modePhrasesBtn" class="mode-btn" onclick="setAppMode('phrases')">Phrases</button>
+                </div>
+                <button id="gearBtn" class="gear-btn" onclick="toggleSettings()">⚙️</button>
+            </div>
+
+            <!-- Floating settings menu (hidden by default) -->
+            <div id="settingsMenu" class="settings-menu" style="display: none;">
+                <button class="settings-item" onclick="backupData()">💾 Backup</button>
+                <button class="settings-item" onclick="triggerRestore()">📂 Restore</button>
+                <hr class="settings-divider">
+                <button class="settings-item danger" onclick="resetAllData()">⚠️ Reset</button>
+            </div>
+
+            <!-- Dynamic instruction line -->
+            <div id="instructionText" class="instruction-text">Guess the meaning in English</div>
+
+            <!-- Flashcard area -->
+            <div class="flashcard-area">
+                <div class="flip-card">
+                    <div class="flip-card-inner" id="flipInner">
+                        <div class="flip-card-front">
+                            <div id="frontPrompt" class="definition-text">Loading...</div>
+                        </div>
+                        <div class="flip-card-back">
+                            <div id="backAnswer" class="term-text">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Answer input & datalist -->
+            <div class="dropdown-area">
+                <div class="input-wrapper">
+                    <div class="input-wrapper" style="position: relative;">
+                        <input id="answerInput" class="answer-input" placeholder="Type or select your answer" autocomplete="off">
+                        <div id="suggestionsDropdown" class="suggestions-dropdown" style="display: none;"></div>
+                    </div>
+                    <div id="peekMessage" class="peek-message" style="display: none;">
+                      🔍 You've peeked at the answer. Use the <strong>Next</strong> button to continue.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="buttons-area">
+                <button id="checkBtn" class="action-btn primary">✓ Check</button>
+                <button id="flipBtn" class="action-btn">🔄 Flip</button>
+                <button id="nextBtn" class="action-btn">🎲 Next</button>
+                <button id="reviewKnownBtn" class="action-btn review">⭐ Review Known</button>
+              	<button id="tutorialBtn" class="tutorial-btn">❓</button>
+            </div>
+
+            <!-- Stats area -->
+            <div class="stats-area">
+                <div id="stats" class="stats-text">
+                    Known: <span id="knownCount">0</span> &nbsp;|&nbsp;
+                    Pending retry: <span id="retryCount">0</span> &nbsp;|&nbsp;
+                    Peeked: <span id="peekedCount">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SUCCESS PAGE (Correct) ==================== -->
+        <div id="successPage" class="result-page success-page" style="display: none;">
+          <div class="result-content">
+            <div class="success-icon">⭐</div>
+            <h1 class="result-title">Correct!</h1>
+            <div id="successTranslation" class="result-translation"></div>
+            <div id="successGuidance" class="guidance-text" style="font-size: 0.85rem; opacity: 0.8; margin-top: 0.5rem;"></div>
+            <p class="motivation-text">Goota! You're mastering Spanish!</p>
+            <button id="continueSuccessBtn" class="continue-btn">Continue</button>
+          </div>
+        </div>
+
+        <!-- ==================== FAIL PAGE (Incorrect) ==================== -->
+        <div id="failPage" class="result-page fail-page" style="display: none;">
+            <div class="result-content">
+                <h1 class="fail-title">Don't worry! It doesn't count against you.</h1>
+                <p class="fail-subtitle">Let's learn this one:</p>
+                <div class="word-card">
+                    <div class="word-label">Spanish</div>
+                    <div id="failOromo" class="oromo-word"></div>
+                    <div class="word-label">English</div>
+                    <div id="failEnglish" class="english-word"></div>
+                </div>
+                <p class="retry-note">This question will be back in 20 questions to help you memorize it.</p>
+                <button id="continueFailBtn" class="continue-btn">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="flashOverlay" class="flash-overlay"></div>
+    <!-- Script will be added in later round -->
+<script>
+// ==================== SPANISH VOCABULARY LIBRARIES (placeholders – replace with larger files) ====================
+// Each category is an array of { name: "spanish word", meaning: "english meaning" }
+
+const nouns = [
+    { name: "casa", meaning: "house" }, { name: "perro", meaning: "dog" }, { name: "gato", meaning: "cat" },
+    { name: "hombre", meaning: "man" }, { name: "mujer", meaning: "woman" }, { name: "ciudad", meaning: "city" },
+    { name: "libro", meaning: "book" }, { name: "mesa", meaning: "table" }, { name: "silla", meaning: "chair" },
+    { name: "ventana", meaning: "window" }, { name: "puerta", meaning: "door" }, { name: "coche", meaning: "car" },
+    { name: "árbol", meaning: "tree" }, { name: "flor", meaning: "flower" }, { name: "montaña", meaning: "mountain" },
+    { name: "río", meaning: "river" }, { name: "sol", meaning: "sun" }, { name: "luna", meaning: "moon" },
+    { name: "amigo", meaning: "friend" }, { name: "familia", meaning: "family" }, { name: "trabajo", meaning: "work" },
+    { name: "escuela", meaning: "school" }, { name: "comida", meaning: "food" }, { name: "agua", meaning: "water" },
+    { name: "tiempo", meaning: "time" }, { name: "año", meaning: "year" }
+];
+
+const verbs = [
+    { name: "hablar", meaning: "to speak" }, { name: "comer", meaning: "to eat" }, { name: "vivir", meaning: "to live" },
+    { name: "beber", meaning: "to drink" }, { name: "escribir", meaning: "to write" }, { name: "leer", meaning: "to read" },
+    { name: "correr", meaning: "to run" }, { name: "saltar", meaning: "to jump" }, { name: "dormir", meaning: "to sleep" },
+    { name: "estudiar", meaning: "to study" }, { name: "trabajar", meaning: "to work" }, { name: "viajar", meaning: "to travel" },
+    { name: "escuchar", meaning: "to listen" }, { name: "mirar", meaning: "to look" }, { name: "sentir", meaning: "to feel" },
+    { name: "pensar", meaning: "to think" }, { name: "decir", meaning: "to say" }, { name: "hacer", meaning: "to do/make" },
+    { name: "tener", meaning: "to have" }, { name: "ser", meaning: "to be (permanent)" }, { name: "estar", meaning: "to be (temporary)" },
+    { name: "ir", meaning: "to go" }, { name: "ver", meaning: "to see" }, { name: "dar", meaning: "to give" },
+    { name: "saber", meaning: "to know" }, { name: "poder", meaning: "can / to be able" }
+];
+
+const adjectives = [
+    { name: "grande", meaning: "big" }, { name: "pequeño", meaning: "small" }, { name: "rápido", meaning: "fast" },
+    { name: "lento", meaning: "slow" }, { name: "bonito", meaning: "pretty" }, { name: "feo", meaning: "ugly" },
+    { name: "inteligente", meaning: "intelligent" }, { name: "tonto", meaning: "silly" }, { name: "feliz", meaning: "happy" },
+    { name: "triste", meaning: "sad" }, { name: "nuevo", meaning: "new" }, { name: "viejo", meaning: "old" },
+    { name: "caliente", meaning: "hot" }, { name: "frío", meaning: "cold" }, { name: "fácil", meaning: "easy" },
+    { name: "difícil", meaning: "difficult" }, { name: "rico", meaning: "rich/delicious" }, { name: "pobre", meaning: "poor" },
+    { name: "alto", meaning: "tall" }, { name: "bajo", meaning: "short" }, { name: "bueno", meaning: "good" },
+    { name: "malo", meaning: "bad" }, { name: "joven", meaning: "young" }, { name: "mayor", meaning: "older" }
+];
+
+const adverbs = [
+    { name: "bien", meaning: "well" }, { name: "mal", meaning: "badly" }, { name: "rápidamente", meaning: "quickly" },
+    { name: "lentamente", meaning: "slowly" }, { name: "siempre", meaning: "always" }, { name: "nunca", meaning: "never" },
+    { name: "a veces", meaning: "sometimes" }, { name: "mucho", meaning: "a lot" }, { name: "poco", meaning: "little" },
+    { name: "aquí", meaning: "here" }, { name: "allí", meaning: "there" }, { name: "cerca", meaning: "near" },
+    { name: "lejos", meaning: "far" }, { name: "ayer", meaning: "yesterday" }, { name: "hoy", meaning: "today" },
+    { name: "mañana", meaning: "tomorrow" }, { name: "pronto", meaning: "soon" }, { name: "tarde", meaning: "late" },
+    { name: "temprano", meaning: "early" }, { name: "claramente", meaning: "clearly" }
+];
+
+const pronouns = [
+    { name: "yo", meaning: "I" }, { name: "tú", meaning: "you (informal)" }, { name: "él", meaning: "he" },
+    { name: "ella", meaning: "she" }, { name: "usted", meaning: "you (formal)" }, { name: "nosotros", meaning: "we" },
+    { name: "vosotros", meaning: "you all (Spain)" }, { name: "ellos", meaning: "they (masc.)" }, { name: "ellas", meaning: "they (fem.)" },
+    { name: "me", meaning: "me" }, { name: "te", meaning: "you (obj.)" }, { name: "lo", meaning: "him/it" },
+    { name: "la", meaning: "her/it" }, { name: "nos", meaning: "us" }, { name: "os", meaning: "you all (obj.)" },
+    { name: "se", meaning: "themselves / each other" }
+];
+
+const prepositions = [
+    { name: "a", meaning: "to / at" }, { name: "en", meaning: "in / on" }, { name: "de", meaning: "of / from" },
+    { name: "por", meaning: "for / by" }, { name: "para", meaning: "for (purpose)" }, { name: "con", meaning: "with" },
+    { name: "sin", meaning: "without" }, { name: "sobre", meaning: "about / on" }, { name: "entre", meaning: "between" },
+    { name: "hacia", meaning: "toward" }, { name: "desde", meaning: "since / from" }, { name: "hasta", meaning: "until" },
+    { name: "bajo", meaning: "under" }, { name: "según", meaning: "according to" }, { name: "contra", meaning: "against" }
+];
+
+const conjunctions = [
+    { name: "y", meaning: "and" }, { name: "o", meaning: "or" }, { name: "pero", meaning: "but" }, { name: "porque", meaning: "because" },
+    { name: "aunque", meaning: "although" }, { name: "si", meaning: "if" }, { name: "entonces", meaning: "then" },
+    { name: "mientras", meaning: "while" }, { name: "cuando", meaning: "when" }, { name: "que", meaning: "that" },
+    { name: "como", meaning: "like / as" }, { name: "ni", meaning: "nor" }, { name: "sino", meaning: "but rather" }
+];
+
+const phrases = [
+    { name: "buenos días", meaning: "good morning" }, { name: "buenas tardes", meaning: "good afternoon" },
+    { name: "buenas noches", meaning: "good night" }, { name: "¿cómo estás?", meaning: "how are you?" },
+    { name: "mucho gusto", meaning: "nice to meet you" }, { name: "gracias", meaning: "thank you" },
+    { name: "de nada", meaning: "you're welcome" }, { name: "lo siento", meaning: "sorry" }, { name: "por favor", meaning: "please" },
+    { name: "salud", meaning: "bless you (sneeze)" }, { name: "te quiero", meaning: "I love you" }, { name: "está bien", meaning: "it's ok" },
+    { name: "¿dónde está el baño?", meaning: "where is the bathroom?" }, { name: "habla inglés", meaning: "do you speak English?" },
+    { name: "no entiendo", meaning: "I don't understand" }, { name: "¡qué bien!", meaning: "how nice!" }
+];
+
+
+// Combine all word categories for "Words" mode
+const wordCategories = [nouns, verbs, adjectives, adverbs, pronouns, prepositions, conjunctions];
+const combinedWords = wordCategories.flat();
+
+// Helper to get category name for an array (used for persistence)
+function getCategoryNameForArray(arr) {
+    if (arr === nouns) return "Nouns";
+    if (arr === verbs) return "Verbs";
+    if (arr === adjectives) return "Adjectives";
+    if (arr === adverbs) return "Adverbs";
+    if (arr === pronouns) return "Pronouns";
+    if (arr === prepositions) return "Prepositions";
+    if (arr === conjunctions) return "Conjunctions";
+    if (arr === phrases) return "Phrases";
+    return null;
+}
+
+// ---------- State ----------
+let appMode = "words"; // "words" or "phrases"
+let currentSet = combinedWords;
+let knownMap = {};
+let retryMap = {};
+let peekedMap = {};
+let cardsSinceLastPeekMap = {};
+let cardsSinceLastRetryMap = {};
+let knownSetMap = {};
+let currentCard = null;
+let flipped = false;
+let hasChecked = false;
+let hasPeeked = false;
+let nextCardScheduled = false;
+let reviewMode = false;
+let autoNextTimer = null;
+
+// Initialise maps for each category
+const allCategories = ["Nouns","Verbs","Adjectives","Adverbs","Pronouns","Prepositions","Conjunctions","Phrases"];
+allCategories.forEach(name => {
+    knownMap[name] = [];
+    retryMap[name] = [];
+    peekedMap[name] = [];
+    cardsSinceLastPeekMap[name] = 0;
+    cardsSinceLastRetryMap[name] = 0;
+    knownSetMap[name] = new Set();
+});
+  
+function isMobileDevice() {
+    // Check for touch capability and small screen (typical mobile)
+    return window.matchMedia("(max-width: 768px) and (pointer: coarse)").matches ||
+           ('ontouchstart' in window && window.innerWidth <= 768);
+}
+  
+function confirmChange(action) {
+    // If already answered or peeked, no need to confirm
+    if (hasChecked || hasPeeked) return true;
+    if (!currentCard) return true;
+    if (nextCardScheduled) return true;
+    
+    const messages = {
+        next: "🎲 Ready to move to the next card? Your current answer will be lost. Continue?",
+        reviewKnown: "⭐ Time to test your known words? This question will be left behind. Continue?",
+        mode: "🔄 Switching modes? Your unsaved answer will be lost. Continue?"
+    };
+    const msg = messages[action] || "You haven't answered this card. Are you sure you want to leave?";
+    return confirm(msg);
+}
+
+// Helper to get combined known list for words mode
+function getKnownListForWords() {
+    let all = [];
+    for (let i = 0; i < wordCategories.length; i++) {
+        const catName = getCategoryNameForArray(wordCategories[i]);
+        if (catName) all.push(...knownMap[catName]);
+    }
+    return all;
+}
+function getKnownList() {
+    return appMode === "words" ? getKnownListForWords() : knownMap["Phrases"];
+}
+function getRetryList() {
+    if (appMode === "words") {
+        let all = [];
+        for (let i = 0; i < wordCategories.length; i++) {
+            const catName = getCategoryNameForArray(wordCategories[i]);
+            if (catName) all.push(...retryMap[catName]);
+        }
+        return all;
+    }
+    return retryMap["Phrases"];
+}
+function getPeekedList() {
+    if (appMode === "words") {
+        let all = [];
+        for (let i = 0; i < wordCategories.length; i++) {
+            const catName = getCategoryNameForArray(wordCategories[i]);
+            if (catName) all.push(...peekedMap[catName]);
+        }
+        return all;
+    }
+    return peekedMap["Phrases"];
+}
+function getCardsSinceLastPeek() {
+    return appMode === "words" ? (cardsSinceLastPeekMap["WordsCombined"] || 0) : cardsSinceLastPeekMap["Phrases"];
+}
+function setCardsSinceLastPeek(val) {
+    if (appMode === "words") cardsSinceLastPeekMap["WordsCombined"] = val;
+    else cardsSinceLastPeekMap["Phrases"] = val;
+}
+function getCardsSinceLastRetry() {
+    return appMode === "words" ? (cardsSinceLastRetryMap["WordsCombined"] || 0) : cardsSinceLastRetryMap["Phrases"];
+}
+function setCardsSinceLastRetry(val) {
+    if (appMode === "words") cardsSinceLastRetryMap["WordsCombined"] = val;
+    else cardsSinceLastRetryMap["Phrases"] = val;
+}
+function getKnownSet() {
+    if (appMode === "words") {
+        const set = new Set();
+        for (let i = 0; i < wordCategories.length; i++) {
+            const catName = getCategoryNameForArray(wordCategories[i]);
+            if (catName) knownMap[catName].forEach(w => set.add(w));
+        }
+        return set;
+    }
+    return knownSetMap["Phrases"];
+}
+
+function saveKnownForWord(word, categoryName) {
+    if (!knownMap[categoryName].includes(word)) {
+        knownMap[categoryName].push(word);
+        knownSetMap[categoryName].add(word);
+        localStorage.setItem(`afaan_oromo_known_${categoryName}`, JSON.stringify(knownMap[categoryName]));
+    }
+}
+function saveRetryForWord(card, categoryName) {
+    if (!retryMap[categoryName].some(c => c.oromoWord === card.oromoWord)) {
+        retryMap[categoryName].push(card);
+        localStorage.setItem(`afaan_oromo_retry_${categoryName}`, JSON.stringify(retryMap[categoryName]));
+    }
+}
+
+// UI updates
+function updateStatsUI() {
+    const known = getKnownList().length;
+    const retry = getRetryList().length;
+    const peeked = getPeekedList().length;
+    document.getElementById("knownCount").innerText = known;
+    document.getElementById("retryCount").innerText = retry;
+    document.getElementById("peekedCount").innerText = peeked;
+    document.getElementById("knownCountDisplay").innerText = known;
+}
+
+function loadData() {
+    for (const cat of allCategories) {
+        const known = localStorage.getItem(`afaan_oromo_known_${cat}`);
+        if (known) {
+            knownMap[cat] = JSON.parse(known);
+            knownSetMap[cat] = new Set(knownMap[cat]);
+        }
+        const retry = localStorage.getItem(`afaan_oromo_retry_${cat}`);
+        if (retry) retryMap[cat] = JSON.parse(retry);
+    }
+    updateStatsUI();
+}
+
+// Helper functions for matching (same as original)
+function cleanText(text) {
+    if (!text) return "";
+    return text.toLowerCase().trim().replace(/[‘’]/g, "'").replace(/\s+/g, ' ');
+}
+function getEditDistance(a, b) {
+    const matrix = Array(a.length + 1).fill().map(() => Array(b.length + 1).fill(0));
+    for (let i = 0; i <= a.length; i++) matrix[i][0] = i;
+    for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
+    for (let i = 1; i <= a.length; i++) {
+        for (let j = 1; j <= b.length; j++) {
+            const cost = a[i-1] === b[j-1] ? 0 : 1;
+            matrix[i][j] = Math.min(matrix[i-1][j] + 1, matrix[i][j-1] + 1, matrix[i-1][j-1] + cost);
+        }
+    }
+    return matrix[a.length][b.length];
+}
+function getMatchResult(userAnswer, correctValue, cardType) {
+    const cleanUser = cleanText(userAnswer);
+    const synonyms = correctValue.split(/[\/,]+|\s+or\s+/).map(s => cleanText(s));
+    
+    // Exact perfect match
+    if (synonyms.includes(cleanUser)) return { type: "perfect", correct: correctValue };
+    
+    // Close match (typo tolerance)
+    for (const syn of synonyms) {
+        const distance = getEditDistance(cleanUser, syn);
+        const len = syn.length;
+        let allowed = 0;
+        if (len >= 4 && len <= 6) allowed = 1;
+        if (len >= 7) allowed = 2;
+        if (distance > 0 && distance <= allowed) {
+            return { type: "close", correct: syn };
+        }
+    }
+    
+    // NEW: Check if the answer contains any synonym as a whole word
+    for (const syn of synonyms) {
+        if (isContainedWord(syn, cleanUser)) {
+            return { type: "contained", correct: syn };
+        }
+    }
+    
+    return { type: "wrong" };
+}
+function getTypoHint(user, correct) {
+    if (user.length < correct.length) return `Almost! You missed a letter in "${correct}".`;
+    if (user.length > correct.length) return `Close! You added an extra letter in "${correct}".`;
+    return `Watch your spelling! It should be "${correct}".`;
+}
+  
+function isContainedWord(word, text) {
+    const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp('\\b' + escaped + '\\b', 'i');
+    return regex.test(text);
+}
+
+function generateRandomCard() {
+    const parts = currentSet;
+    if (parts.length === 0) return null;
+    const part = parts[Math.floor(Math.random() * parts.length)];
+    const askForMeaning = Math.random() < 0.5;
+    if (askForMeaning) {
+        return {
+            type: "meaning",
+            oromoWord: part.name,
+            correctValue: part.meaning,
+            questionText: part.name,
+            answerText: part.meaning
+        };
+    } else {
+        return {
+            type: "part",
+            oromoWord: part.name,
+            correctValue: part.name,
+            questionText: part.meaning,
+            answerText: part.name
+        };
+    }
+}
+
+const RETRY_DELAY_THRESHOLD = 20;
+function getNextCard() {
+    const retry = getRetryList();
+    const peeked = getPeekedList();
+    let retryCounter = getCardsSinceLastRetry();
+    let peekCounter = getCardsSinceLastPeek();
+    if (retry.length > 0 && retryCounter >= RETRY_DELAY_THRESHOLD) {
+        setCardsSinceLastRetry(0);
+        return retry.shift();
+    }
+    if (peeked.length > 0 && peekCounter >= 20) {
+        setCardsSinceLastPeek(0);
+        return peeked.shift();
+    }
+    let attempts = 0;
+    let card = generateRandomCard();
+    const knownSet = getKnownSet();
+    while (attempts < 10 && knownSet.has(card.oromoWord)) {
+        card = generateRandomCard();
+        attempts++;
+    }
+    setCardsSinceLastRetry(retryCounter + 1);
+    setCardsSinceLastPeek(peekCounter + 1);
+    return card;
+}
+
+function resetCardUI() {
+    if (autoNextTimer) clearTimeout(autoNextTimer);
+    document.getElementById("nextBtn").classList.remove("bounce-next");
+    const answerInput = document.getElementById("answerInput");
+    answerInput.disabled = false;
+    answerInput.value = "";
+    answerInput.placeholder = "Type or select your answer";
+    document.getElementById("answerInput").style.display = "block";
+    document.getElementById("checkBtn").style.display = "inline-block";
+    document.getElementById("peekMessage").style.display = "none";
+    document.getElementById("flipBtn").disabled = false;
+    document.getElementById("nextBtn").disabled = false;
+    document.getElementById("reviewKnownBtn").disabled = false;
+    hasChecked = false;
+    hasPeeked = false;
+    nextCardScheduled = false;
+    reviewMode = false;
+    const inner = document.getElementById("flipInner");
+    inner.style.transform = "rotateY(0deg)";
+    flipped = false;
+}
+
+function displayCard(card) {
+    if (!card) return;
+    const front = document.getElementById("frontPrompt");
+    const back = document.getElementById("backAnswer");
+    if (card.type === "meaning") {
+        front.innerHTML = `<strong>${escapeHtml(card.questionText)}</strong>`;
+    } else {
+        front.innerHTML = `${appMode === "words" ? "word" : "phrase"} that means <strong>${escapeHtml(card.questionText)}</strong>`;
+    }
+    back.innerHTML = escapeHtml(card.answerText);
+    resetCardUI();
+    document.getElementById("answerInput").focus();
+}
+
+let currentSuggestions = [];
+let selectedSuggestionIndex = -1;
+
+function updateSuggestions() {
+    // Store current set for filtering
+    currentSuggestions = currentSet.map(item => item.name);
+}
+
+function populateDatalist() {
+    // No longer used; we just update the stored set
+    updateSuggestions();
+}
+
+function filterAndShowSuggestions() {
+    const input = document.getElementById("answerInput");
+    const dropdown = document.getElementById("suggestionsDropdown");
+    const query = input.value.trim().toLowerCase();
+    
+    if (!query) {
+        dropdown.style.display = "none";
+        return;
+    }
+    
+    const filtered = currentSuggestions.filter(item => item.toLowerCase().includes(query));
+    
+    if (filtered.length === 0) {
+        dropdown.style.display = "none";
+        return;
+    }
+    
+    dropdown.innerHTML = "";
+    filtered.forEach((suggestion, idx) => {
+        const div = document.createElement("div");
+        div.className = "suggestion-item";
+        div.textContent = suggestion;
+        div.onclick = (e) => {
+            input.value = suggestion;
+            dropdown.style.display = "none";
+            selectedSuggestionIndex = -1;
+            input.focus();
+        };
+        dropdown.appendChild(div);
+    });
+    
+    dropdown.style.display = "block";
+    selectedSuggestionIndex = -1;
+}
+
+function flashScreen(color, duration = 400) {
+    const overlay = document.getElementById("flashOverlay");
+    overlay.className = `flash-overlay flash-${color} active`;
+    setTimeout(() => overlay.classList.remove("active"), duration);
+}
+
+function showSuccessPage(oromoWord, meaning, guidance = null) {
+    document.getElementById("successTranslation").innerHTML = `${escapeHtml(oromoWord)} | ${escapeHtml(meaning)}`;
+    const guidanceEl = document.getElementById("successGuidance");
+    if (guidance) {
+        guidanceEl.textContent = guidance;
+        guidanceEl.style.display = "block";
+    } else {
+        guidanceEl.style.display = "none";
+    }
+    document.getElementById("successPage").style.display = "flex";
+    document.getElementById("studyView").style.display = "none";
+  	document.getElementById('continueSuccessBtn').focus();
+}
+function showFailPage(oromoWord, meaning) {
+    document.getElementById("failOromo").innerText = oromoWord;
+    document.getElementById("failEnglish").innerText = meaning;
+    document.getElementById("failPage").style.display = "flex";
+    document.getElementById("studyView").style.display = "none";
+  	document.getElementById('continueFailBtn').focus();
+}
+function hideResultPagesAndContinue() {
+    document.getElementById("successPage").style.display = "none";
+    document.getElementById("failPage").style.display = "none";
+    document.getElementById("studyView").style.display = "flex";
+    showNextCard();
+}
+
+function checkAnswer() {
+    if (flipped) { flashScreen("red", 300); return; }
+    if (!currentCard || hasChecked) return;
+    const userAnswer = document.getElementById("answerInput").value.trim();
+    if (!userAnswer) { flashScreen("red", 300); return; }
+
+    const correct = currentCard.correctValue;
+    const oromoWord = currentCard.oromoWord;
+    const answerInput = document.getElementById("answerInput");
+    const checkBtn = document.getElementById("checkBtn");
+    const flipBtn = document.getElementById("flipBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const reviewBtn = document.getElementById("reviewKnownBtn");
+
+    hasChecked = true;
+    answerInput.disabled = true;
+    checkBtn.disabled = true;
+
+    let result = getMatchResult(userAnswer, correct, currentCard.type);
+    let isCorrect = (result.type === "perfect" || result.type === "close" || result.type === "contained");
+    let closeMatch = (result.type === "close");
+    let isContainedMatch = (result.type === "contained");
+
+    // Verb stem acceptance for verb part cards (only in words mode)
+    if (!isCorrect && appMode === "words" && currentCard.type === "part") {
+        const oromoSynonyms = correct.split(/[\/,]+|\s+or\s+/).map(s => s.trim().toLowerCase());
+        for (const syn of oromoSynonyms) {
+            if (syn.endsWith("uu")) {
+                const stem = syn.slice(0, -2);
+                if (cleanText(userAnswer) === stem) {
+                    isCorrect = true;
+                    closeMatch = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (isCorrect) {
+        flashScreen("green", 400);
+        let guidanceMsg = null;
+        if (isContainedMatch) {
+            guidanceMsg = `✓ Good! Your answer contained the word "${result.correct}".`;
+            answerInput.placeholder = "✓ Correct! (Partial match)";
+        } else if (closeMatch) {
+            answerInput.placeholder = getTypoHint(cleanText(userAnswer), result.correct);
+        } else {
+            answerInput.placeholder = "✓ Correct!";
+        }
+
+        if (!reviewMode) {
+            // Record as known in the appropriate category
+            if (appMode === "words") {
+                for (let i = 0; i < wordCategories.length; i++) {
+                    const catArr = wordCategories[i];
+                    if (catArr.some(item => item.name === oromoWord)) {
+                        const catName = getCategoryNameForArray(catArr);
+                        if (catName) saveKnownForWord(oromoWord, catName);
+                        break;
+                    }
+                }
+                // Remove from retry in that category
+                for (let i = 0; i < wordCategories.length; i++) {
+                    const catArr = wordCategories[i];
+                    if (catArr.some(item => item.name === oromoWord)) {
+                        const catName = getCategoryNameForArray(catArr);
+                        if (catName) {
+                            const retryList = retryMap[catName];
+                            const idx = retryList.findIndex(c => c.oromoWord === oromoWord);
+                            if (idx !== -1) retryList.splice(idx, 1);
+                            localStorage.setItem(`afaan_oromo_retry_${catName}`, JSON.stringify(retryList));
+                        }
+                        break;
+                    }
+                }
+            } else {
+                // Phrases mode
+                if (!knownMap["Phrases"].includes(oromoWord)) {
+                    knownMap["Phrases"].push(oromoWord);
+                    knownSetMap["Phrases"].add(oromoWord);
+                    localStorage.setItem(`afaan_oromo_known_Phrases`, JSON.stringify(knownMap["Phrases"]));
+                }
+                const retryList = retryMap["Phrases"];
+                const idx = retryList.findIndex(c => c.oromoWord === oromoWord);
+                if (idx !== -1) retryList.splice(idx, 1);
+                localStorage.setItem(`afaan_oromo_retry_Phrases`, JSON.stringify(retryList));
+            }
+        }
+        updateStatsUI();
+
+        // Disable further interaction on the card
+        answerInput.disabled = true;
+        checkBtn.disabled = true;
+        flipBtn.disabled = true;
+        nextBtn.disabled = true;
+        reviewBtn.disabled = true;
+
+        showSuccessPage(oromoWord, correct, guidanceMsg);
+    } else {
+        flashScreen("red", 400);
+        if (reviewMode) {
+            // Remove from known if it was known
+            if (appMode === "words") {
+                for (let i = 0; i < wordCategories.length; i++) {
+                    const catArr = wordCategories[i];
+                    if (catArr.some(item => item.name === oromoWord)) {
+                        const catName = getCategoryNameForArray(catArr);
+                        if (catName) {
+                            const idxKnown = knownMap[catName].indexOf(oromoWord);
+                            if (idxKnown !== -1) knownMap[catName].splice(idxKnown, 1);
+                            knownSetMap[catName].delete(oromoWord);
+                            localStorage.setItem(`afaan_oromo_known_${catName}`, JSON.stringify(knownMap[catName]));
+                            // Add to retry
+                            if (!retryMap[catName].some(c => c.oromoWord === oromoWord)) {
+                                retryMap[catName].push(currentCard);
+                                localStorage.setItem(`afaan_oromo_retry_${catName}`, JSON.stringify(retryMap[catName]));
+                            }
+                        }
+                        break;
+                    }
+                }
+            } else {
+                const idxKnown = knownMap["Phrases"].indexOf(oromoWord);
+                if (idxKnown !== -1) knownMap["Phrases"].splice(idxKnown, 1);
+                knownSetMap["Phrases"].delete(oromoWord);
+                localStorage.setItem(`afaan_oromo_known_Phrases`, JSON.stringify(knownMap["Phrases"]));
+                if (!retryMap["Phrases"].some(c => c.oromoWord === oromoWord)) {
+                    retryMap["Phrases"].push(currentCard);
+                    localStorage.setItem(`afaan_oromo_retry_Phrases`, JSON.stringify(retryMap["Phrases"]));
+                }
+            }
+            updateStatsUI();
+            answerInput.placeholder = "❌ Incorrect. Removed from known.";
+        } else {
+            // Normal wrong: add to retry
+            if (appMode === "words") {
+                for (let i = 0; i < wordCategories.length; i++) {
+                    const catArr = wordCategories[i];
+                    if (catArr.some(item => item.name === oromoWord)) {
+                        const catName = getCategoryNameForArray(catArr);
+                        if (catName && !knownSetMap[catName].has(oromoWord)) {
+                            if (!retryMap[catName].some(c => c.oromoWord === oromoWord)) {
+                                retryMap[catName].push(currentCard);
+                                localStorage.setItem(`afaan_oromo_retry_${catName}`, JSON.stringify(retryMap[catName]));
+                            }
+                        }
+                        break;
+                    }
+                }
+            } else {
+                if (!knownSetMap["Phrases"].has(oromoWord) && !retryMap["Phrases"].some(c => c.oromoWord === oromoWord)) {
+                    retryMap["Phrases"].push(currentCard);
+                    localStorage.setItem(`afaan_oromo_retry_Phrases`, JSON.stringify(retryMap["Phrases"]));
+                }
+            }
+            updateStatsUI();
+            answerInput.placeholder = `❌ Incorrect. Correct: ${correct}`;
+        }
+        // Disable further interaction
+        answerInput.disabled = true;
+        checkBtn.disabled = true;
+        flipBtn.disabled = true;
+        nextBtn.disabled = true;
+        reviewBtn.disabled = true;
+
+        showFailPage(oromoWord, correct);
+    }
+}
+
+function showNextCard() {
+    if (nextCardScheduled) return;
+    if (autoNextTimer) clearTimeout(autoNextTimer);
+    if (!confirmChange("next")) return;
+    currentCard = getNextCard();
+    displayCard(currentCard);
+    updateStatsUI();
+}
+
+function reviewKnown() {
+    if (nextCardScheduled) return;
+    if (!confirmChange("reviewKnown")) return;
+    const knownList = getKnownList();
+    if (knownList.length === 0) { flashScreen("red", 400); return; }
+    reviewMode = true;
+    const randomWord = knownList[Math.floor(Math.random() * knownList.length)];
+    let partObj = null;
+    if (appMode === "words") {
+        for (let i = 0; i < wordCategories.length; i++) {
+            partObj = wordCategories[i].find(p => p.name === randomWord);
+            if (partObj) break;
+        }
+    } else {
+        partObj = phrases.find(p => p.name === randomWord);
+    }
+    if (!partObj) {
+        currentCard = { type: "meaning", oromoWord: randomWord, correctValue: randomWord, questionText: randomWord, answerText: randomWord };
+    } else {
+        const askForMeaning = Math.random() < 0.5;
+        if (askForMeaning) {
+            currentCard = { type: "meaning", oromoWord: partObj.name, correctValue: partObj.meaning, questionText: partObj.name, answerText: partObj.meaning };
+        } else {
+            currentCard = { type: "part", oromoWord: partObj.name, correctValue: partObj.name, questionText: partObj.meaning, answerText: partObj.name };
+        }
+    }
+    displayCard(currentCard);
+    updateStatsUI();
+}
+
+function flipCard() {
+    if (nextCardScheduled) return;
+    const inner = document.getElementById("flipInner");
+    if (inner.style.transform === "rotateY(180deg)") {
+        inner.style.transform = "rotateY(0deg)";
+        flipped = false;
+    } else {
+        inner.style.transform = "rotateY(180deg)";
+        flipped = true;
+        if (!hasChecked && !hasPeeked) {
+            hasPeeked = true;
+            document.getElementById("answerInput").style.display = "none";
+            document.getElementById("checkBtn").style.display = "none";
+            document.getElementById("peekMessage").style.display = "block";
+            const oromoWord = currentCard.oromoWord;
+            if (appMode === "words") {
+                for (let i = 0; i < wordCategories.length; i++) {
+                    const catArr = wordCategories[i];
+                    if (catArr.some(item => item.name === oromoWord)) {
+                        const catName = getCategoryNameForArray(catArr);
+                        if (catName && !peekedMap[catName].some(c => c.oromoWord === oromoWord)) {
+                            peekedMap[catName].push(currentCard);
+                        }
+                        break;
+                    }
+                }
+            } else {
+                if (!peekedMap["Phrases"].some(c => c.oromoWord === oromoWord)) {
+                    peekedMap["Phrases"].push(currentCard);
+                }
+            }
+            updateStatsUI();
+        }
+    }
+}
+
+function setAppMode(mode) {
+    if (nextCardScheduled) return;
+    if (!confirmChange("mode")) return;
+    appMode = mode;
+    if (mode === "words") {
+        currentSet = combinedWords;
+        document.getElementById("modeWordsBtn").classList.add("active");
+        document.getElementById("modePhrasesBtn").classList.remove("active");
+        document.getElementById("instructionText").innerText = "Guess the meaning in English";
+    } else {
+        currentSet = phrases;
+        document.getElementById("modePhrasesBtn").classList.add("active");
+        document.getElementById("modeWordsBtn").classList.remove("active");
+        document.getElementById("instructionText").innerText = "Translate this phrase";
+    }
+  	updateSuggestions();
+    showNextCard();
+    updateStatsUI();
+}
+
+function toggleSettings() {
+    const menu = document.getElementById("settingsMenu");
+    menu.style.display = menu.style.display === "none" ? "block" : "none";
+}
+
+function backupData() {
+    const exportObj = { known: knownMap, retry: retryMap };
+    const dataStr = JSON.stringify(exportObj, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `afaan_oromo_backup_${new Date().toISOString().slice(0,19)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function triggerRestore() {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "application/json";
+    input.onchange = (e) => {
+        if (e.target.files[0]) restoreData(e.target.files[0]);
+    };
+    input.click();
+}
+
+function restoreData(file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const imported = JSON.parse(e.target.result);
+            if (!imported.known || !imported.retry) throw new Error("Invalid file format");
+            for (const cat of allCategories) {
+                if (imported.known[cat] && Array.isArray(imported.known[cat])) {
+                    knownMap[cat] = imported.known[cat];
+                    knownSetMap[cat] = new Set(knownMap[cat]);
+                    localStorage.setItem(`afaan_oromo_known_${cat}`, JSON.stringify(knownMap[cat]));
+                }
+                if (imported.retry[cat] && Array.isArray(imported.retry[cat])) {
+                    retryMap[cat] = imported.retry[cat];
+                    localStorage.setItem(`afaan_oromo_retry_${cat}`, JSON.stringify(retryMap[cat]));
+                }
+            }
+            updateStatsUI();
+            showNextCard();
+            flashScreen("green", 300);
+            alert("Data restored successfully!");
+        } catch (err) { alert("Restore failed: " + err.message); }
+    };
+    reader.readAsText(file);
+}
+
+function resetAllData() {
+    if (confirm("⚠️ Reset all progress? This will delete all known and retry cards for all categories. You cannot undo this.")) {
+        for (const cat of allCategories) {
+            localStorage.removeItem(`afaan_oromo_known_${cat}`);
+            localStorage.removeItem(`afaan_oromo_retry_${cat}`);
+            knownMap[cat] = [];
+            retryMap[cat] = [];
+            peekedMap[cat] = [];
+            knownSetMap[cat] = new Set();
+        }
+        cardsSinceLastPeekMap = {};
+        cardsSinceLastRetryMap = {};
+        allCategories.forEach(name => {
+            cardsSinceLastPeekMap[name] = 0;
+            cardsSinceLastRetryMap[name] = 0;
+        });
+        currentCard = null;
+        hasChecked = false;
+        hasPeeked = false;
+        nextCardScheduled = false;
+        reviewMode = false;
+        updateStatsUI();
+        showNextCard();
+        flashScreen("green", 300);
+    }
+}
+
+function escapeHtml(str) {
+    if (!str) return "";
+    return str.replace(/[&<>]/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[m]));
+}
+  
+// ---------- TUTORIAL (full‑screen interactive) ----------
+let tutorialActive = false;
+let currentStep = 0;
+let tutorialSteps = [];
+let stepCompletionFlags = [];
+let arrowDiv = null;
+
+function highlightElement(selector) {
+    removeHighlight();
+    const el = document.querySelector(selector);
+    if (el) el.classList.add('highlight-target');
+}
+function removeHighlight() {
+    document.querySelectorAll('.highlight-target').forEach(el => el.classList.remove('highlight-target'));
+}
+function removeArrow() {
+    if (arrowDiv) {
+        arrowDiv.remove();
+        arrowDiv = null;
+    }
+}
+function addArrowToElement(selector) {
+    removeArrow();
+    const target = document.querySelector(selector);
+    if (!target) return;
+    const rect = target.getBoundingClientRect();
+    const viewWidth = window.innerWidth;
+    const viewHeight = window.innerHeight;
+    let side = 'right';
+    const spaceRight = viewWidth - rect.right;
+    const spaceLeft = rect.left;
+    const spaceTop = rect.top;
+    if (spaceRight < 50 && spaceLeft > spaceRight) side = 'left';
+    if (spaceRight < 50 && spaceLeft < 50 && spaceTop > 60) side = 'top';
+    arrowDiv = document.createElement('div');
+    arrowDiv.className = 'tutorial-arrow';
+    switch (side) {
+        case 'right':
+            arrowDiv.innerHTML = '⬅';
+            arrowDiv.style.left = `${rect.right + 5}px`;
+            arrowDiv.style.top = `${rect.top + rect.height / 2}px`;
+            arrowDiv.style.animation = 'bounceRight 0.5s infinite alternate ease-in-out';
+            break;
+        case 'left':
+            arrowDiv.innerHTML = '➡';
+            arrowDiv.style.left = `${rect.left - 35}px`;
+            arrowDiv.style.top = `${rect.top + rect.height / 2}px`;
+            arrowDiv.style.animation = 'bounceRight 0.5s infinite alternate ease-in-out';
+            break;
+        case 'top':
+            arrowDiv.innerHTML = '⬇';
+            arrowDiv.style.left = `${rect.left + rect.width / 2 - 15}px`;
+            arrowDiv.style.top = `${rect.top - 35}px`;
+            arrowDiv.style.transform = 'none';
+            arrowDiv.style.animation = 'bounceDown 0.5s infinite alternate ease-in-out';
+            break;
+    }
+    document.body.appendChild(arrowDiv);
+}
+function highlightTutorialNextButton() {
+    removeHighlight();
+    removeArrow();
+    const nextBtn = document.getElementById('tutorialNextBtn');
+    if (nextBtn) {
+        nextBtn.classList.add('highlight-target');
+        addArrowToElement('#tutorialNextBtn');
+    }
+}
+function endTutorial() {
+    tutorialActive = false;
+    const overlay = document.querySelector('.tutorial-overlay');
+    if (overlay) overlay.remove();
+    removeHighlight();
+    removeArrow();
+}
+function showStep(stepIndex) {
+    removeHighlight();
+    removeArrow();
+    const step = tutorialSteps[stepIndex];
+    if (!step) return;
+    let tooltipHtml = `<div class="tutorial-card">
+        <button class="tutorial-close" id="tutorialCloseBtn">&times;</button>
+        <div class="tutorial-title">${step.title}</div>
+        <div class="tutorial-desc">${step.desc}</div>`;
+    if (step.demo) {
+        tooltipHtml += `<div class="demo-flashcard" id="demoFlashcard">
+            <div class="demo-inner" id="demoInner">
+                <div class="demo-front">${step.demo.front}</div>
+                <div class="demo-back">${step.demo.back}</div>
+            </div>
+        </div>`;
+        if (step.demo.hasInput) {
+            let prefillValue = '';
+            if (step.demo.prefillAnswer && step.demo.expectedAnswer) {
+                const firstSynonym = step.demo.expectedAnswer.split(/[\/,]+|\s+or\s+/)[0].trim();
+                prefillValue = ` value="${escapeHtml(firstSynonym)}"`;
+            }
+            tooltipHtml += `<div style="margin: 0.8rem 0;">
+                <input type="text" id="demoInput" placeholder="Type your answer here..."${prefillValue} style="width:100%; padding:0.5rem; border:1px solid #ccc; border-radius:2rem; text-align:center;">
+            </div>`;
+        }
+        if (step.demo.buttons && step.demo.buttons.length > 0) {
+            tooltipHtml += `<div class="demo-buttons">`;
+            for (const btn of step.demo.buttons) {
+                const id = btn.action === 'check' ? 'demoCheckBtn' : (btn.action === 'flip' ? 'demoFlipBtn' : '');
+                tooltipHtml += `<button ${id ? `id="${id}"` : ''} class="demo-btn ${btn.class || ''}" data-action="${btn.action}">${btn.label}</button>`;
+            }
+            tooltipHtml += `</div>`;
+        }
+        if (step.demo.feedbackId) {
+            tooltipHtml += `<div class="demo-feedback" id="demoFeedback"></div>`;
+        }
+    }
+    const prevDisabled = stepIndex === 0 ? 'disabled' : '';
+    const nextDisabled = step.requiredAction && !stepCompletionFlags[stepIndex] ? 'disabled' : '';
+    tooltipHtml += `<div class="tutorial-nav">
+        <button id="tutorialPrevBtn" ${prevDisabled}>← Previous</button>
+        <div class="tutorial-checkbox">
+            <input type="checkbox" id="tutorialDontShowAgain"> <label for="tutorialDontShowAgain">Don't show again</label>
+        </div>
+        <button id="tutorialNextBtn" class="primary" ${nextDisabled}>${stepIndex === tutorialSteps.length-1 ? 'Finish' : 'Next →'}</button>
+    </div></div>`;
+    let overlay = document.querySelector('.tutorial-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.className = 'tutorial-overlay';
+        document.body.appendChild(overlay);
+    }
+    overlay.innerHTML = tooltipHtml;
+    overlay.style.display = 'flex';
+    let targetElement = step.demo ? (step.arrowTarget || '#demoFlashcard') : step.arrowTarget;
+    if (targetElement) {
+        setTimeout(() => {
+            highlightElement(targetElement);
+            addArrowToElement(targetElement);
+        }, 10);
+    }
+    if (!step.requiredAction && stepIndex < tutorialSteps.length - 1) {
+        setTimeout(() => highlightTutorialNextButton(), 900);
+    }
+    // Demo interactions
+    if (step.demo) {
+        const demoInner = document.getElementById('demoInner');
+        const demoFeedback = document.getElementById('demoFeedback');
+        const demoInput = document.getElementById('demoInput');
+        const checkBtn = document.getElementById('demoCheckBtn') || document.querySelector('.demo-btn[data-action="check"]');
+        const flipBtns = document.querySelectorAll('.demo-btn[data-action="flip"]');
+        let demoFlipped = false;
+        if (step.demo.disableOnFlip && demoInput) {
+            demoInput.disabled = true;
+            if (checkBtn) checkBtn.disabled = true;
+        }
+        flipBtns.forEach(btn => {
+            btn.onclick = () => {
+                demoInner.style.transform = demoFlipped ? 'rotateY(0deg)' : 'rotateY(180deg)';
+                demoFlipped = !demoFlipped;
+                if (demoFeedback) demoFeedback.innerText = '';
+                if (step.demo.disableOnFlip && demoFlipped) {
+                    if (demoInput) demoInput.disabled = true;
+                    if (checkBtn) checkBtn.disabled = true;
+                    if (demoFeedback) demoFeedback.innerText = '⚠️ Flipping counts as a peek. Input & Check are now disabled.';
+                }
+                if (step.requiredAction === 'flip') {
+                    stepCompletionFlags[stepIndex] = true;
+                    const nextBtn = document.getElementById('tutorialNextBtn');
+                    if (nextBtn) nextBtn.disabled = false;
+                    highlightTutorialNextButton();
+                }
+            };
+        });
+        if (step.requiredAction === 'type' && demoInput) {
+            const handleType = () => {
+                if (demoInput.value.trim() !== '') {
+                    stepCompletionFlags[stepIndex] = true;
+                    const nextBtn = document.getElementById('tutorialNextBtn');
+                    if (nextBtn) nextBtn.disabled = false;
+                    highlightTutorialNextButton();
+                    demoInput.removeEventListener('input', handleType);
+                }
+            };
+            demoInput.addEventListener('input', handleType);
+        }
+        if (step.demo.hasInput && step.requiredAction === 'check') {
+            const handleCheck = () => {
+                if (step.demo.disableOnFlip && demoFlipped) {
+                    if (demoFeedback) demoFeedback.innerText = '❌ You already peeked – answer is disabled.';
+                    return;
+                }
+                if (!demoInput) return;
+                const userAnswer = demoInput.value.trim().toLowerCase();
+                const correctSynonyms = step.demo.expectedAnswer.split(/[\/,]+|\s+or\s+/).map(s => s.trim().toLowerCase());
+                if (correctSynonyms.includes(userAnswer)) {
+                    if (demoFeedback) demoFeedback.innerText = '✓ Correct! Good job.';
+                    stepCompletionFlags[stepIndex] = true;
+                    const nextBtn = document.getElementById('tutorialNextBtn');
+                    if (nextBtn) nextBtn.disabled = false;
+                    highlightTutorialNextButton();
+                } else {
+                    if (demoFeedback) demoFeedback.innerText = `❌ Incorrect. Try one of: ${correctSynonyms.join(', ')}`;
+                }
+            };
+            if (checkBtn) checkBtn.onclick = handleCheck;
+        }
+        const demoCard = document.getElementById('demoFlashcard');
+        if (demoCard && flipBtns.length > 0) {
+            demoCard.onclick = (e) => {
+                if (e.target === demoCard || e.target.classList.contains('demo-front') || e.target.classList.contains('demo-back')) {
+                    demoInner.style.transform = demoFlipped ? 'rotateY(0deg)' : 'rotateY(180deg)';
+                    demoFlipped = !demoFlipped;
+                    if (demoFeedback) demoFeedback.innerText = '';
+                    if (step.demo.disableOnFlip && demoFlipped) {
+                        if (demoInput) demoInput.disabled = true;
+                        if (checkBtn) checkBtn.disabled = true;
+                        if (demoFeedback) demoFeedback.innerText = '⚠️ Flipping counts as a peek. Input & Check are now disabled.';
+                    }
+                    if (step.requiredAction === 'flip') {
+                        stepCompletionFlags[stepIndex] = true;
+                        const nextBtn = document.getElementById('tutorialNextBtn');
+                        if (nextBtn) nextBtn.disabled = false;
+                        highlightTutorialNextButton();
+                    }
+                }
+            };
+        }
+    }
+    // Navigation events
+    document.getElementById('tutorialCloseBtn').onclick = endTutorial;
+    document.getElementById('tutorialPrevBtn').onclick = () => { if (stepIndex > 0) showStep(stepIndex-1); };
+    document.getElementById('tutorialNextBtn').onclick = () => {
+        if (stepIndex === tutorialSteps.length-1) {
+            endTutorial();
+        } else {
+            showStep(stepIndex+1);
+        }
+    };
+    const chk = document.getElementById('tutorialDontShowAgain');
+    if (chk) {
+        chk.checked = localStorage.getItem('tutorial_dont_show_again') === 'true';
+        chk.onchange = (e) => {
+            localStorage.setItem('tutorial_dont_show_again', e.target.checked ? 'true' : 'false');
+        };
+    }
+}
+function startTutorial() {
+    if (tutorialActive) return;
+    tutorialActive = true;
+    currentStep = 0;
+    stepCompletionFlags = tutorialSteps.map(() => false);
+    showStep(0);
+}
+function buildTutorialSteps() {
+    tutorialSteps = [
+        { title: "🎓 Welcome!", desc: "Let's learn how to use this app in 30 seconds.", requiredAction: null, arrowTarget: null, demo: null },
+        { title: "1. The Challenge", desc: "Look at the word on this card.", demo: { front: "mana", back: "house / home / dwelling", buttons: [], hasInput: false, disableOnFlip: false }, requiredAction: null, arrowTarget: "#demoFlashcard" },
+        { title: "2. Your Answer", desc: "Type the translation here. For this demo, type <b>house</b>.", demo: { front: "mana", back: "house / home / dwelling", buttons: [], feedbackId: "demoFeedback", hasInput: true, expectedAnswer: "house / home / dwelling", disableOnFlip: false }, requiredAction: "type", arrowTarget: "#demoInput" },
+        { title: "3. Verify", desc: "Click Check to submit your answer.", demo: { front: "mana", back: "house / home / dwelling", buttons: [{ label: "✓ Check", action: "check", class: "demo-btn-primary" }], feedbackId: "demoFeedback", hasInput: true, expectedAnswer: "house / home / dwelling", disableOnFlip: false, prefillAnswer: true }, requiredAction: "check", arrowTarget: "#demoCheckBtn" },
+        { title: "4. Stuck?", desc: "Can't remember? Use Flip to peek, but this disables the 'Check' button for this card.", demo: { front: "mana", back: "house / home / dwelling", buttons: [{ label: "🔄 Flip", action: "flip", class: "" }], feedbackId: "demoFeedback", hasInput: true, disableOnFlip: true, expectedAnswer: null }, requiredAction: "flip", arrowTarget: "#demoFlipBtn" },
+        { title: "🏷️ Mode Switch", desc: "Use Words/Phrases toggles to switch between individual words and common phrases.", requiredAction: null, arrowTarget: ".mode-toggle", demo: null },
+        { title: "📊 Tracking", desc: "Watch your 'Known' count grow! Wrong answers go to 'Retry'.", requiredAction: null, arrowTarget: ".stats-area", demo: null },
+        { title: "🕹️ Feature Gallery", desc: `<div class="flex flex-col gap-2 mt-2"><div class="flex items-center gap-2"><button class="bg-red-500 text-white text-xs px-3 py-1 rounded-full">⚠️ Reset</button> <span class="text-xs">Deletes all progress.</span></div><div class="flex items-center gap-2"><button class="bg-blue-500 text-white text-xs px-3 py-1 rounded-full">💾 Backup</button> <span class="text-xs">Save progress to file.</span></div><div class="flex items-center gap-2"><button class="bg-green-500 text-white text-xs px-3 py-1 rounded-full">📂 Restore</button> <span class="text-xs">Load your saved data.</span></div><div class="flex items-center gap-2"><button class="bg-purple-100 text-purple-800 text-xs px-3 py-1 rounded-full">⭐ Review Known</button> <span class="text-xs">Practice mastered words.</span></div></div>`, requiredAction: null, arrowTarget: ".stats-area", demo: null },
+        { title: "🎉 Ready!", desc: "Start learning. You can reopen this tutorial anytime with the ❓ button.", requiredAction: null, arrowTarget: null, demo: null }
+    ];
+}
+function initTutorial() {
+    buildTutorialSteps();
+    const dontShow = localStorage.getItem('tutorial_dont_show_again') === 'true';
+    if (!dontShow) setTimeout(() => startTutorial(), 500);
+    document.getElementById('tutorialBtn').onclick = () => startTutorial();
+}
+  
+// Keyboard navigation for tutorial (Enter / Space on Next button)
+function handleTutorialKeys(e) {
+    if (!tutorialActive) return;
+    const activeTag = document.activeElement?.tagName;
+    if (activeTag === 'INPUT' || activeTag === 'TEXTAREA') return;
+    const key = e.key;
+    if (key === 'Enter' || key === ' ') {
+        e.preventDefault();
+        const nextBtn = document.getElementById('tutorialNextBtn');
+        if (nextBtn && !nextBtn.disabled) {
+            nextBtn.click();
+        }
+    }
+}
+document.addEventListener('keydown', handleTutorialKeys);
+
+// Event listeners
+document.getElementById("answerInput").addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+        e.preventDefault();
+        if (!flipped && !hasChecked && !nextCardScheduled) checkAnswer();
+        else if (flipped) flashScreen("red", 300);
+    }
+});
+document.getElementById("checkBtn").addEventListener("click", () => {
+    if (!flipped && !hasChecked && !nextCardScheduled) checkAnswer();
+    else flashScreen("red", 300);
+});
+document.querySelector(".flip-card").addEventListener("click", () => flipCard());
+document.getElementById("flipBtn").addEventListener("click", flipCard);
+document.getElementById("nextBtn").addEventListener("click", () => { if (!nextCardScheduled) showNextCard(); });
+document.getElementById("reviewKnownBtn").addEventListener("click", () => { if (!nextCardScheduled) reviewKnown(); });
+document.getElementById("continueSuccessBtn").addEventListener("click", hideResultPagesAndContinue);
+document.getElementById("continueFailBtn").addEventListener("click", hideResultPagesAndContinue);
+
+document.addEventListener("click", (e) => {
+    const menu = document.getElementById("settingsMenu");
+    const gear = document.getElementById("gearBtn");
+    if (menu.style.display === "block" && !menu.contains(e.target) && e.target !== gear) {
+        menu.style.display = "none";
+    }
+});
+// Keyboard: Close result pages with Enter or Space
+document.addEventListener('keydown', (e) => {
+    const successPage = document.getElementById('successPage');
+    const failPage = document.getElementById('failPage');
+    const isSuccessVisible = successPage.style.display === 'flex';
+    const isFailVisible = failPage.style.display === 'flex';
+    
+    if ((isSuccessVisible || isFailVisible) && (e.key === 'Enter' || e.key === ' ')) {
+        e.preventDefault(); // prevent page scrolling on Space
+        if (isSuccessVisible) {
+            document.getElementById('continueSuccessBtn').click();
+        } else if (isFailVisible) {
+            document.getElementById('continueFailBtn').click();
+        }
+    }
+});
+const answerInput = document.getElementById("answerInput");
+answerInput.addEventListener("input", filterAndShowSuggestions);
+answerInput.addEventListener("blur", () => {
+    setTimeout(() => {
+        document.getElementById("suggestionsDropdown").style.display = "none";
+    }, 150); // delay to allow click on suggestion
+});
+answerInput.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+        document.getElementById("suggestionsDropdown").style.display = "none";
+        selectedSuggestionIndex = -1;
+    }
+});
+
+// Warn before leaving if current card is unanswered
+window.addEventListener("beforeunload", function (e) {
+    if (!hasChecked && !hasPeeked && currentCard && !nextCardScheduled) {
+        e.preventDefault();
+        e.returnValue = "You haven't answered this card yet. Are you sure you want to leave?";
+        return e.returnValue;
+    }
+});
+  
+loadData();
+setAppMode("words");
+initTutorial();
+if (isMobileDevice()) {
+    const inputField = document.getElementById("answerInput");
+    if (inputField) {
+        inputField.addEventListener("focus", () => {
+            if (document.getElementById("studyView").style.display !== "none") {
+                document.body.classList.add("keyboard-open");
+                // Close settings menu if open
+                const settingsMenu = document.getElementById("settingsMenu");
+                if (settingsMenu && settingsMenu.style.display === "block") {
+                    settingsMenu.style.display = "none";
+                }
+                // Wait for keyboard and layout to adjust, then scroll input into center
+                setTimeout(() => {
+                    inputField.scrollIntoView({ behavior: "smooth", block: "center" });
+                }, 200);
+            }
+        });
+        inputField.addEventListener("blur", () => {
+            document.body.classList.remove("keyboard-open");
+        });
+    }
+}
+</script>
+</body>
+</html>
