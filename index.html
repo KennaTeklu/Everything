@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>FullScreen Home · App Grid + Notifications</title>
-  <!-- Font Awesome 6 (CDN) -->
+  <title>FullScreen Home · App Grid + Phone‑like Nav</title>
+  <!-- Font Awesome 6 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
     * {
@@ -16,7 +16,7 @@
 
     body {
       background: #0a0c12;
-      font-family: system-ui, -apple-system, 'Inter', 'Segoe UI', Roboto, Helvetica, sans-serif;
+      font-family: system-ui, -apple-system, 'Inter', 'Segoe UI', Roboto, sans-serif;
       height: 100vh;
       width: 100vw;
       overflow: hidden;
@@ -25,7 +25,7 @@
       color: white;
     }
 
-    /* Status bar */
+    /* Status bar (top) */
     .status-bar {
       padding: 12px 20px 6px 20px;
       background: rgba(0, 0, 0, 0.3);
@@ -38,9 +38,7 @@
       z-index: 20;
       transition: transform 0.3s;
     }
-    .status-bar.hide {
-      transform: translateY(-100%);
-    }
+    .status-bar.hide { transform: translateY(-100%); }
     .time { font-weight: 600; }
     .battery-area { display: flex; align-items: center; gap: 6px; }
     .battery-symbol {
@@ -56,7 +54,7 @@
       transition: width 0.2s, background-color 0.2s;
     }
 
-    /* Top-right three-dot menu */
+    /* Top‑right three‑dot menu */
     .settings-dots {
       position: fixed;
       top: 12px;
@@ -102,7 +100,7 @@
     .menu-item i { width: 24px; margin-right: 8px; }
     .menu-item:hover { background: rgba(255,255,255,0.15); }
 
-    /* Notification drawer */
+    /* Notification drawer (pull down) */
     .notification-drawer {
       position: fixed;
       top: 0;
@@ -123,6 +121,60 @@
     .notif-header { font-weight: 600; margin-bottom: 12px; font-size: 16px; display: flex; gap: 8px; align-items: center; }
     .notif-list { max-height: 40vh; overflow-y: auto; }
     .notif-item { padding: 8px 0; border-bottom: 0.5px solid rgba(255,255,255,0.1); font-size: 13px; display: flex; gap: 10px; align-items: center; }
+
+    /* Recent apps drawer (slide up from bottom) */
+    .recents-drawer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(20, 22, 30, 0.96);
+      backdrop-filter: blur(20px);
+      border-top-left-radius: 28px;
+      border-top-right-radius: 28px;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+      z-index: 60;
+      padding: 16px 20px 30px;
+      pointer-events: auto;
+    }
+    .recents-drawer.open { transform: translateY(0); }
+    .recents-header { font-size: 16px; font-weight: 600; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .recents-list { display: flex; flex-direction: column; gap: 12px; max-height: 40vh; overflow-y: auto; }
+    .recent-item {
+      background: rgba(255,255,255,0.08);
+      padding: 10px 16px;
+      border-radius: 28px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+    }
+    .recent-item:active { background: rgba(255,255,255,0.2); }
+
+    /* Bottom navigation bar */
+    .bottom-nav {
+      flex-shrink: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(20px);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 10px 20px 20px;
+      border-top: 0.5px solid rgba(255,255,255,0.1);
+      z-index: 15;
+    }
+    .nav-btn {
+      background: transparent;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 8px 20px;
+      border-radius: 40px;
+      transition: 0.1s;
+    }
+    .nav-btn:active { background: rgba(255,255,255,0.2); transform: scale(0.95); }
 
     /* Grid container */
     .grid-main {
@@ -206,9 +258,7 @@
       transform: translateY(100%);
       transition: transform 0.3s ease-out;
     }
-    .app-modal.open {
-      transform: translateY(0);
-    }
+    .app-modal.open { transform: translateY(0); }
     .modal-header {
       background: rgba(0,0,0,0.8);
       backdrop-filter: blur(20px);
@@ -240,6 +290,7 @@
       border: none;
       background: white;
     }
+
     /* Pagination dots */
     .dots-container {
       display: flex;
@@ -289,11 +340,25 @@
   <div class="notif-list" id="notifList"></div>
 </div>
 
+<div class="recents-drawer" id="recentsDrawer">
+  <div class="recents-header">
+    <span><i class="fas fa-history"></i> Recent Apps</span>
+    <button class="close-modal" id="closeRecentsBtn" style="background:none; border:none; font-size:20px;">&times;</button>
+  </div>
+  <div class="recents-list" id="recentsList"></div>
+</div>
+
 <div class="grid-main">
   <div class="page-viewport" id="pageViewport">
     <div class="app-grid medium" id="appGrid"></div>
   </div>
   <div class="dots-container" id="dotsContainer"></div>
+</div>
+
+<div class="bottom-nav">
+  <button class="nav-btn" id="homeBtn"><i class="fas fa-home"></i></button>
+  <button class="nav-btn" id="recentsBtn"><i class="fas fa-square"></i></button>
+  <button class="nav-btn" id="backBtn"><i class="fas fa-arrow-left"></i></button>
 </div>
 
 <!-- Modal for app iframe -->
@@ -306,46 +371,21 @@
 </div>
 
 <script>
-  // ---------- DEFAULT APPS (hardcoded, cannot be deleted) ----------
+  // ---------- DEFAULT APPS ----------
   const DEFAULT_APPS = [
     { id: 'default-article', name: 'Article', url: 'article.html', icon: 'fas fa-newspaper', isDefault: true, favicon: '' },
     { id: 'default-dashboard', name: 'Dashboard', url: 'dashboard.html', icon: 'fas fa-chart-line', isDefault: true, favicon: '' },
     { id: 'default-3dmap', name: '3D Map', url: 'map.html', icon: 'fa-cube', isDefault: true, favicon: '' }
   ];
 
-  // ---------- GLOBAL STATE ----------
-  let customApps = [];         // user-added apps (stored in localStorage)
+  // ---------- STATE ----------
+  let customApps = [];           // user-added
   let viewMode = "medium";
   let currentPage = 0, totalPages = 1, itemsPerPage = 0;
   let notifications = [];
+  let recentApps = [];           // max 5, store { id, name, url, icon }
 
-  // combine defaults + custom, plus the add button appended at the end
-  function getAllAppsWithAddButton() {
-    let all = [...DEFAULT_APPS, ...customApps];
-    // add the special "+" button as the last item
-    all.push({ isAddButton: true });
-    return all;
-  }
-
-  // ----- Helper functions -----
-  function addNotification(msg, icon = "info-circle") {
-    notifications.unshift({ msg, icon, time: new Date().toLocaleTimeString() });
-    if (notifications.length > 8) notifications.pop();
-    renderNotificationList();
-  }
-
-  function renderNotificationList() {
-    const container = document.getElementById("notifList");
-    if (!container) return;
-    if (notifications.length === 0) {
-      container.innerHTML = '<div style="opacity:0.6; padding:8px;">✨ No new notifications</div>';
-      return;
-    }
-    container.innerHTML = notifications.map(n => `
-      <div class="notif-item"><i class="fas fa-${n.icon}"></i> ${escapeHtml(n.msg)} <span style="margin-left:auto; font-size:10px;">${n.time}</span></div>
-    `).join('');
-  }
-
+  // ---------- HELPER FUNCTIONS ----------
   function escapeHtml(str) {
     return str.replace(/[&<>]/g, function(m) {
       if (m === '&') return '&amp;';
@@ -364,8 +404,88 @@
     } catch(e) { return ""; }
   }
 
-  // Add a custom app
-  async function addCustomApp(link, customName = null) {
+  // Notifications
+  function addNotification(msg, icon = "info-circle") {
+    notifications.unshift({ msg, icon, time: new Date().toLocaleTimeString() });
+    if (notifications.length > 8) notifications.pop();
+    renderNotificationList();
+  }
+
+  function renderNotificationList() {
+    const container = document.getElementById("notifList");
+    if (!container) return;
+    if (notifications.length === 0) {
+      container.innerHTML = '<div style="opacity:0.6; padding:8px;">✨ No new notifications</div>';
+      return;
+    }
+    container.innerHTML = notifications.map(n => `
+      <div class="notif-item"><i class="fas fa-${n.icon}"></i> ${escapeHtml(n.msg)} <span style="margin-left:auto; font-size:10px;">${n.time}</span></div>
+    `).join('');
+  }
+
+  // Recent apps management
+  function addToRecents(app) {
+    if (app.isAddButton) return;
+    // remove existing entry with same id
+    recentApps = recentApps.filter(a => a.id !== app.id);
+    recentApps.unshift({ id: app.id, name: app.name, url: app.url, icon: app.icon || 'globe' });
+    if (recentApps.length > 5) recentApps.pop();
+    localStorage.setItem('recentApps', JSON.stringify(recentApps));
+  }
+
+  function loadRecents() {
+    const stored = localStorage.getItem('recentApps');
+    if (stored) {
+      try { recentApps = JSON.parse(stored); } catch(e) { recentApps = []; }
+    } else { recentApps = []; }
+  }
+
+  function renderRecentsDrawer() {
+    const container = document.getElementById('recentsList');
+    if (!container) return;
+    if (recentApps.length === 0) {
+      container.innerHTML = '<div style="padding: 16px; text-align:center; opacity:0.6;">No recent apps</div>';
+      return;
+    }
+    container.innerHTML = recentApps.map(app => `
+      <div class="recent-item" data-id="${app.id}">
+        <i class="fas ${app.icon || 'fa-globe'}" style="font-size: 24px;"></i>
+        <span style="flex:1">${escapeHtml(app.name)}</span>
+      </div>
+    `).join('');
+    // attach click handlers
+    document.querySelectorAll('.recent-item').forEach(el => {
+      const id = el.dataset.id;
+      const app = recentApps.find(a => a.id === id);
+      if (app) {
+        el.addEventListener('click', () => {
+          closeModal(); // ensure modal is closed
+          openAppById(app.id);
+          document.getElementById('recentsDrawer').classList.remove('open');
+        });
+      }
+    });
+  }
+
+  // Custom apps storage
+  function saveCustomApps() {
+    localStorage.setItem('customApps', JSON.stringify(customApps));
+  }
+
+  function loadCustomApps() {
+    const stored = localStorage.getItem('customApps');
+    if (stored) {
+      try { customApps = JSON.parse(stored); } catch(e) { customApps = []; }
+    } else { customApps = []; }
+  }
+
+  function getAllAppsWithAddButton() {
+    let all = [...DEFAULT_APPS, ...customApps];
+    all.push({ isAddButton: true });
+    return all;
+  }
+
+  function addCustomApp(link, customName = null) {
     if (!link) return false;
     if (!link.startsWith('http')) link = 'https://' + link;
     try { new URL(link); } catch(e) {
@@ -379,7 +499,8 @@
       name: name,
       url: link,
       isDefault: false,
-      favicon: getFaviconUrl(link)
+      favicon: getFaviconUrl(link),
+      icon: 'fa-globe'
     };
     customApps.push(newApp);
     saveCustomApps();
@@ -403,22 +524,28 @@
     }
   }
 
-  function saveCustomApps() {
-    localStorage.setItem('customApps', JSON.stringify(customApps));
-  }
-
-  function loadCustomApps() {
-    const stored = localStorage.getItem('customApps');
-    if (stored) {
-      try {
-        customApps = JSON.parse(stored);
-      } catch(e) { customApps = []; }
-    } else {
-      customApps = [];
+  function renameCustomApp(id, newName) {
+    const app = customApps.find(a => a.id === id);
+    if (app && !app.isDefault) {
+      app.name = newName.substring(0, 24);
+      saveCustomApps();
+      renderCurrentPage();
+      addNotification(`✏️ Renamed to ${app.name}`, "edit");
     }
   }
 
-  // ----- Pagination -----
+  // Find app by id (from defaults or custom)
+  function findAppById(id) {
+    let all = [...DEFAULT_APPS, ...customApps];
+    return all.find(a => a.id === id);
+  }
+
+  function openAppById(id) {
+    const app = findAppById(id);
+    if (app) openApp(app);
+  }
+
+  // ---------- PAGINATION ----------
   function calculateItemsPerPage() {
     const grid = document.getElementById('appGrid');
     if (!grid) return 8;
@@ -455,24 +582,44 @@
     return allApps.slice(start, start + itemsPerPage);
   }
 
-  // ----- Modal handling -----
-  let currentModalApp = null;
+  function goToPage(page) {
+    if (page < 0) page = 0;
+    if (page >= totalPages) page = totalPages - 1;
+    currentPage = page;
+    renderCurrentPage();
+    renderDots();
+  }
+
+  function renderDots() {
+    const dotsDiv = document.getElementById('dotsContainer');
+    if (!dotsDiv) return;
+    if (totalPages <= 1) { dotsDiv.style.display = 'none'; return; }
+    dotsDiv.style.display = 'flex';
+    dotsDiv.innerHTML = '';
+    for (let i = 0; i < totalPages; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'dot' + (i === currentPage ? ' active' : '');
+      dot.addEventListener('click', () => goToPage(i));
+      dotsDiv.appendChild(dot);
+    }
+  }
+
+  // ---------- MODAL & APP OPENING ----------
   const modal = document.getElementById('appModal');
   const modalIframe = document.getElementById('modalIframe');
   const modalTitle = document.getElementById('modalTitle');
   const closeModalBtn = document.getElementById('closeModalBtn');
 
   function openApp(app) {
-    if (app.isAddButton) return; // should not happen
+    if (app.isAddButton) return;
     modalTitle.textContent = app.name;
-    // Clear previous iframe
     modalIframe.src = 'about:blank';
-    // Set new src after a brief moment to reset
     setTimeout(() => {
       modalIframe.src = app.url;
     }, 50);
     modal.classList.add('open');
-    currentModalApp = app;
+    addToRecents(app);
+    renderRecentsDrawer();
     addNotification(`Opened: ${app.name}`, "external-link-alt");
   }
 
@@ -481,13 +628,54 @@
     if (modalIframe.src !== 'about:blank') {
       modalIframe.src = 'about:blank';
     }
-    currentModalApp = null;
   }
 
   closeModalBtn.addEventListener('click', closeModal);
-  // Also close when clicking outside? Not needed, but we can add a backdrop click detection if desired.
+  // Home button: close modal, reset to page 0
+  document.getElementById('homeBtn').addEventListener('click', () => {
+    if (modal.classList.contains('open')) closeModal();
+    goToPage(0);
+    addNotification("Home", "home");
+  });
+  // Back button: if modal open, close it; else do nothing (or show toast)
+document.getElementById('backBtn').addEventListener('click', () => {
+    if (modal.classList.contains('open')) {
+      // Try to navigate back within the iframe (for 3D map, calls Core.goUp)
+      try {
+        const iframeWin = document.getElementById('modalIframe').contentWindow;
+        if (iframeWin.Core && typeof iframeWin.Core.goUp === 'function') {
+          iframeWin.Core.goUp();
+          addNotification("Navigated back (saved in Dexie)", "arrow-left");
+        } else {
+          // Fallback: close modal for apps without back navigation
+          closeModal();
+          addNotification("Closed app (no back support)", "arrow-left");
+        }
+      } catch(e) {
+        closeModal();
+        addNotification("Closed app", "arrow-left");
+      }
+    } else {
+      addNotification("No app open", "info-circle");
+    }
+});
+  // Recents button: show recents drawer
+  const recentsDrawer = document.getElementById('recentsDrawer');
+  document.getElementById('recentsBtn').addEventListener('click', () => {
+    recentsDrawer.classList.add('open');
+    renderRecentsDrawer();
+  });
+  document.getElementById('closeRecentsBtn').addEventListener('click', () => {
+    recentsDrawer.classList.remove('open');
+  });
+  // close recents drawer when clicking outside (simple)
+  document.addEventListener('click', (e) => {
+    if (!recentsDrawer.contains(e.target) && e.target !== document.getElementById('recentsBtn')) {
+      recentsDrawer.classList.remove('open');
+    }
+  });
 
-  // ----- Render current page (grid) -----
+  // ---------- RENDER GRID (with context menu) ----------
   function renderCurrentPage() {
     const grid = document.getElementById('appGrid');
     if (!grid) return;
@@ -508,7 +696,6 @@
         const tile = document.createElement('div');
         tile.className = 'app-tile';
         tile.setAttribute('data-id', item.id);
-        // use favicon if exists, else fallback icon
         let iconHtml = '';
         if (item.favicon) {
           iconHtml = `<img src="${item.favicon}" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-${item.icon || 'globe'}\\'></i>'" alt="icon">`;
@@ -519,43 +706,79 @@
         }
         tile.innerHTML = `<div class="app-icon">${iconHtml}</div><div class="app-name">${escapeHtml(item.name)}</div>`;
         tile.addEventListener('click', () => openApp(item));
-        // Long press or right-click to delete (only for custom apps)
+        // Context menu: right-click or long-press (touch)
         tile.addEventListener('contextmenu', (e) => {
           e.preventDefault();
-          if (!item.isDefault) {
-            if (confirm(`Delete "${item.name}" from home?`)) deleteCustomAppById(item.id);
-          } else {
-            addNotification("Default apps cannot be deleted", "exclamation-triangle");
-          }
+          showContextMenu(e, item);
         });
+        // Long-press for touch devices
+        let pressTimer = null;
+        tile.addEventListener('touchstart', (e) => {
+          pressTimer = setTimeout(() => {
+            showContextMenu(e, item);
+          }, 500);
+        });
+        tile.addEventListener('touchend', () => { if (pressTimer) clearTimeout(pressTimer); });
+        tile.addEventListener('touchmove', () => { if (pressTimer) clearTimeout(pressTimer); });
         grid.appendChild(tile);
       }
     }
   }
 
-  function renderDots() {
-    const dotsDiv = document.getElementById('dotsContainer');
-    if (!dotsDiv) return;
-    if (totalPages <= 1) { dotsDiv.style.display = 'none'; return; }
-    dotsDiv.style.display = 'flex';
-    dotsDiv.innerHTML = '';
-    for (let i = 0; i < totalPages; i++) {
-      const dot = document.createElement('div');
-      dot.className = 'dot' + (i === currentPage ? ' active' : '');
-      dot.addEventListener('click', () => goToPage(i));
-      dotsDiv.appendChild(dot);
+  function showContextMenu(event, app) {
+    // Create a temporary floating menu
+    let menu = document.getElementById('dynamicContextMenu');
+    if (menu) menu.remove();
+    menu = document.createElement('div');
+    menu.id = 'dynamicContextMenu';
+    menu.style.position = 'fixed';
+    menu.style.left = event.pageX + 'px';
+    menu.style.top = event.pageY + 'px';
+    menu.style.background = '#1e2129e6';
+    menu.style.backdropFilter = 'blur(20px)';
+    menu.style.borderRadius = '12px';
+    menu.style.padding = '8px 0';
+    menu.style.zIndex = 1000;
+    menu.style.minWidth = '140px';
+    menu.style.border = '0.5px solid rgba(255,255,255,0.2)';
+    if (app.isDefault) {
+      menu.innerHTML = `<div class="menu-item" data-action="info"><i class="fas fa-info-circle"></i> Info</div>`;
+    } else {
+      menu.innerHTML = `
+        <div class="menu-item" data-action="rename"><i class="fas fa-edit"></i> Rename</div>
+        <div class="menu-item" data-action="delete"><i class="fas fa-trash"></i> Delete</div>
+        <div class="menu-item" data-action="info"><i class="fas fa-info-circle"></i> Info</div>
+      `;
     }
+    document.body.appendChild(menu);
+    // adjust position to stay within viewport
+    const rect = menu.getBoundingClientRect();
+    if (rect.right > window.innerWidth) menu.style.left = (window.innerWidth - rect.width - 10) + 'px';
+    if (rect.bottom > window.innerHeight) menu.style.top = (event.pageY - rect.height - 10) + 'px';
+    // action handlers
+    menu.querySelectorAll('.menu-item').forEach(el => {
+      el.addEventListener('click', async (e) => {
+        const action = el.dataset.action;
+        if (action === 'rename' && !app.isDefault) {
+          const newName = prompt("Enter new name:", app.name);
+          if (newName && newName.trim()) renameCustomApp(app.id, newName.trim());
+        } else if (action === 'delete' && !app.isDefault) {
+          if (confirm(`Delete "${app.name}"?`)) deleteCustomAppById(app.id);
+        } else if (action === 'info') {
+          alert(`Name: ${app.name}\nURL: ${app.url || 'local file'}\nType: ${app.isDefault ? 'Default app' : 'Custom app'}`);
+        }
+        menu.remove();
+      });
+    });
+    // close menu on click outside
+    const closeMenu = (e) => {
+      if (!menu.contains(e.target)) menu.remove();
+      document.removeEventListener('click', closeMenu);
+    };
+    setTimeout(() => document.addEventListener('click', closeMenu), 10);
   }
 
-  function goToPage(page) {
-    if (page < 0) page = 0;
-    if (page >= totalPages) page = totalPages - 1;
-    currentPage = page;
-    renderCurrentPage();
-    renderDots();
-  }
-
-  // ----- View mode switching -----
+  // ---------- VIEW MODE ----------
   function setViewMode(mode) {
     viewMode = mode;
     localStorage.setItem('appViewMode', viewMode);
@@ -565,7 +788,7 @@
     addNotification(`View: ${viewMode}`, "eye");
   }
 
-  // ----- UI setup -----
+  // ---------- UI SETUP ----------
   const viewMenu = document.getElementById('viewMenu');
   const dotsBtn = document.getElementById('dotsMenu');
   dotsBtn.addEventListener('click', (e) => { e.stopPropagation(); viewMenu.classList.toggle('show'); });
@@ -579,7 +802,7 @@
     });
   });
 
-  // ----- Battery & time -----
+  // ---------- BATTERY & TIME ----------
   function updateTime() {
     document.getElementById('liveTime').innerText = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
   }
@@ -610,7 +833,7 @@
   }
   initBattery();
 
-  // ----- Gestures (swipe) -----
+  // ---------- GESTURES & SCROLL ----------
   const viewportDiv = document.getElementById('pageViewport');
   let touchStartX = 0, touchEndX = 0;
   viewportDiv.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; });
@@ -622,7 +845,6 @@
       else if (diff < 0 && currentPage < totalPages-1) goToPage(currentPage+1);
     }
   });
-  // Keyboard arrows
   window.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowLeft') { goToPage(currentPage-1); e.preventDefault(); }
     else if (e.key === 'ArrowRight') { goToPage(currentPage+1); e.preventDefault(); }
@@ -661,15 +883,16 @@
     lastScrollY = current;
   });
 
-  // ----- Initialization -----
+  // ---------- INIT ----------
   function init() {
     loadCustomApps();
+    loadRecents();
     const savedView = localStorage.getItem('appViewMode');
     if (savedView && ['large','medium','small','list','detail'].includes(savedView)) viewMode = savedView;
     recalcPagination();
     renderCurrentPage();
     renderDots();
-    addNotification("✨ Ready! Tap any app to open", "rocket");
+    addNotification("✨ Ready! Long-press any app for options", "rocket");
   }
   init();
 </script>
