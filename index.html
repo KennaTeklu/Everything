@@ -1,122 +1,677 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Everything – 3D Knowledge Map + Tabs</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>FullScreen Home · App Grid + Notifications</title>
+  <!-- Font Awesome 6 (CDN) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+    }
 
-        body {
-            background: #e2e8f0;
-            font-family: system-ui, 'Segoe UI', sans-serif;
-            padding: 1.5rem;
-            min-height: 100vh;
-        }
+    body {
+      background: #0a0c12;
+      font-family: system-ui, -apple-system, 'Inter', 'Segoe UI', Roboto, Helvetica, sans-serif;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      color: white;
+    }
 
-        .monolith {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 1.5rem;
-            box-shadow: 0 20px 35px -10px rgba(0,0,0,0.2);
-            overflow: hidden;
-        }
+    /* Status bar */
+    .status-bar {
+      padding: 12px 20px 6px 20px;
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(12px);
+      display: flex;
+      justify-content: space-between;
+      font-size: 15px;
+      font-weight: 590;
+      flex-shrink: 0;
+      z-index: 20;
+      transition: transform 0.3s;
+    }
+    .status-bar.hide {
+      transform: translateY(-100%);
+    }
+    .time { font-weight: 600; }
+    .battery-area { display: flex; align-items: center; gap: 6px; }
+    .battery-symbol {
+      width: 22px; height: 11px; border: 1px solid white; border-radius: 3px;
+      position: relative; background: rgba(255,255,255,0.2);
+    }
+    .battery-symbol::after {
+      content: ''; position: absolute; right: -3px; top: 2px;
+      width: 2px; height: 4px; background: white; border-radius: 1px;
+    }
+    .battery-fill {
+      height: 100%; width: 100%; background: white; border-radius: 2px;
+      transition: width 0.2s, background-color 0.2s;
+    }
 
-        .tab-bar {
-            display: flex;
-            background: #f1f5f9;
-            border-bottom: 1px solid #cbd5e1;
-            gap: 0.25rem;
-            padding: 0.75rem 1.5rem 0 1.5rem;
-        }
+    /* Top-right three-dot menu */
+    .settings-dots {
+      position: fixed;
+      top: 12px;
+      right: 16px;
+      z-index: 100;
+      background: rgba(20, 22, 27, 0.7);
+      backdrop-filter: blur(12px);
+      width: 36px;
+      height: 36px;
+      border-radius: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      cursor: pointer;
+      color: white;
+      transition: 0.1s;
+    }
+    .settings-dots:active { transform: scale(0.92); background: rgba(255,255,255,0.2); }
+    .menu-dropdown {
+      position: fixed;
+      top: 54px;
+      right: 16px;
+      background: #1e2129e6;
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: 8px 0;
+      min-width: 150px;
+      display: none;
+      flex-direction: column;
+      z-index: 101;
+      border: 0.5px solid rgba(255,255,255,0.2);
+    }
+    .menu-dropdown.show { display: flex; }
+    .menu-item {
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      color: #eee;
+      white-space: nowrap;
+    }
+    .menu-item i { width: 24px; margin-right: 8px; }
+    .menu-item:hover { background: rgba(255,255,255,0.15); }
 
-        .tab-btn {
-            background: transparent;
-            border: none;
-            padding: 0.7rem 1.5rem;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            border-radius: 0.8rem 0.8rem 0 0;
-            color: #475569;
-            transition: 0.2s;
-        }
+    /* Notification drawer */
+    .notification-drawer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(20, 22, 30, 0.96);
+      backdrop-filter: blur(20px);
+      z-index: 50;
+      transform: translateY(-100%);
+      transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+      border-bottom-left-radius: 28px;
+      border-bottom-right-radius: 28px;
+      padding: 16px 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+      pointer-events: auto;
+    }
+    .notification-drawer.open { transform: translateY(0); }
+    .notif-header { font-weight: 600; margin-bottom: 12px; font-size: 16px; display: flex; gap: 8px; align-items: center; }
+    .notif-list { max-height: 40vh; overflow-y: auto; }
+    .notif-item { padding: 8px 0; border-bottom: 0.5px solid rgba(255,255,255,0.1); font-size: 13px; display: flex; gap: 10px; align-items: center; }
 
-        .tab-btn.active {
-            background: white;
-            color: #0f172a;
-            border-bottom: 2px solid #3b82f6;
-        }
+    /* Grid container */
+    .grid-main {
+      flex: 1;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      touch-action: pan-y pinch-zoom;
+    }
+    .page-viewport {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+      padding: 16px 16px 8px 16px;
+    }
+    .app-grid {
+      display: grid;
+      gap: 20px 12px;
+      justify-items: center;
+      align-items: start;
+      transition: all 0.2s;
+    }
+    /* View modes */
+    .app-grid.large { grid-template-columns: repeat(2, minmax(100px, 130px)); }
+    .app-grid.large .app-icon { width: 90px; height: 90px; }
+    .app-grid.large .app-name { font-size: 13px; }
+    .app-grid.medium { grid-template-columns: repeat(4, minmax(70px, 90px)); }
+    .app-grid.medium .app-icon { width: 70px; height: 70px; }
+    .app-grid.medium .app-name { font-size: 11px; }
+    .app-grid.small { grid-template-columns: repeat(6, minmax(60px, 75px)); }
+    .app-grid.small .app-icon { width: 55px; height: 55px; }
+    .app-grid.small .app-name { font-size: 10px; }
+    .app-grid.list { grid-template-columns: 1fr; }
+    .app-grid.list .app-tile { flex-direction: row; justify-content: flex-start; gap: 16px; background: rgba(255,255,255,0.05); padding: 10px 16px; border-radius: 28px; width: 100%; }
+    .app-grid.list .app-icon { width: 48px; height: 48px; margin-bottom: 0; }
+    .app-grid.detail { grid-template-columns: 1fr; }
+    .app-grid.detail .app-tile { flex-direction: row; justify-content: flex-start; gap: 18px; background: rgba(255,255,255,0.08); padding: 16px 20px; border-radius: 32px; width: 100%; }
+    .app-grid.detail .app-icon { width: 64px; height: 64px; }
+    .app-grid.detail .app-name { font-size: 18px; font-weight: 600; }
 
-        .iframe-container {
-            height: 75vh;
-            min-height: 550px;
-            background: #fff;
-            position: relative;
-        }
+    .app-tile {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      cursor: pointer;
+      transition: transform 0.1s;
+      position: relative;
+    }
+    .app-tile:active { transform: scale(0.96); }
+    .app-icon {
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(4px);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 8px;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+    }
+    .app-icon i { font-size: 32px; color: white; }
+    .app-icon img { width: 70%; height: 70%; object-fit: contain; border-radius: 14px; }
+    .app-name { font-weight: 500; color: #f0f0f0; text-shadow: 0 1px 2px rgba(0,0,0,0.3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px; }
 
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: block;
-        }
+    .add-tile .app-icon { background: rgba(255,255,255,0.15); border: 2px dashed rgba(255,255,255,0.5); }
+    .add-tile .app-name { color: #ccc; }
 
-        .info-panel {
-            padding: 0.8rem 1.5rem;
-            background: #f8fafc;
-            border-top: 1px solid #e2e8f0;
-            font-size: 0.8rem;
-            text-align: center;
-            color: #334155;
-        }
-    </style>
+    /* Modal overlay for app iframe */
+    .app-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      transform: translateY(100%);
+      transition: transform 0.3s ease-out;
+    }
+    .app-modal.open {
+      transform: translateY(0);
+    }
+    .modal-header {
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(20px);
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .modal-title {
+      font-size: 16px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 70%;
+    }
+    .close-modal {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 0 8px;
+    }
+    .modal-iframe {
+      flex: 1;
+      width: 100%;
+      border: none;
+      background: white;
+    }
+    /* Pagination dots */
+    .dots-container {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      padding: 10px 0 18px;
+      flex-shrink: 0;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      background: rgba(255,255,255,0.4);
+      border-radius: 50%;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .dot.active { width: 22px; background: white; border-radius: 10px; }
+
+    @media (max-width: 500px) {
+      .app-grid.medium { grid-template-columns: repeat(3, 1fr); }
+      .app-grid.small { grid-template-columns: repeat(4, 1fr); }
+    }
+  </style>
 </head>
 <body>
-<div class="monolith">
-    <div class="tab-bar">
-        <button class="tab-btn active" data-tab="article">📄 Article</button>
-        <button class="tab-btn" data-tab="dashboard">📊 Dashboard</button>
-        <button class="tab-btn" data-tab="map">🧩 3D Knowledge Map</button>
-    </div>
-    <div class="iframe-container">
-        <iframe id="frame-article" class="tab-frame" style="display: block;" src="article.html"></iframe>
-        <iframe id="frame-dashboard" class="tab-frame" style="display: none;" src="dashboard.html"></iframe>
-        <iframe id="frame-map" class="tab-frame" style="display: none;" src="map.html" allow="fullscreen"></iframe>
-    </div>
-    <div class="info-panel">
-        ✅ The 3D map loads from <code>map.html</code> with a real origin → IndexedDB, localStorage, and all APIs work.
-    </div>
+
+<div class="status-bar" id="statusBar">
+  <span class="time" id="liveTime">--:--</span>
+  <div class="battery-area">
+    <div class="battery-symbol"><div class="battery-fill" id="batteryFill"></div></div>
+    <span class="battery-percent" id="batteryPercent">100%</span>
+    <i class="fas fa-signal"></i>
+  </div>
+</div>
+
+<div class="settings-dots" id="dotsMenu">⋮</div>
+<div class="menu-dropdown" id="viewMenu">
+  <div class="menu-item" data-view="large"><i class="fas fa-expand"></i> Large</div>
+  <div class="menu-item" data-view="medium"><i class="fas fa-th"></i> Medium</div>
+  <div class="menu-item" data-view="small"><i class="fas fa-th-large"></i> Small</div>
+  <div class="menu-item" data-view="list"><i class="fas fa-list"></i> List</div>
+  <div class="menu-item" data-view="detail"><i class="fas fa-align-left"></i> Detail</div>
+</div>
+
+<div class="notification-drawer" id="notifDrawer">
+  <div class="notif-header"><i class="fas fa-bell"></i> Notifications</div>
+  <div class="notif-list" id="notifList"></div>
+</div>
+
+<div class="grid-main">
+  <div class="page-viewport" id="pageViewport">
+    <div class="app-grid medium" id="appGrid"></div>
+  </div>
+  <div class="dots-container" id="dotsContainer"></div>
+</div>
+
+<!-- Modal for app iframe -->
+<div id="appModal" class="app-modal">
+  <div class="modal-header">
+    <span class="modal-title" id="modalTitle">App</span>
+    <button class="close-modal" id="closeModalBtn">&times;</button>
+  </div>
+  <iframe id="modalIframe" class="modal-iframe" allow="fullscreen" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals"></iframe>
 </div>
 
 <script>
-    const btns = document.querySelectorAll('.tab-btn');
-    const frames = {
-        article: document.getElementById('frame-article'),
-        dashboard: document.getElementById('frame-dashboard'),
-        map: document.getElementById('frame-map')
-    };
+  // ---------- DEFAULT APPS (hardcoded, cannot be deleted) ----------
+  const DEFAULT_APPS = [
+    { id: 'default-article', name: 'Article', url: 'article.html', icon: 'fas fa-newspaper', isDefault: true, favicon: '' },
+    { id: 'default-dashboard', name: 'Dashboard', url: 'dashboard.html', icon: 'fas fa-chart-line', isDefault: true, favicon: '' },
+    { id: 'default-3dmap', name: '3D Map', url: 'map.html', icon: 'fa-cube', isDefault: true, favicon: '' }
+  ];
 
-    function activateTab(tabId) {
-        Object.values(frames).forEach(f => {
-            if (f) f.style.display = 'none';
-        });
-        const selected = frames[tabId];
-        if (selected) selected.style.display = 'block';
-        btns.forEach(btn => {
-            if (btn.dataset.tab === tabId) btn.classList.add('active');
-            else btn.classList.remove('active');
-        });
+  // ---------- GLOBAL STATE ----------
+  let customApps = [];         // user-added apps (stored in localStorage)
+  let viewMode = "medium";
+  let currentPage = 0, totalPages = 1, itemsPerPage = 0;
+  let notifications = [];
+
+  // combine defaults + custom, plus the add button appended at the end
+  function getAllAppsWithAddButton() {
+    let all = [...DEFAULT_APPS, ...customApps];
+    // add the special "+" button as the last item
+    all.push({ isAddButton: true });
+    return all;
+  }
+
+  // ----- Helper functions -----
+  function addNotification(msg, icon = "info-circle") {
+    notifications.unshift({ msg, icon, time: new Date().toLocaleTimeString() });
+    if (notifications.length > 8) notifications.pop();
+    renderNotificationList();
+  }
+
+  function renderNotificationList() {
+    const container = document.getElementById("notifList");
+    if (!container) return;
+    if (notifications.length === 0) {
+      container.innerHTML = '<div style="opacity:0.6; padding:8px;">✨ No new notifications</div>';
+      return;
     }
+    container.innerHTML = notifications.map(n => `
+      <div class="notif-item"><i class="fas fa-${n.icon}"></i> ${escapeHtml(n.msg)} <span style="margin-left:auto; font-size:10px;">${n.time}</span></div>
+    `).join('');
+  }
 
-    btns.forEach(btn => {
-        btn.addEventListener('click', () => activateTab(btn.dataset.tab));
+  function escapeHtml(str) {
+    return str.replace(/[&<>]/g, function(m) {
+      if (m === '&') return '&amp;';
+      if (m === '<') return '&lt;';
+      if (m === '>') return '&gt;';
+      return m;
     });
+  }
+
+  function uid() { return Date.now() + '-' + Math.random().toString(36).substr(2, 8); }
+
+  function getFaviconUrl(url) {
+    try {
+      const hostname = new URL(url).hostname;
+      return `https://www.google.com/s2/favicons?domain=${hostname}&sz=128`;
+    } catch(e) { return ""; }
+  }
+
+  // Add a custom app
+  async function addCustomApp(link, customName = null) {
+    if (!link) return false;
+    if (!link.startsWith('http')) link = 'https://' + link;
+    try { new URL(link); } catch(e) {
+      addNotification("Invalid URL", "exclamation-triangle");
+      return false;
+    }
+    let name = customName || new URL(link).hostname.replace(/^www\./, '');
+    name = name.substring(0, 24);
+    const newApp = {
+      id: uid(),
+      name: name,
+      url: link,
+      isDefault: false,
+      favicon: getFaviconUrl(link)
+    };
+    customApps.push(newApp);
+    saveCustomApps();
+    recalcPagination();
+    goToPage(Math.min(totalPages-1, Math.floor((getAllAppsWithAddButton().length-1) / itemsPerPage)));
+    addNotification(`➕ Added ${name}`, "plus-circle");
+    return true;
+  }
+
+  function deleteCustomAppById(id) {
+    const idx = customApps.findIndex(a => a.id === id);
+    if (idx !== -1) {
+      const name = customApps[idx].name;
+      customApps.splice(idx, 1);
+      saveCustomApps();
+      recalcPagination();
+      if (currentPage >= totalPages) currentPage = totalPages-1;
+      if (currentPage < 0) currentPage = 0;
+      renderCurrentPage();
+      addNotification(`🗑️ Removed ${name}`, "trash-alt");
+    }
+  }
+
+  function saveCustomApps() {
+    localStorage.setItem('customApps', JSON.stringify(customApps));
+  }
+
+  function loadCustomApps() {
+    const stored = localStorage.getItem('customApps');
+    if (stored) {
+      try {
+        customApps = JSON.parse(stored);
+      } catch(e) { customApps = []; }
+    } else {
+      customApps = [];
+    }
+  }
+
+  // ----- Pagination -----
+  function calculateItemsPerPage() {
+    const grid = document.getElementById('appGrid');
+    if (!grid) return 8;
+    const viewport = document.getElementById('pageViewport');
+    const h = viewport.clientHeight - 20;
+    const dummy = document.createElement('div');
+    dummy.className = 'app-tile';
+    dummy.style.visibility = 'hidden';
+    dummy.innerHTML = `<div class="app-icon" style="width:70px;height:70px"></div><div class="app-name">Test</div>`;
+    grid.appendChild(dummy);
+    const tileH = dummy.offsetHeight + 20;
+    grid.removeChild(dummy);
+    let cols = 4;
+    if (viewMode === 'large') cols = 2;
+    else if (viewMode === 'medium') cols = (window.innerWidth < 500 ? 3 : 4);
+    else if (viewMode === 'small') cols = (window.innerWidth < 500 ? 4 : 6);
+    else if (viewMode === 'list' || viewMode === 'detail') cols = 1;
+    const rows = Math.max(1, Math.floor(h / tileH));
+    return Math.max(cols * rows, 1);
+  }
+
+  function recalcPagination() {
+    itemsPerPage = calculateItemsPerPage();
+    const allApps = getAllAppsWithAddButton();
+    totalPages = Math.max(1, Math.ceil(allApps.length / itemsPerPage));
+    if (currentPage >= totalPages) currentPage = totalPages - 1;
+    if (currentPage < 0) currentPage = 0;
+    renderDots();
+  }
+
+  function getCurrentPageItems() {
+    const allApps = getAllAppsWithAddButton();
+    const start = currentPage * itemsPerPage;
+    return allApps.slice(start, start + itemsPerPage);
+  }
+
+  // ----- Modal handling -----
+  let currentModalApp = null;
+  const modal = document.getElementById('appModal');
+  const modalIframe = document.getElementById('modalIframe');
+  const modalTitle = document.getElementById('modalTitle');
+  const closeModalBtn = document.getElementById('closeModalBtn');
+
+  function openApp(app) {
+    if (app.isAddButton) return; // should not happen
+    modalTitle.textContent = app.name;
+    // Clear previous iframe
+    modalIframe.src = 'about:blank';
+    // Set new src after a brief moment to reset
+    setTimeout(() => {
+      modalIframe.src = app.url;
+    }, 50);
+    modal.classList.add('open');
+    currentModalApp = app;
+    addNotification(`Opened: ${app.name}`, "external-link-alt");
+  }
+
+  function closeModal() {
+    modal.classList.remove('open');
+    if (modalIframe.src !== 'about:blank') {
+      modalIframe.src = 'about:blank';
+    }
+    currentModalApp = null;
+  }
+
+  closeModalBtn.addEventListener('click', closeModal);
+  // Also close when clicking outside? Not needed, but we can add a backdrop click detection if desired.
+
+  // ----- Render current page (grid) -----
+  function renderCurrentPage() {
+    const grid = document.getElementById('appGrid');
+    if (!grid) return;
+    grid.className = `app-grid ${viewMode}`;
+    const items = getCurrentPageItems();
+    grid.innerHTML = '';
+    for (let item of items) {
+      if (item.isAddButton) {
+        const tile = document.createElement('div');
+        tile.className = 'app-tile add-tile';
+        tile.innerHTML = `<div class="app-icon"><i class="fas fa-plus" style="font-size: 32px; color: white;"></i></div><div class="app-name">Add link</div>`;
+        tile.addEventListener('click', async () => {
+          const url = prompt("Enter website URL (https://...):", "https://");
+          if (url) await addCustomApp(url);
+        });
+        grid.appendChild(tile);
+      } else {
+        const tile = document.createElement('div');
+        tile.className = 'app-tile';
+        tile.setAttribute('data-id', item.id);
+        // use favicon if exists, else fallback icon
+        let iconHtml = '';
+        if (item.favicon) {
+          iconHtml = `<img src="${item.favicon}" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-${item.icon || 'globe'}\\'></i>'" alt="icon">`;
+        } else if (item.icon) {
+          iconHtml = `<i class="fas ${item.icon}"></i>`;
+        } else {
+          iconHtml = `<i class="fas fa-globe"></i>`;
+        }
+        tile.innerHTML = `<div class="app-icon">${iconHtml}</div><div class="app-name">${escapeHtml(item.name)}</div>`;
+        tile.addEventListener('click', () => openApp(item));
+        // Long press or right-click to delete (only for custom apps)
+        tile.addEventListener('contextmenu', (e) => {
+          e.preventDefault();
+          if (!item.isDefault) {
+            if (confirm(`Delete "${item.name}" from home?`)) deleteCustomAppById(item.id);
+          } else {
+            addNotification("Default apps cannot be deleted", "exclamation-triangle");
+          }
+        });
+        grid.appendChild(tile);
+      }
+    }
+  }
+
+  function renderDots() {
+    const dotsDiv = document.getElementById('dotsContainer');
+    if (!dotsDiv) return;
+    if (totalPages <= 1) { dotsDiv.style.display = 'none'; return; }
+    dotsDiv.style.display = 'flex';
+    dotsDiv.innerHTML = '';
+    for (let i = 0; i < totalPages; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'dot' + (i === currentPage ? ' active' : '');
+      dot.addEventListener('click', () => goToPage(i));
+      dotsDiv.appendChild(dot);
+    }
+  }
+
+  function goToPage(page) {
+    if (page < 0) page = 0;
+    if (page >= totalPages) page = totalPages - 1;
+    currentPage = page;
+    renderCurrentPage();
+    renderDots();
+  }
+
+  // ----- View mode switching -----
+  function setViewMode(mode) {
+    viewMode = mode;
+    localStorage.setItem('appViewMode', viewMode);
+    recalcPagination();
+    renderCurrentPage();
+    renderDots();
+    addNotification(`View: ${viewMode}`, "eye");
+  }
+
+  // ----- UI setup -----
+  const viewMenu = document.getElementById('viewMenu');
+  const dotsBtn = document.getElementById('dotsMenu');
+  dotsBtn.addEventListener('click', (e) => { e.stopPropagation(); viewMenu.classList.toggle('show'); });
+  document.addEventListener('click', (e) => {
+    if (!dotsBtn.contains(e.target) && !viewMenu.contains(e.target)) viewMenu.classList.remove('show');
+  });
+  document.querySelectorAll('.menu-item[data-view]').forEach(el => {
+    el.addEventListener('click', () => {
+      setViewMode(el.getAttribute('data-view'));
+      viewMenu.classList.remove('show');
+    });
+  });
+
+  // ----- Battery & time -----
+  function updateTime() {
+    document.getElementById('liveTime').innerText = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  }
+  setInterval(updateTime, 1000);
+  updateTime();
+  async function initBattery() {
+    if ('getBattery' in navigator) {
+      try {
+        const b = await navigator.getBattery();
+        const update = () => {
+          const p = Math.round(b.level*100);
+          document.getElementById('batteryPercent').innerText = p+'%';
+          const fill = document.getElementById('batteryFill');
+          fill.style.width = p+'%';
+          if (p<=15) fill.style.backgroundColor = '#ff3b30';
+          else if (p>=99) fill.style.backgroundColor = '#34c759';
+          else fill.style.backgroundColor = 'white';
+          if (p<=15 && !b.charging) addNotification("⚠️ Low battery", "battery-quarter");
+        };
+        update();
+        b.addEventListener('levelchange', update);
+      } catch(e) { fallbackBattery(); }
+    } else fallbackBattery();
+  }
+  function fallbackBattery() {
+    document.getElementById('batteryFill').style.width='87%';
+    document.getElementById('batteryPercent').innerText='87%';
+  }
+  initBattery();
+
+  // ----- Gestures (swipe) -----
+  const viewportDiv = document.getElementById('pageViewport');
+  let touchStartX = 0, touchEndX = 0;
+  viewportDiv.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; });
+  viewportDiv.addEventListener('touchend', (e) => {
+    touchEndX = e.changedTouches[0].screenX;
+    const diff = touchEndX - touchStartX;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0 && currentPage > 0) goToPage(currentPage-1);
+      else if (diff < 0 && currentPage < totalPages-1) goToPage(currentPage+1);
+    }
+  });
+  // Keyboard arrows
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') { goToPage(currentPage-1); e.preventDefault(); }
+    else if (e.key === 'ArrowRight') { goToPage(currentPage+1); e.preventDefault(); }
+    else if (e.key === 'Escape' && modal.classList.contains('open')) { closeModal(); e.preventDefault(); }
+  });
+
+  // Pull-down notification drawer
+  let startY = 0, isDragging = false;
+  const drawer = document.getElementById('notifDrawer');
+  viewportDiv.addEventListener('touchstart', (e) => {
+    if (e.touches[0].clientY < 40) { startY = e.touches[0].clientY; isDragging = true; }
+  });
+  viewportDiv.addEventListener('touchmove', (e) => {
+    if (!isDragging) return;
+    const delta = e.touches[0].clientY - startY;
+    if (delta > 30) {
+      drawer.classList.add('open');
+      isDragging = false;
+      setTimeout(() => {
+        document.addEventListener('click', function closeDrawer(e) {
+          if (!drawer.contains(e.target)) drawer.classList.remove('open');
+          document.removeEventListener('click', closeDrawer);
+        });
+      }, 100);
+    }
+  });
+  viewportDiv.addEventListener('touchend', () => { isDragging = false; });
+
+  // Auto-hide status bar on scroll
+  let lastScrollY = 0;
+  const statusBar = document.getElementById('statusBar');
+  viewportDiv.addEventListener('scroll', () => {
+    const current = viewportDiv.scrollTop;
+    if (current > lastScrollY && current > 50) statusBar.classList.add('hide');
+    else statusBar.classList.remove('hide');
+    lastScrollY = current;
+  });
+
+  // ----- Initialization -----
+  function init() {
+    loadCustomApps();
+    const savedView = localStorage.getItem('appViewMode');
+    if (savedView && ['large','medium','small','list','detail'].includes(savedView)) viewMode = savedView;
+    recalcPagination();
+    renderCurrentPage();
+    renderDots();
+    addNotification("✨ Ready! Tap any app to open", "rocket");
+  }
+  init();
 </script>
 </body>
 </html>
