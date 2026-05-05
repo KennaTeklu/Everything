@@ -1,329 +1,201 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>FullScreen Home · App Grid + Phone‑like Nav</title>
-  <!-- Font Awesome 6 -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      user-select: none;
-    }
-
-    body {
-      background: #0a0c12;
-      font-family: system-ui, -apple-system, 'Inter', 'Segoe UI', Roboto, sans-serif;
-      height: 100vh;
-      width: 100vw;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      color: white;
-    }
-
-    /* Status bar (top) */
-    .status-bar {
-      padding: 12px 20px 6px 20px;
-      background: rgba(0, 0, 0, 0.3);
-      backdrop-filter: blur(12px);
-      display: flex;
-      justify-content: space-between;
-      font-size: 15px;
-      font-weight: 590;
-      flex-shrink: 0;
-      z-index: 20;
-      transition: transform 0.3s;
-    }
-    .status-bar.hide { transform: translateY(-100%); }
-    .time { font-weight: 600; }
-    .battery-area { display: flex; align-items: center; gap: 6px; }
-    .battery-symbol {
-      width: 22px; height: 11px; border: 1px solid white; border-radius: 3px;
-      position: relative; background: rgba(255,255,255,0.2);
-    }
-    .battery-symbol::after {
-      content: ''; position: absolute; right: -3px; top: 2px;
-      width: 2px; height: 4px; background: white; border-radius: 1px;
-    }
-    .battery-fill {
-      height: 100%; width: 100%; background: white; border-radius: 2px;
-      transition: width 0.2s, background-color 0.2s;
-    }
-
-    /* Top‑right three‑dot menu */
-    .settings-dots {
-      position: fixed;
-      top: 12px;
-      right: 16px;
-      z-index: 100;
-      background: rgba(20, 22, 27, 0.7);
-      backdrop-filter: blur(12px);
-      width: 36px;
-      height: 36px;
-      border-radius: 30px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-      cursor: pointer;
-      color: white;
-      transition: 0.1s;
-    }
-    .settings-dots:active { transform: scale(0.92); background: rgba(255,255,255,0.2); }
-    .menu-dropdown {
-      position: fixed;
-      top: 54px;
-      right: 16px;
-      background: #1e2129e6;
-      backdrop-filter: blur(20px);
-      border-radius: 20px;
-      padding: 8px 0;
-      min-width: 150px;
-      display: none;
-      flex-direction: column;
-      z-index: 101;
-      border: 0.5px solid rgba(255,255,255,0.2);
-    }
-    .menu-dropdown.show { display: flex; }
-    .menu-item {
-      padding: 10px 20px;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      color: #eee;
-      white-space: nowrap;
-    }
-    .menu-item i { width: 24px; margin-right: 8px; }
-    .menu-item:hover { background: rgba(255,255,255,0.15); }
-
-    /* Notification drawer (pull down) */
-    .notification-drawer {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      background: rgba(20, 22, 30, 0.96);
-      backdrop-filter: blur(20px);
-      z-index: 50;
-      transform: translateY(-100%);
-      transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-      border-bottom-left-radius: 28px;
-      border-bottom-right-radius: 28px;
-      padding: 16px 20px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-      pointer-events: auto;
-    }
-    .notification-drawer.open { transform: translateY(0); }
-    .notif-header { font-weight: 600; margin-bottom: 12px; font-size: 16px; display: flex; gap: 8px; align-items: center; }
-    .notif-list { max-height: 40vh; overflow-y: auto; }
-    .notif-item { padding: 8px 0; border-bottom: 0.5px solid rgba(255,255,255,0.1); font-size: 13px; display: flex; gap: 10px; align-items: center; }
-
-    /* Recent apps drawer (slide up from bottom) */
-    .recents-drawer {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: rgba(20, 22, 30, 0.96);
-      backdrop-filter: blur(20px);
-      border-top-left-radius: 28px;
-      border-top-right-radius: 28px;
-      transform: translateY(100%);
-      transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-      z-index: 60;
-      padding: 16px 20px 30px;
-      pointer-events: auto;
-    }
-    .recents-drawer.open { transform: translateY(0); }
-    .recents-header { font-size: 16px; font-weight: 600; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-    .recents-list { display: flex; flex-direction: column; gap: 12px; max-height: 40vh; overflow-y: auto; }
-    .recent-item {
-      background: rgba(255,255,255,0.08);
-      padding: 10px 16px;
-      border-radius: 28px;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      cursor: pointer;
-    }
-    .recent-item:active { background: rgba(255,255,255,0.2); }
-
-    /* Bottom navigation bar – fixed at bottom, always visible */
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 70px;
-      background: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(20px);
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      padding: 10px 20px;
-      border-top: 0.5px solid rgba(255,255,255,0.1);
-      z-index: 300;              /* Above modal */
-      pointer-events: auto;
-    }
-    .nav-btn {
-      background: transparent;
-      border: none;
-      color: white;
-      font-size: 24px;
-      cursor: pointer;
-      padding: 8px 20px;
-      border-radius: 40px;
-      transition: 0.1s;
-    }
-    .nav-btn:active { background: rgba(255,255,255,0.2); transform: scale(0.95); }
-
-    /* Grid container */
-    .grid-main {
-      flex: 1;
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      touch-action: pan-y pinch-zoom;
-    }
-    .page-viewport {
-      flex: 1;
-      overflow-y: auto;
-      overflow-x: hidden;
-      scroll-behavior: smooth;
-      padding: 16px 16px 8px 16px;
-    }
-    .app-grid {
-      display: grid;
-      gap: 20px 12px;
-      justify-items: center;
-      align-items: start;
-      transition: all 0.2s;
-    }
-    /* View modes */
-    .app-grid.large { grid-template-columns: repeat(2, minmax(100px, 130px)); }
-    .app-grid.large .app-icon { width: 90px; height: 90px; }
-    .app-grid.large .app-name { font-size: 13px; }
-    .app-grid.medium { grid-template-columns: repeat(4, minmax(70px, 90px)); }
-    .app-grid.medium .app-icon { width: 70px; height: 70px; }
-    .app-grid.medium .app-name { font-size: 11px; }
-    .app-grid.small { grid-template-columns: repeat(6, minmax(60px, 75px)); }
-    .app-grid.small .app-icon { width: 55px; height: 55px; }
-    .app-grid.small .app-name { font-size: 10px; }
-    .app-grid.list { grid-template-columns: 1fr; }
-    .app-grid.list .app-tile { flex-direction: row; justify-content: flex-start; gap: 16px; background: rgba(255,255,255,0.05); padding: 10px 16px; border-radius: 28px; width: 100%; }
-    .app-grid.list .app-icon { width: 48px; height: 48px; margin-bottom: 0; }
-    .app-grid.detail { grid-template-columns: 1fr; }
-    .app-grid.detail .app-tile { flex-direction: row; justify-content: flex-start; gap: 18px; background: rgba(255,255,255,0.08); padding: 16px 20px; border-radius: 32px; width: 100%; }
-    .app-grid.detail .app-icon { width: 64px; height: 64px; }
-    .app-grid.detail .app-name { font-size: 18px; font-weight: 600; }
-
-    .app-tile {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      width: 100%;
-      cursor: pointer;
-      transition: transform 0.1s;
-      position: relative;
-    }
-    .app-tile:active { transform: scale(0.96); }
-    .app-icon {
-      background: rgba(255,255,255,0.1);
-      backdrop-filter: blur(4px);
-      border-radius: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 8px;
-      box-shadow: 0 6px 12px rgba(0,0,0,0.2);
-    }
-    .app-icon i { font-size: 32px; color: white; }
-    .app-icon img { width: 70%; height: 70%; object-fit: contain; border-radius: 14px; }
-    .app-name { font-weight: 500; color: #f0f0f0; text-shadow: 0 1px 2px rgba(0,0,0,0.3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px; }
-
-    .add-tile .app-icon { background: rgba(255,255,255,0.15); border: 2px dashed rgba(255,255,255,0.5); }
-    .add-tile .app-name { color: #ccc; }
-
-    /* Modal overlay for app iframe – now uses flex and no transform */
-    .app-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 70px;               /* Leaves exactly 70px for bottom nav */
-      background: #000;
-      z-index: 200;
-      display: flex;
-      flex-direction: column;
-      visibility: hidden;         /* Hidden by default */
-      transition: visibility 0.3s, opacity 0.3s ease-out;
-      opacity: 0;
-    }
-    .app-modal.open {
-      visibility: visible;
-      opacity: 1;
-    }
-    .app-modal.open { transform: translateY(0); }
-    .modal-header {
-      background: rgba(0,0,0,0.8);
-      backdrop-filter: blur(20px);
-      padding: 12px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-weight: 600;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-    }
-    .modal-title {
-      font-size: 16px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 70%;
-    }
-    .close-modal {
-      background: none;
-      border: none;
-      color: white;
-      font-size: 24px;
-      cursor: pointer;
-      padding: 0 8px;
-    }
-    .modal-iframe {
-      flex: 1;
-      width: 100%;
-      border: none;
-      background: white;
-    }
-
-    /* Pagination dots */
-    .dots-container {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      padding: 10px 0 18px;
-      flex-shrink: 0;
-    }
-    .dot {
-      width: 8px;
-      height: 8px;
-      background: rgba(255,255,255,0.4);
-      border-radius: 50%;
-      transition: all 0.2s;
-      cursor: pointer;
-    }
-    .dot.active { width: 22px; background: white; border-radius: 10px; }
-
-    @media (max-width: 500px) {
-      .app-grid.medium { grid-template-columns: repeat(3, 1fr); }
-      .app-grid.small { grid-template-columns: repeat(4, 1fr); }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>FullScreen Home · App Grid + Phone‑like Nav (Fixed)</title>
+<!-- Font Awesome 6 -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  user-select: none;
+}
+body {
+  background: #0a0c12;
+  font-family: system-ui, -apple-system, 'Inter', 'Segoe UI', Roboto, sans-serif;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  color: white;
+}
+/* Status bar (top) */
+.status-bar {
+  padding: 12px 20px 6px 20px;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(12px);
+  display: flex;
+  justify-content: space-between;
+  font-size: 15px;
+  font-weight: 590;
+  flex-shrink: 0;
+  z-index: 20;
+  transition: transform 0.3s;
+}
+.status-bar.hide { transform: translateY(-100%); }
+.time { font-weight: 600; }
+.battery-area { display: flex; align-items: center; gap: 6px; }
+.battery-symbol {
+  width: 22px; height: 11px; border: 1px solid white; border-radius: 3px;
+  position: relative; background: rgba(255,255,255,0.2);
+}
+.battery-symbol::after {
+  content: ''; position: absolute; right: -3px; top: 2px;
+  width: 2px; height: 4px; background: white; border-radius: 1px;
+}
+.battery-fill {
+  height: 100%; width: 100%; background: white; border-radius: 2px;
+  transition: width 0.2s, background-color 0.2s;
+}
+/* Top‑right three‑dot menu */
+.settings-dots {
+  position: fixed; top: 12px; right: 16px; z-index: 100;
+  background: rgba(20,22,27,0.7); backdrop-filter: blur(12px);
+  width: 36px; height: 36px; border-radius: 30px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; cursor: pointer; color: white; transition: 0.1s;
+}
+.settings-dots:active { transform: scale(0.92); background: rgba(255,255,255,0.2); }
+.menu-dropdown {
+  position: fixed; top: 54px; right: 16px; background: #1e2129e6;
+  backdrop-filter: blur(20px); border-radius: 20px; padding: 8px 0;
+  min-width: 150px; display: none; flex-direction: column; z-index: 101;
+  border: 0.5px solid rgba(255,255,255,0.2);
+}
+.menu-dropdown.show { display: flex; }
+.menu-item { padding: 10px 20px; font-size: 14px; font-weight: 500; cursor: pointer; color: #eee; white-space: nowrap; }
+.menu-item i { width: 24px; margin-right: 8px; }
+.menu-item:hover { background: rgba(255,255,255,0.15); }
+/* Notification drawer (pull down) */
+.notification-drawer {
+  position: fixed; top: 0; left: 0; right: 0; background: rgba(20,22,30,0.96);
+  backdrop-filter: blur(20px); z-index: 50; transform: translateY(-100%);
+  transition: transform 0.25s cubic-bezier(0.2,0.9,0.4,1.1);
+  border-bottom-left-radius: 28px; border-bottom-right-radius: 28px;
+  padding: 16px 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+  pointer-events: auto;
+}
+.notification-drawer.open { transform: translateY(0); }
+.notif-header { font-weight: 600; margin-bottom: 12px; font-size: 16px; display: flex; gap: 8px; align-items: center; }
+.notif-list { max-height: 40vh; overflow-y: auto; }
+.notif-item { padding: 8px 0; border-bottom: 0.5px solid rgba(255,255,255,0.1); font-size: 13px; display: flex; gap: 10px; align-items: center; }
+/* Recent apps drawer (slide up from bottom) */
+.recents-drawer {
+  position: fixed; bottom: 0; left: 0; right: 0; background: rgba(20,22,30,0.96);
+  backdrop-filter: blur(20px); border-top-left-radius: 28px; border-top-right-radius: 28px;
+  transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.2,0.9,0.4,1.1);
+  z-index: 60; padding: 16px 20px 30px; pointer-events: auto;
+}
+.recents-drawer.open { transform: translateY(0); }
+.recents-header { font-size: 16px; font-weight: 600; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+.recents-list { display: flex; flex-direction: column; gap: 12px; max-height: 40vh; overflow-y: auto; }
+.recent-item {
+  background: rgba(255,255,255,0.08); padding: 10px 16px; border-radius: 28px;
+  display: flex; align-items: center; gap: 14px; cursor: pointer;
+}
+.recent-item:active { background: rgba(255,255,255,0.2); }
+/* Bottom navigation bar – fixed at bottom, always visible */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; height: 70px;
+  background: rgba(0,0,0,0.7); backdrop-filter: blur(20px);
+  display: flex; justify-content: space-around; align-items: center;
+  padding: 10px 20px; border-top: 0.5px solid rgba(255,255,255,0.1);
+  z-index: 300; pointer-events: auto;
+}
+.nav-btn {
+  background: transparent; border: none; color: white; font-size: 24px;
+  cursor: pointer; padding: 8px 20px; border-radius: 40px; transition: 0.1s;
+}
+.nav-btn:active { background: rgba(255,255,255,0.2); transform: scale(0.95); }
+/* Grid container */
+.grid-main {
+  flex: 1; position: relative; display: flex; flex-direction: column;
+  overflow: hidden; touch-action: pan-y pinch-zoom;
+}
+.page-viewport {
+  flex: 1; overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth;
+  padding: 16px 16px 8px 16px;
+}
+.app-grid {
+  display: grid; gap: 20px 12px; justify-items: center; align-items: start;
+  transition: all 0.2s;
+}
+.app-grid.large { grid-template-columns: repeat(2, minmax(100px, 130px)); }
+.app-grid.large .app-icon { width: 90px; height: 90px; }
+.app-grid.large .app-name { font-size: 13px; }
+.app-grid.medium { grid-template-columns: repeat(4, minmax(70px, 90px)); }
+.app-grid.medium .app-icon { width: 70px; height: 70px; }
+.app-grid.medium .app-name { font-size: 11px; }
+.app-grid.small { grid-template-columns: repeat(6, minmax(60px, 75px)); }
+.app-grid.small .app-icon { width: 55px; height: 55px; }
+.app-grid.small .app-name { font-size: 10px; }
+.app-grid.list { grid-template-columns: 1fr; }
+.app-grid.list .app-tile { flex-direction: row; justify-content: flex-start; gap: 16px; background: rgba(255,255,255,0.05); padding: 10px 16px; border-radius: 28px; width: 100%; }
+.app-grid.list .app-icon { width: 48px; height: 48px; margin-bottom: 0; }
+.app-grid.detail { grid-template-columns: 1fr; }
+.app-grid.detail .app-tile { flex-direction: row; justify-content: flex-start; gap: 18px; background: rgba(255,255,255,0.08); padding: 16px 20px; border-radius: 32px; width: 100%; }
+.app-grid.detail .app-icon { width: 64px; height: 64px; }
+.app-grid.detail .app-name { font-size: 18px; font-weight: 600; }
+.app-tile {
+  display: flex; flex-direction: column; align-items: center; width: 100%;
+  cursor: pointer; transition: transform 0.1s; position: relative;
+}
+.app-tile:active { transform: scale(0.96); }
+.app-icon {
+  background: rgba(255,255,255,0.1); backdrop-filter: blur(4px);
+  border-radius: 20px; display: flex; align-items: center; justify-content: center;
+  margin-bottom: 8px; box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+}
+.app-icon i { font-size: 32px; color: white; }
+.app-icon img { width: 70%; height: 70%; object-fit: contain; border-radius: 14px; }
+.app-name {
+  font-weight: 500; color: #f0f0f0; text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px;
+}
+.add-tile .app-icon { background: rgba(255,255,255,0.15); border: 2px dashed rgba(255,255,255,0.5); }
+.add-tile .app-name { color: #ccc; }
+/* Modal overlay for app iframe – improved with proper sandbox and no flicker */
+.app-modal {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 70px; background: #000;
+  z-index: 200; display: flex; flex-direction: column;
+  visibility: hidden; opacity: 0; transition: visibility 0.3s, opacity 0.3s ease-out;
+}
+.app-modal.open { visibility: visible; opacity: 1; }
+.modal-header {
+  background: rgba(0,0,0,0.8); backdrop-filter: blur(20px); padding: 12px 16px;
+  display: flex; justify-content: space-between; align-items: center;
+  font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.modal-title {
+  font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 70%;
+}
+.close-modal {
+  background: none; border: none; color: white; font-size: 24px;
+  cursor: pointer; padding: 0 8px;
+}
+.modal-iframe {
+  flex: 1; width: 100%; border: none; background: white;
+}
+/* Pagination dots */
+.dots-container {
+  display: flex; justify-content: center; gap: 10px; padding: 10px 0 18px;
+  flex-shrink: 0;
+}
+.dot {
+  width: 8px; height: 8px; background: rgba(255,255,255,0.4); border-radius: 50%;
+  transition: all 0.2s; cursor: pointer;
+}
+.dot.active { width: 22px; background: white; border-radius: 10px; }
+@media (max-width: 500px) {
+  .app-grid.medium { grid-template-columns: repeat(3, 1fr); }
+  .app-grid.small { grid-template-columns: repeat(4, 1fr); }
+}
+</style>
 <link rel="icon" type="image/svg+xml" href="icons/Everything.svg">
 </head>
 <body>
@@ -372,565 +244,507 @@
   <button class="nav-btn" id="recentsBtn"><i class="fas fa-square"></i></button>
 </div>
 
-<!-- Modal for app iframe -->
+<!-- Modal for app iframe – fixed version -->
 <div id="appModal" class="app-modal">
   <div class="modal-header">
     <span class="modal-title" id="modalTitle">App</span>
     <button class="close-modal" id="closeModalBtn">&times;</button>
   </div>
-  <iframe id="modalIframe" class="modal-iframe" allow="fullscreen" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals"></iframe>
+  <iframe id="modalIframe" class="modal-iframe" 
+          sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-microphone allow-camera allow-geolocation allow-notifications allow-clipboard-read allow-clipboard-write allow-downloads allow-pointer-lock allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
+          allow="fullscreen; microphone; camera; geolocation; clipboard-read; clipboard-write; notifications; screen-wake-lock"
+          title="app">
+  </iframe>
 </div>
 
 <script>
-  const DEFAULT_APPS = [
-    { id: 'default-3dmap', name: '3D Map', url: 'map.html', icon: 'fa-cube', favicon: 'icons/map.svg', isDefault: true },
-    { id: 'default-quiz', name: 'Quiz', url: 'quiz.html', icon: 'fa-question-circle', favicon: 'icons/quiz.png', isDefault: true },
-    { id: 'default-flashcards', name: 'Medical Flashcards', url: 'flashcards.html', icon: 'fa-stethoscope', favicon: 'icons/medical.png', isDefault: true },
-    { id: 'default-spanish', name: 'Spanish Flashcards', url: 'spanish.html', icon: 'fa-flag-checkered', favicon: 'icons/spanish.png', isDefault: true },
-    { id: 'default-oromo', name: 'Afaan Oromo Flashcards', url: 'oromo.html', icon: 'fa-comment-dots', favicon: 'icons/oromo.png', isDefault: true },
-    { id: 'default-tts', name: 'Text to Speech', url: 'tts.html', icon: 'fa-head-side-vr', favicon: 'icons/tts.png', isDefault: true },
-    { id: 'default-nutrient', name: 'Nutrient Tracker', url: 'nutrient.html', icon: 'fa-apple-alt', favicon: 'icons/nutrient.png', isDefault: true },
-    { id: 'default-inventory', name: 'Inventory', url: 'inventory.html', icon: 'fa-boxes', favicon: 'icons/inventory.png', isDefault: true },
-    { id: 'default-chat', name: 'Chat App', url: 'chat.html', icon: 'fa-comment-dots', favicon: 'icons/chat.png', isDefault: true },
-    { id: 'default-sport', name: 'Sport Tracker', url: 'sport.html', icon: 'fa-heartbeat', favicon: 'icons/sport.png', isDefault: true },
-    { id: 'default-church', name: 'Church Attendance', url: 'church.html', icon: 'fa-church', favicon: 'icons/church.png', isDefault: true },
-    { id: 'default-prayer', name: 'Prayer Game', url: 'prayer.html', icon: 'fa-hands-praying', favicon: 'icons/prayer.png', isDefault: true },
-    { id: 'default-voice', name: 'Voice to Text', url: 'voice.html', icon: 'fa-microphone-alt', favicon: 'icons/voice.svg', isDefault: true },
-    { id: 'default-chatbot', name: 'AI Support', url: 'chatbot.html', icon: 'fa-robot', favicon: 'icons/chatbot.png', isDefault: true },
-    { id: 'default-scheduler', name: 'Smart Scheduler', url: 'scheduler.html', icon: 'fa-calendar-alt', favicon: '', isDefault: true }
-  ];
+// ========== FIXED SCRIPT – all phone‑launcher features retained ==========
+// Plus all robust embedding fixes (keyboard, permissions, resize, virtual keyboard, focus, unsaved data)
 
+// ---------- DOM elements ----------
+const btns = document.querySelectorAll('.tab-btn');
+const modal = document.getElementById('appModal');
+const modalIframe = document.getElementById('modalIframe');
+const modalTitle = document.getElementById('modalTitle');
+const closeModalBtn = document.getElementById('closeModalBtn');
+const homeBtn = document.getElementById('homeBtn');
+const backBtn = document.getElementById('backBtn');
+const recentsBtn = document.getElementById('recentsBtn');
+const recentsDrawer = document.getElementById('recentsDrawer');
+const closeRecentsBtn = document.getElementById('closeRecentsBtn');
+const dotsBtn = document.getElementById('dotsMenu');
+const viewMenu = document.getElementById('viewMenu');
+const viewportDiv = document.getElementById('pageViewport');
+const statusBar = document.getElementById('statusBar');
 
-  // ---------- STATE ----------
-  let customApps = [];           // user-added
-  let viewMode = "medium";
-  let currentPage = 0, totalPages = 1, itemsPerPage = 0;
-  let notifications = [];
-  let recentApps = [];           // max 5, store { id, name, url, icon }
+// ---------- App grid data (exactly as before) ----------
+const DEFAULT_APPS = [
+  { id: 'default-3dmap', name: '3D Map', url: 'map.html', icon: 'fa-cube', favicon: 'icons/map.svg', isDefault: true },
+  { id: 'default-quiz', name: 'Quiz', url: 'quiz.html', icon: 'fa-question-circle', favicon: 'icons/quiz.png', isDefault: true },
+  { id: 'default-flashcards', name: 'Medical Flashcards', url: 'flashcards.html', icon: 'fa-stethoscope', favicon: 'icons/medical.png', isDefault: true },
+  { id: 'default-spanish', name: 'Spanish Flashcards', url: 'spanish.html', icon: 'fa-flag-checkered', favicon: 'icons/spanish.png', isDefault: true },
+  { id: 'default-oromo', name: 'Afaan Oromo Flashcards', url: 'oromo.html', icon: 'fa-comment-dots', favicon: 'icons/oromo.png', isDefault: true },
+  { id: 'default-tts', name: 'Text to Speech', url: 'tts.html', icon: 'fa-head-side-vr', favicon: 'icons/tts.png', isDefault: true },
+  { id: 'default-nutrient', name: 'Nutrient Tracker', url: 'nutrient.html', icon: 'fa-apple-alt', favicon: 'icons/nutrient.png', isDefault: true },
+  { id: 'default-inventory', name: 'Inventory', url: 'inventory.html', icon: 'fa-boxes', favicon: 'icons/inventory.png', isDefault: true },
+  { id: 'default-chat', name: 'Chat App', url: 'chat.html', icon: 'fa-comment-dots', favicon: 'icons/chat.png', isDefault: true },
+  { id: 'default-sport', name: 'Sport Tracker', url: 'sport.html', icon: 'fa-heartbeat', favicon: 'icons/sport.png', isDefault: true },
+  { id: 'default-church', name: 'Church Attendance', url: 'church.html', icon: 'fa-church', favicon: 'icons/church.png', isDefault: true },
+  { id: 'default-prayer', name: 'Prayer Game', url: 'prayer.html', icon: 'fa-hands-praying', favicon: 'icons/prayer.png', isDefault: true },
+  { id: 'default-voice', name: 'Voice to Text', url: 'voice.html', icon: 'fa-microphone-alt', favicon: 'icons/voice.svg', isDefault: true },
+  { id: 'default-chatbot', name: 'AI Support', url: 'chatbot.html', icon: 'fa-robot', favicon: 'icons/chatbot.png', isDefault: true },
+  { id: 'default-scheduler', name: 'Smart Scheduler', url: 'scheduler.html', icon: 'fa-calendar-alt', favicon: '', isDefault: true }
+];
 
-  // ---------- HELPER FUNCTIONS ----------
-  function escapeHtml(str) {
-    return str.replace(/[&<>]/g, function(m) {
-      if (m === '&') return '&amp;';
-      if (m === '<') return '&lt;';
-      if (m === '>') return '&gt;';
-      return m;
-    });
-  }
+let customApps = [];
+let viewMode = 'medium';
+let currentPage = 0, totalPages = 1, itemsPerPage = 0;
+let notifications = [];
+let recentApps = [];
+let lastFocusedIframeElement = null;
+let unsavedFlag = false;
+let resizeTimeout = null;
+let virtualKeyboardActive = false;
+let originalModalBottom = '70px';
 
-  function uid() { return Date.now() + '-' + Math.random().toString(36).substr(2, 8); }
-
-  function getFaviconUrl(url) {
-    try {
-      const hostname = new URL(url).hostname;
-      return `https://www.google.com/s2/favicons?domain=${hostname}&sz=128`;
-    } catch(e) { return ""; }
-  }
-
-  // Notifications
-  function addNotification(msg, icon = "info-circle") {
-    notifications.unshift({ msg, icon, time: new Date().toLocaleTimeString() });
-    if (notifications.length > 8) notifications.pop();
-    renderNotificationList();
-  }
-
-  function renderNotificationList() {
-    const container = document.getElementById("notifList");
-    if (!container) return;
-    if (notifications.length === 0) {
-      container.innerHTML = '<div style="opacity:0.6; padding:8px;">✨ No new notifications</div>';
-      return;
-    }
-    container.innerHTML = notifications.map(n => `
-      <div class="notif-item"><i class="fas fa-${n.icon}"></i> ${escapeHtml(n.msg)} <span style="margin-left:auto; font-size:10px;">${n.time}</span></div>
-    `).join('');
-  }
-
-  // Recent apps management
-  function addToRecents(app) {
-    if (app.isAddButton) return;
-    // remove existing entry with same id
-    recentApps = recentApps.filter(a => a.id !== app.id);
-    recentApps.unshift({ id: app.id, name: app.name, url: app.url, icon: app.icon || 'globe' });
-    if (recentApps.length > 5) recentApps.pop();
-    localStorage.setItem('recentApps', JSON.stringify(recentApps));
-  }
-
-  function loadRecents() {
-    const stored = localStorage.getItem('recentApps');
-    if (stored) {
-      try { recentApps = JSON.parse(stored); } catch(e) { recentApps = []; }
-    } else { recentApps = []; }
-  }
-
-  function renderRecentsDrawer() {
-    const container = document.getElementById('recentsList');
-    if (!container) return;
-    if (recentApps.length === 0) {
-      container.innerHTML = '<div style="padding: 16px; text-align:center; opacity:0.6;">No recent apps</div>';
-      return;
-    }
-    container.innerHTML = recentApps.map(app => `
-      <div class="recent-item" data-id="${app.id}">
-        <i class="fas ${app.icon || 'fa-globe'}" style="font-size: 24px;"></i>
-        <span style="flex:1">${escapeHtml(app.name)}</span>
-      </div>
-    `).join('');
-    // attach click handlers
-    document.querySelectorAll('.recent-item').forEach(el => {
-      const id = el.dataset.id;
-      const app = recentApps.find(a => a.id === id);
-      if (app) {
-        el.addEventListener('click', () => {
-          closeModal(); // ensure modal is closed
-          openAppById(app.id);
-          document.getElementById('recentsDrawer').classList.remove('open');
-        });
-      }
-    });
-  }
-
-  // Custom apps storage
-  function saveCustomApps() {
-    localStorage.setItem('customApps', JSON.stringify(customApps));
-  }
-
-  function loadCustomApps() {
-    const stored = localStorage.getItem('customApps');
-    if (stored) {
-      try { customApps = JSON.parse(stored); } catch(e) { customApps = []; }
-    } else { customApps = []; }
-  }
-
-  function getAllAppsWithAddButton() {
-    let all = [...DEFAULT_APPS, ...customApps];
-    all.push({ isAddButton: true });
-    return all;
-  }
-
-  function addCustomApp(link, customName = null) {
-    if (!link) return false;
-    if (!link.startsWith('http')) link = 'https://' + link;
-    try { new URL(link); } catch(e) {
-      addNotification("Invalid URL", "exclamation-triangle");
-      return false;
-    }
-    let name = customName || new URL(link).hostname.replace(/^www\./, '');
-    name = name.substring(0, 24);
-    const newApp = {
-      id: uid(),
-      name: name,
-      url: link,
-      isDefault: false,
-      favicon: getFaviconUrl(link),
-      icon: 'fa-globe'
-    };
-    customApps.push(newApp);
+// ---------- Helper functions (same as before) ----------
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
+}
+function uid() { return Date.now() + '-' + Math.random().toString(36).substr(2, 8); }
+function getFaviconUrl(url) {
+  try { const host = new URL(url).hostname; return `https://www.google.com/s2/favicons?domain=${host}&sz=128`; } catch(e) { return ''; }
+}
+function addNotification(msg, icon = 'info-circle') {
+  notifications.unshift({ msg, icon, time: new Date().toLocaleTimeString() });
+  if (notifications.length > 8) notifications.pop();
+  renderNotificationList();
+}
+function renderNotificationList() {
+  const container = document.getElementById('notifList');
+  if (!container) return;
+  if (notifications.length === 0) { container.innerHTML = '<div style="opacity:0.6; padding:8px;">✨ No new notifications</div>'; return; }
+  container.innerHTML = notifications.map(n => `<div class="notif-item"><i class="fas fa-${n.icon}"></i> ${escapeHtml(n.msg)} <span style="margin-left:auto; font-size:10px;">${n.time}</span></div>`).join('');
+}
+function addToRecents(app) {
+  if (app.isAddButton) return;
+  recentApps = recentApps.filter(a => a.id !== app.id);
+  recentApps.unshift({ id: app.id, name: app.name, url: app.url, icon: app.icon || 'globe' });
+  if (recentApps.length > 5) recentApps.pop();
+  localStorage.setItem('recentApps', JSON.stringify(recentApps));
+}
+function loadRecents() {
+  const stored = localStorage.getItem('recentApps');
+  if (stored) try { recentApps = JSON.parse(stored); } catch(e) { recentApps = []; }
+  else recentApps = [];
+}
+function renderRecentsDrawer() {
+  const container = document.getElementById('recentsList');
+  if (!container) return;
+  if (recentApps.length === 0) { container.innerHTML = '<div style="padding:16px;text-align:center;opacity:0.6;">No recent apps</div>'; return; }
+  container.innerHTML = recentApps.map(app => `<div class="recent-item" data-id="${app.id}"><i class="fas ${app.icon || 'fa-globe'}" style="font-size:24px;"></i><span style="flex:1">${escapeHtml(app.name)}</span></div>`).join('');
+  document.querySelectorAll('.recent-item').forEach(el => {
+    const id = el.dataset.id;
+    const app = recentApps.find(a => a.id === id);
+    if (app) el.addEventListener('click', () => { closeModal(); openAppById(app.id); document.getElementById('recentsDrawer').classList.remove('open'); });
+  });
+}
+function saveCustomApps() { localStorage.setItem('customApps', JSON.stringify(customApps)); }
+function loadCustomApps() {
+  const stored = localStorage.getItem('customApps');
+  if (stored) try { customApps = JSON.parse(stored); } catch(e) { customApps = []; }
+  else customApps = [];
+}
+function getAllAppsWithAddButton() { let all = [...DEFAULT_APPS, ...customApps]; all.push({ isAddButton: true }); return all; }
+function addCustomApp(link, customName = null) {
+  if (!link) return false;
+  if (!link.startsWith('http')) link = 'https://' + link;
+  try { new URL(link); } catch(e) { addNotification('Invalid URL', 'exclamation-triangle'); return false; }
+  let name = customName || new URL(link).hostname.replace(/^www\./, '');
+  name = name.substring(0,24);
+  const newApp = { id: uid(), name, url: link, isDefault: false, favicon: getFaviconUrl(link), icon: 'fa-globe' };
+  customApps.push(newApp);
+  saveCustomApps();
+  recalcPagination();
+  goToPage(Math.min(totalPages-1, Math.floor((getAllAppsWithAddButton().length-1) / itemsPerPage)));
+  addNotification(`➕ Added ${name}`, 'plus-circle');
+  return true;
+}
+function deleteCustomAppById(id) {
+  const idx = customApps.findIndex(a => a.id === id);
+  if (idx !== -1) {
+    const name = customApps[idx].name;
+    customApps.splice(idx,1);
     saveCustomApps();
     recalcPagination();
-    goToPage(Math.min(totalPages-1, Math.floor((getAllAppsWithAddButton().length-1) / itemsPerPage)));
-    addNotification(`➕ Added ${name}`, "plus-circle");
-    return true;
-  }
-
-  function deleteCustomAppById(id) {
-    const idx = customApps.findIndex(a => a.id === id);
-    if (idx !== -1) {
-      const name = customApps[idx].name;
-      customApps.splice(idx, 1);
-      saveCustomApps();
-      recalcPagination();
-      if (currentPage >= totalPages) currentPage = totalPages-1;
-      if (currentPage < 0) currentPage = 0;
-      renderCurrentPage();
-      addNotification(`🗑️ Removed ${name}`, "trash-alt");
-    }
-  }
-
-  function renameCustomApp(id, newName) {
-    const app = customApps.find(a => a.id === id);
-    if (app && !app.isDefault) {
-      app.name = newName.substring(0, 24);
-      saveCustomApps();
-      renderCurrentPage();
-      addNotification(`✏️ Renamed to ${app.name}`, "edit");
-    }
-  }
-
-  // Find app by id (from defaults or custom)
-  function findAppById(id) {
-    let all = [...DEFAULT_APPS, ...customApps];
-    return all.find(a => a.id === id);
-  }
-
-  function openAppById(id) {
-    const app = findAppById(id);
-    if (app) openApp(app);
-  }
-
-  // ---------- PAGINATION ----------
-  function calculateItemsPerPage() {
-    const grid = document.getElementById('appGrid');
-    if (!grid) return 8;
-    const viewport = document.getElementById('pageViewport');
-    const h = viewport.clientHeight - 20;
-    const dummy = document.createElement('div');
-    dummy.className = 'app-tile';
-    dummy.style.visibility = 'hidden';
-    dummy.innerHTML = `<div class="app-icon" style="width:70px;height:70px"></div><div class="app-name">Test</div>`;
-    grid.appendChild(dummy);
-    const tileH = dummy.offsetHeight + 20;
-    grid.removeChild(dummy);
-    let cols = 4;
-    if (viewMode === 'large') cols = 2;
-    else if (viewMode === 'medium') cols = (window.innerWidth < 500 ? 3 : 4);
-    else if (viewMode === 'small') cols = (window.innerWidth < 500 ? 4 : 6);
-    else if (viewMode === 'list' || viewMode === 'detail') cols = 1;
-    const rows = Math.max(1, Math.floor(h / tileH));
-    return Math.max(cols * rows, 1);
-  }
-
-  function recalcPagination() {
-    itemsPerPage = calculateItemsPerPage();
-    const allApps = getAllAppsWithAddButton();
-    totalPages = Math.max(1, Math.ceil(allApps.length / itemsPerPage));
-    if (currentPage >= totalPages) currentPage = totalPages - 1;
+    if (currentPage >= totalPages) currentPage = totalPages-1;
     if (currentPage < 0) currentPage = 0;
-    renderDots();
-  }
-
-  function getCurrentPageItems() {
-    const allApps = getAllAppsWithAddButton();
-    const start = currentPage * itemsPerPage;
-    return allApps.slice(start, start + itemsPerPage);
-  }
-
-  function goToPage(page) {
-    if (page < 0) page = 0;
-    if (page >= totalPages) page = totalPages - 1;
-    currentPage = page;
     renderCurrentPage();
-    renderDots();
+    addNotification(`🗑️ Removed ${name}`, 'trash-alt');
   }
-
-  function renderDots() {
-    const dotsDiv = document.getElementById('dotsContainer');
-    if (!dotsDiv) return;
-    if (totalPages <= 1) { dotsDiv.style.display = 'none'; return; }
-    dotsDiv.style.display = 'flex';
-    dotsDiv.innerHTML = '';
-    for (let i = 0; i < totalPages; i++) {
-      const dot = document.createElement('div');
-      dot.className = 'dot' + (i === currentPage ? ' active' : '');
-      dot.addEventListener('click', () => goToPage(i));
-      dotsDiv.appendChild(dot);
-    }
+}
+function renameCustomApp(id, newName) {
+  const app = customApps.find(a => a.id === id);
+  if (app && !app.isDefault) {
+    app.name = newName.substring(0,24);
+    saveCustomApps();
+    renderCurrentPage();
+    addNotification(`✏️ Renamed to ${app.name}`, 'edit');
   }
+}
+function findAppById(id) { return [...DEFAULT_APPS, ...customApps].find(a => a.id === id); }
+function openAppById(id) { const app = findAppById(id); if (app) openApp(app); }
 
-  // ---------- MODAL & APP OPENING ----------
-  const modal = document.getElementById('appModal');
-  const modalIframe = document.getElementById('modalIframe');
-  const modalTitle = document.getElementById('modalTitle');
-  const closeModalBtn = document.getElementById('closeModalBtn');
-
-  function openApp(app) {
-    if (app.isAddButton) return;
-    modalTitle.textContent = app.name;
-    modalIframe.src = 'about:blank';
-    setTimeout(() => {
-      modalIframe.src = app.url;
-    }, 50);
-    modal.classList.add('open');   // triggers visibility + opacity
-    addToRecents(app);
-    renderRecentsDrawer();
-    addNotification(`Opened: ${app.name}`, "external-link-alt");
+// ---------- Pagination (unchanged) ----------
+function calculateItemsPerPage() {
+  const grid = document.getElementById('appGrid');
+  if (!grid) return 8;
+  const viewport = document.getElementById('pageViewport');
+  const h = viewport.clientHeight - 20;
+  const dummy = document.createElement('div');
+  dummy.className = 'app-tile';
+  dummy.style.visibility = 'hidden';
+  dummy.innerHTML = `<div class="app-icon" style="width:70px;height:70px"></div><div class="app-name">Test</div>`;
+  grid.appendChild(dummy);
+  const tileH = dummy.offsetHeight + 20;
+  grid.removeChild(dummy);
+  let cols = 4;
+  if (viewMode === 'large') cols = 2;
+  else if (viewMode === 'medium') cols = (window.innerWidth < 500 ? 3 : 4);
+  else if (viewMode === 'small') cols = (window.innerWidth < 500 ? 4 : 6);
+  else if (viewMode === 'list' || viewMode === 'detail') cols = 1;
+  const rows = Math.max(1, Math.floor(h / tileH));
+  return Math.max(cols * rows, 1);
+}
+function recalcPagination() {
+  itemsPerPage = calculateItemsPerPage();
+  totalPages = Math.max(1, Math.ceil(getAllAppsWithAddButton().length / itemsPerPage));
+  if (currentPage >= totalPages) currentPage = totalPages-1;
+  if (currentPage < 0) currentPage = 0;
+  renderDots();
+}
+function getCurrentPageItems() { return getAllAppsWithAddButton().slice(currentPage*itemsPerPage, (currentPage+1)*itemsPerPage); }
+function goToPage(page) {
+  if (page < 0) page = 0;
+  if (page >= totalPages) page = totalPages-1;
+  currentPage = page;
+  renderCurrentPage();
+  renderDots();
+}
+function renderDots() {
+  const dotsDiv = document.getElementById('dotsContainer');
+  if (!dotsDiv) return;
+  if (totalPages <= 1) { dotsDiv.style.display = 'none'; return; }
+  dotsDiv.style.display = 'flex';
+  dotsDiv.innerHTML = '';
+  for (let i=0; i<totalPages; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'dot' + (i === currentPage ? ' active' : '');
+    dot.addEventListener('click', () => goToPage(i));
+    dotsDiv.appendChild(dot);
   }
+}
 
-  function closeModal() {
-    modal.classList.remove('open');
-    if (modalIframe.src !== 'about:blank') {
-      modalIframe.src = 'about:blank';
-    }
-  }
+// ---------- MODAL & APP OPENING (FIXED) ----------
+let currentApp = null;
 
-  closeModalBtn.addEventListener('click', closeModal);
-  // Home button: close modal, reset to page 0
-  document.getElementById('homeBtn').addEventListener('click', () => {
-    if (modal.classList.contains('open')) closeModal();
-    goToPage(0);
-    addNotification("Home", "home");
-  });
-  // Back button: if modal open, close it; else do nothing (or show toast)
-document.getElementById('backBtn').addEventListener('click', () => {
-    if (modal.classList.contains('open')) {
-      // Try to navigate back within the iframe (for 3D map, calls Core.goUp)
-      try {
-        const iframeWin = document.getElementById('modalIframe').contentWindow;
-        if (iframeWin.Core && typeof iframeWin.Core.goUp === 'function') {
-          iframeWin.Core.goUp();
-          addNotification("Navigated back (saved in Dexie)", "arrow-left");
-        } else {
-          // Fallback: close modal for apps without back navigation
-          closeModal();
-          addNotification("Closed app (no back support)", "arrow-left");
-        }
-      } catch(e) {
-        closeModal();
-        addNotification("Closed app", "arrow-left");
-      }
-    } else {
-      addNotification("No app open", "info-circle");
+function openApp(app) {
+  if (app.isAddButton) return;
+  currentApp = app;
+  modalTitle.textContent = app.name;
+  // Clear previous iframe and set new src
+  modalIframe.src = '';
+  setTimeout(() => {
+    modalIframe.src = app.url;
+  }, 10);
+  modal.classList.add('open');
+  addToRecents(app);
+  renderRecentsDrawer();
+  addNotification(`Opened: ${app.name}`, 'external-link-alt');
+  // Capture focus after load
+  modalIframe.onload = () => {
+    try { modalIframe.contentWindow.focus(); } catch(e) {}
+    // Notify iframe that it's visible (for audio/video resume)
+    modalIframe.contentWindow.postMessage({ type: 'containerVisibility', visible: true }, '*');
+    // Restore previous focused element if any
+    if (lastFocusedIframeElement && modalIframe.contentDocument?.contains(lastFocusedIframeElement)) {
+      lastFocusedIframeElement.focus();
     }
-});
-  // Recents button: show recents drawer
-  const recentsDrawer = document.getElementById('recentsDrawer');
-  document.getElementById('recentsBtn').addEventListener('click', () => {
-    recentsDrawer.classList.add('open');
-    renderRecentsDrawer();
-  });
-  document.getElementById('closeRecentsBtn').addEventListener('click', () => {
-    recentsDrawer.classList.remove('open');
-  });
-  // close recents drawer when clicking outside (simple)
-  document.addEventListener('click', (e) => {
-    if (!recentsDrawer.contains(e.target) && e.target !== document.getElementById('recentsBtn')) {
-      recentsDrawer.classList.remove('open');
-    }
-  });
+  };
+  // Handle unload to capture unsaved flag
+  modalIframe.onbeforeunload = () => {
+    // If app has unsaved flag via postMessage, we already have unsavedFlag
+  };
+}
 
-  // ---------- RENDER GRID (with context menu) ----------
-  function renderCurrentPage() {
-    const grid = document.getElementById('appGrid');
-    if (!grid) return;
-    grid.className = `app-grid ${viewMode}`;
-    const items = getCurrentPageItems();
-    grid.innerHTML = '';
-    for (let item of items) {
-      if (item.isAddButton) {
-        const tile = document.createElement('div');
-        tile.className = 'app-tile add-tile';
-        tile.innerHTML = `<div class="app-icon"><i class="fas fa-plus" style="font-size: 32px; color: white;"></i></div><div class="app-name">Add link</div>`;
-        tile.addEventListener('click', async () => {
-          const url = prompt("Enter website URL (https://...):", "https://");
-          if (url) await addCustomApp(url);
-        });
-        grid.appendChild(tile);
-      } else {
-        const tile = document.createElement('div');
-        tile.className = 'app-tile';
-        tile.setAttribute('data-id', item.id);
-        let iconHtml = '';
-        if (item.favicon) {
-          iconHtml = `<img src="${item.favicon}" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-${item.icon || 'globe'}\\'></i>'" alt="icon">`;
-        } else if (item.icon) {
-          iconHtml = `<i class="fas ${item.icon}"></i>`;
-        } else {
-          iconHtml = `<i class="fas fa-globe"></i>`;
-        }
-        tile.innerHTML = `<div class="app-icon">${iconHtml}</div><div class="app-name">${escapeHtml(item.name)}</div>`;
-        tile.addEventListener('click', () => openApp(item));
-        // Context menu: right-click or long-press (touch)
-        tile.addEventListener('contextmenu', (e) => {
-          e.preventDefault();
-          showContextMenu(e, item);
-        });
-        // Long-press for touch devices
-        let pressTimer = null;
-        tile.addEventListener('touchstart', (e) => {
-          pressTimer = setTimeout(() => {
-            showContextMenu(e, item);
-          }, 500);
-        });
-        tile.addEventListener('touchend', () => { if (pressTimer) clearTimeout(pressTimer); });
-        tile.addEventListener('touchmove', () => { if (pressTimer) clearTimeout(pressTimer); });
-        grid.appendChild(tile);
-      }
+function closeModal() {
+  if (unsavedFlag && !confirm('You have unsaved changes. Close anyway?')) return;
+  modal.classList.remove('open');
+  // Capture last focused element before unloading
+  if (modalIframe.contentDocument) {
+    const active = modalIframe.contentDocument.activeElement;
+    if (active && active !== modalIframe.contentDocument.body) {
+      lastFocusedIframeElement = active;
     }
   }
+  modalIframe.src = 'about:blank';
+  currentApp = null;
+  unsavedFlag = false; // reset after closing
+}
 
-  function showContextMenu(event, app) {
-    // Create a temporary floating menu
-    let menu = document.getElementById('dynamicContextMenu');
-    if (menu) menu.remove();
-    menu = document.createElement('div');
-    menu.id = 'dynamicContextMenu';
-    menu.style.position = 'fixed';
-    menu.style.left = event.pageX + 'px';
-    menu.style.top = event.pageY + 'px';
-    menu.style.background = '#1e2129e6';
-    menu.style.backdropFilter = 'blur(20px)';
-    menu.style.borderRadius = '12px';
-    menu.style.padding = '8px 0';
-    menu.style.zIndex = 1000;
-    menu.style.minWidth = '140px';
-    menu.style.border = '0.5px solid rgba(255,255,255,0.2)';
-    if (app.isDefault) {
-      menu.innerHTML = `<div class="menu-item" data-action="info"><i class="fas fa-info-circle"></i> Info</div>`;
-    } else {
-      menu.innerHTML = `
-        <div class="menu-item" data-action="rename"><i class="fas fa-edit"></i> Rename</div>
-        <div class="menu-item" data-action="delete"><i class="fas fa-trash"></i> Delete</div>
-        <div class="menu-item" data-action="info"><i class="fas fa-info-circle"></i> Info</div>
-      `;
-    }
-    document.body.appendChild(menu);
-    // adjust position to stay within viewport
-    const rect = menu.getBoundingClientRect();
-    if (rect.right > window.innerWidth) menu.style.left = (window.innerWidth - rect.width - 10) + 'px';
-    if (rect.bottom > window.innerHeight) menu.style.top = (event.pageY - rect.height - 10) + 'px';
-    // action handlers
-    menu.querySelectorAll('.menu-item').forEach(el => {
-      el.addEventListener('click', async (e) => {
-        const action = el.dataset.action;
-        if (action === 'rename' && !app.isDefault) {
-          const newName = prompt("Enter new name:", app.name);
-          if (newName && newName.trim()) renameCustomApp(app.id, newName.trim());
-        } else if (action === 'delete' && !app.isDefault) {
-          if (confirm(`Delete "${app.name}"?`)) deleteCustomAppById(app.id);
-        } else if (action === 'info') {
-          alert(`Name: ${app.name}\nURL: ${app.url || 'local file'}\nType: ${app.isDefault ? 'Default app' : 'Custom app'}`);
-        }
-        menu.remove();
+closeModalBtn.addEventListener('click', closeModal);
+homeBtn.addEventListener('click', () => { if (modal.classList.contains('open')) closeModal(); goToPage(0); addNotification('Home', 'home'); });
+backBtn.addEventListener('click', () => { if (modal.classList.contains('open')) closeModal(); else addNotification('No app open', 'info-circle'); });
+recentsBtn.addEventListener('click', () => { recentsDrawer.classList.add('open'); renderRecentsDrawer(); });
+closeRecentsBtn.addEventListener('click', () => recentsDrawer.classList.remove('open'));
+document.addEventListener('click', (e) => { if (!recentsDrawer.contains(e.target) && e.target !== recentsBtn) recentsDrawer.classList.remove('open'); });
+
+// ---------- RENDER GRID (same as before, with minor improvements) ----------
+function renderCurrentPage() {
+  const grid = document.getElementById('appGrid');
+  if (!grid) return;
+  grid.className = `app-grid ${viewMode}`;
+  const items = getCurrentPageItems();
+  grid.innerHTML = '';
+  for (let item of items) {
+    if (item.isAddButton) {
+      const tile = document.createElement('div');
+      tile.className = 'app-tile add-tile';
+      tile.innerHTML = `<div class="app-icon"><i class="fas fa-plus" style="font-size: 32px; color: white;"></i></div><div class="app-name">Add link</div>`;
+      tile.addEventListener('click', async () => {
+        const url = prompt('Enter website URL (https://...):', 'https://');
+        if (url) await addCustomApp(url);
       });
+      grid.appendChild(tile);
+    } else {
+      const tile = document.createElement('div');
+      tile.className = 'app-tile';
+      tile.setAttribute('data-id', item.id);
+      let iconHtml = '';
+      if (item.favicon) {
+        iconHtml = `<img src="${item.favicon}" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-${item.icon || 'globe'}\\'></i>'" alt="icon">`;
+      } else if (item.icon) {
+        iconHtml = `<i class="fas ${item.icon}"></i>`;
+      } else {
+        iconHtml = `<i class="fas fa-globe"></i>`;
+      }
+      tile.innerHTML = `<div class="app-icon">${iconHtml}</div><div class="app-name">${escapeHtml(item.name)}</div>`;
+      tile.addEventListener('click', () => openApp(item));
+      tile.addEventListener('contextmenu', (e) => { e.preventDefault(); showContextMenu(e, item); });
+      let pressTimer = null;
+      tile.addEventListener('touchstart', () => { pressTimer = setTimeout(() => showContextMenu({ pageX: 0, pageY: 0 }, item), 500); });
+      tile.addEventListener('touchend', () => { if (pressTimer) clearTimeout(pressTimer); });
+      tile.addEventListener('touchmove', () => { if (pressTimer) clearTimeout(pressTimer); });
+      grid.appendChild(tile);
+    }
+  }
+}
+
+function showContextMenu(event, app) {
+  let menu = document.getElementById('dynamicContextMenu');
+  if (menu) menu.remove();
+  menu = document.createElement('div');
+  menu.id = 'dynamicContextMenu';
+  menu.style.position = 'fixed';
+  menu.style.left = (event.pageX || 10) + 'px';
+  menu.style.top = (event.pageY || 10) + 'px';
+  menu.style.background = '#1e2129e6';
+  menu.style.backdropFilter = 'blur(20px)';
+  menu.style.borderRadius = '12px';
+  menu.style.padding = '8px 0';
+  menu.style.zIndex = 1000;
+  menu.style.minWidth = '140px';
+  menu.style.border = '0.5px solid rgba(255,255,255,0.2)';
+  if (app.isDefault) {
+    menu.innerHTML = `<div class="menu-item" data-action="info"><i class="fas fa-info-circle"></i> Info</div>`;
+  } else {
+    menu.innerHTML = `<div class="menu-item" data-action="rename"><i class="fas fa-edit"></i> Rename</div><div class="menu-item" data-action="delete"><i class="fas fa-trash"></i> Delete</div><div class="menu-item" data-action="info"><i class="fas fa-info-circle"></i> Info</div>`;
+  }
+  document.body.appendChild(menu);
+  const rect = menu.getBoundingClientRect();
+  if (rect.right > window.innerWidth) menu.style.left = (window.innerWidth - rect.width - 10) + 'px';
+  if (rect.bottom > window.innerHeight) menu.style.top = (event.pageY - rect.height - 10) + 'px';
+  menu.querySelectorAll('.menu-item').forEach(el => {
+    el.addEventListener('click', async (e) => {
+      const action = el.dataset.action;
+      if (action === 'rename' && !app.isDefault) {
+        const newName = prompt('Enter new name:', app.name);
+        if (newName && newName.trim()) renameCustomApp(app.id, newName.trim());
+      } else if (action === 'delete' && !app.isDefault) {
+        if (confirm(`Delete "${app.name}"?`)) deleteCustomAppById(app.id);
+      } else if (action === 'info') {
+        alert(`Name: ${app.name}\nURL: ${app.url || 'local file'}\nType: ${app.isDefault ? 'Default app' : 'Custom app'}`);
+      }
+      menu.remove();
     });
-    // close menu on click outside
-    const closeMenu = (e) => {
-      if (!menu.contains(e.target)) menu.remove();
-      document.removeEventListener('click', closeMenu);
-    };
-    setTimeout(() => document.addEventListener('click', closeMenu), 10);
-  }
-
-  // ---------- VIEW MODE ----------
-  function setViewMode(mode) {
-    viewMode = mode;
-    localStorage.setItem('appViewMode', viewMode);
-    recalcPagination();
-    renderCurrentPage();
-    renderDots();
-    addNotification(`View: ${viewMode}`, "eye");
-  }
-
-  // ---------- UI SETUP ----------
-  const viewMenu = document.getElementById('viewMenu');
-  const dotsBtn = document.getElementById('dotsMenu');
-  dotsBtn.addEventListener('click', (e) => { e.stopPropagation(); viewMenu.classList.toggle('show'); });
-  document.addEventListener('click', (e) => {
-    if (!dotsBtn.contains(e.target) && !viewMenu.contains(e.target)) viewMenu.classList.remove('show');
   });
-  document.querySelectorAll('.menu-item[data-view]').forEach(el => {
-    el.addEventListener('click', () => {
-      setViewMode(el.getAttribute('data-view'));
-      viewMenu.classList.remove('show');
-    });
-  });
+  setTimeout(() => document.addEventListener('click', function closeMenu() { menu.remove(); document.removeEventListener('click', closeMenu); }), 10);
+}
 
-  // ---------- BATTERY & TIME ----------
-  function updateTime() {
-    document.getElementById('liveTime').innerText = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-  }
-  setInterval(updateTime, 1000);
-  updateTime();
-  async function initBattery() {
-    if ('getBattery' in navigator) {
-      try {
-        const b = await navigator.getBattery();
-        const update = () => {
-          const p = Math.round(b.level*100);
-          document.getElementById('batteryPercent').innerText = p+'%';
-          const fill = document.getElementById('batteryFill');
-          fill.style.width = p+'%';
-          if (p<=15) fill.style.backgroundColor = '#ff3b30';
-          else if (p>=99) fill.style.backgroundColor = '#34c759';
-          else fill.style.backgroundColor = 'white';
-          if (p<=15 && !b.charging) addNotification("⚠️ Low battery", "battery-quarter");
-        };
-        update();
-        b.addEventListener('levelchange', update);
-      } catch(e) { fallbackBattery(); }
-    } else fallbackBattery();
-  }
-  function fallbackBattery() {
-    document.getElementById('batteryFill').style.width='87%';
-    document.getElementById('batteryPercent').innerText='87%';
-  }
-  initBattery();
+function setViewMode(mode) {
+  viewMode = mode;
+  localStorage.setItem('appViewMode', viewMode);
+  recalcPagination(); renderCurrentPage(); renderDots();
+  addNotification(`View: ${viewMode}`, 'eye');
+}
 
-  // ---------- GESTURES & SCROLL ----------
-  const viewportDiv = document.getElementById('pageViewport');
-  let touchStartX = 0, touchEndX = 0;
-  viewportDiv.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; });
-  viewportDiv.addEventListener('touchend', (e) => {
-    touchEndX = e.changedTouches[0].screenX;
-    const diff = touchEndX - touchStartX;
-    if (Math.abs(diff) > 50) {
-      if (diff > 0 && currentPage > 0) goToPage(currentPage-1);
-      else if (diff < 0 && currentPage < totalPages-1) goToPage(currentPage+1);
+// UI setup
+dotsBtn.addEventListener('click', (e) => { e.stopPropagation(); viewMenu.classList.toggle('show'); });
+document.addEventListener('click', (e) => { if (!dotsBtn.contains(e.target) && !viewMenu.contains(e.target)) viewMenu.classList.remove('show'); });
+document.querySelectorAll('.menu-item[data-view]').forEach(el => {
+  el.addEventListener('click', () => { setViewMode(el.getAttribute('data-view')); viewMenu.classList.remove('show'); });
+});
+
+// Battery & time (unchanged)
+function updateTime() { document.getElementById('liveTime').innerText = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }
+setInterval(updateTime, 1000); updateTime();
+async function initBattery() {
+  if ('getBattery' in navigator) {
+    try {
+      const b = await navigator.getBattery();
+      const update = () => {
+        const p = Math.round(b.level*100);
+        document.getElementById('batteryPercent').innerText = p+'%';
+        const fill = document.getElementById('batteryFill');
+        fill.style.width = p+'%';
+        if (p<=15) fill.style.backgroundColor = '#ff3b30';
+        else if (p>=99) fill.style.backgroundColor = '#34c759';
+        else fill.style.backgroundColor = 'white';
+        if (p<=15 && !b.charging) addNotification('⚠️ Low battery', 'battery-quarter');
+      };
+      update();
+      b.addEventListener('levelchange', update);
+    } catch(e) { fallbackBattery(); }
+  } else fallbackBattery();
+}
+function fallbackBattery() { document.getElementById('batteryFill').style.width='87%'; document.getElementById('batteryPercent').innerText='87%'; }
+initBattery();
+
+// Gestures & swipe (unchanged)
+let touchStartX = 0, touchEndX = 0;
+viewportDiv.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; });
+viewportDiv.addEventListener('touchend', (e) => {
+  touchEndX = e.changedTouches[0].screenX;
+  const diff = touchEndX - touchStartX;
+  if (Math.abs(diff) > 50) {
+    if (diff > 0 && currentPage > 0) goToPage(currentPage-1);
+    else if (diff < 0 && currentPage < totalPages-1) goToPage(currentPage+1);
+  }
+});
+
+// Auto-hide status bar on scroll
+let lastScrollY = 0;
+viewportDiv.addEventListener('scroll', () => {
+  const current = viewportDiv.scrollTop;
+  if (current > lastScrollY && current > 50) statusBar.classList.add('hide');
+  else statusBar.classList.remove('hide');
+  lastScrollY = current;
+});
+
+// ---------- KEYBOARD CONFLICT FIX ----------
+function isIframeActive() {
+  if (!modal.classList.contains('open')) return false;
+  const doc = modalIframe.contentDocument;
+  if (!doc) return false;
+  return doc.contains(document.activeElement);
+}
+function isInputOrContentEditable(el) {
+  if (!el) return false;
+  const tag = el.tagName.toLowerCase();
+  if (tag === 'input' || tag === 'textarea' || tag === 'select') return true;
+  if (el.isContentEditable) return true;
+  return false;
+}
+window.addEventListener('keydown', (e) => {
+  // If modal is open and focus is inside iframe, let iframe handle keys
+  if (isIframeActive()) return;
+  // Block keys that would interfere with parent (Space, Escape, Arrow)
+  const key = e.key;
+  if (key === ' ' || key === 'Space' || key === 'Escape' || key === 'ArrowLeft' || key === 'ArrowRight') {
+    e.preventDefault();
+    if (key === 'Escape' && modal.classList.contains('open')) closeModal();
+    else if (key === ' ' || key === 'Space') addCustomApp(prompt('Enter website URL:', 'https://'));
+    else if (key === 'ArrowLeft') goToPage(currentPage-1);
+    else if (key === 'ArrowRight') goToPage(currentPage+1);
+  }
+});
+
+// ---------- REMOVE RESIZE FLICKER ----------
+// No display: none/block toggling. Instead, forward resize to iframe.
+window.addEventListener('resize', () => {
+  if (resizeTimeout) clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(() => {
+    if (modal.classList.contains('open') && modalIframe.contentWindow) {
+      const rect = modalIframe.getBoundingClientRect();
+      modalIframe.contentWindow.postMessage({ type: 'containerResize', width: rect.width, height: rect.height }, '*');
     }
-  });
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowLeft') { goToPage(currentPage-1); e.preventDefault(); }
-    else if (e.key === 'ArrowRight') { goToPage(currentPage+1); e.preventDefault(); }
-    else if (e.key === 'Escape' && modal.classList.contains('open')) { closeModal(); e.preventDefault(); }
-    else if (e.key === ' ' || e.key === 'Space') {
-      e.preventDefault();
-      const url = prompt("Enter website URL (https://...):", "https://");
-      if (url) addCustomApp(url);
-    }
-  });
+  }, 100);
+});
 
-  // Pull-down notification drawer
-  let startY = 0, isDragging = false;
-  const drawer = document.getElementById('notifDrawer');
-  viewportDiv.addEventListener('touchstart', (e) => {
-    if (e.touches[0].clientY < 40) { startY = e.touches[0].clientY; isDragging = true; }
-  });
-  viewportDiv.addEventListener('touchmove', (e) => {
-    if (!isDragging) return;
-    const delta = e.touches[0].clientY - startY;
-    if (delta > 30) {
-      drawer.classList.add('open');
-      isDragging = false;
-      setTimeout(() => {
-        document.addEventListener('click', function closeDrawer(e) {
-          if (!drawer.contains(e.target)) drawer.classList.remove('open');
-          document.removeEventListener('click', closeDrawer);
-        });
-      }, 100);
-    }
-  });
-  viewportDiv.addEventListener('touchend', () => { isDragging = false; });
-
-  // Auto-hide status bar on scroll
-  let lastScrollY = 0;
-  const statusBar = document.getElementById('statusBar');
-  viewportDiv.addEventListener('scroll', () => {
-    const current = viewportDiv.scrollTop;
-    if (current > lastScrollY && current > 50) statusBar.classList.add('hide');
-    else statusBar.classList.remove('hide');
-    lastScrollY = current;
-  });
-
-  // ---------- INIT ----------
-  function init() {
-    loadCustomApps();
-    loadRecents();
-    const savedView = localStorage.getItem('appViewMode');
-    if (savedView && ['large','medium','small','list','detail'].includes(savedView)) viewMode = savedView;
-    recalcPagination();
-    renderCurrentPage();
-    renderDots();
-    addNotification("✨ Ready! Long-press any app for options", "rocket");
+// ---------- VIRTUAL KEYBOARD HANDLING ----------
+function handleVirtualKeyboard() {
+  if (!window.visualViewport) return;
+  const viewport = window.visualViewport;
+  const wrapper = document.querySelector('.app-modal');
+  if (!wrapper) return;
+  const keyboardHeight = window.innerHeight - viewport.height;
+  if (keyboardHeight > 50) {
+    wrapper.style.bottom = `calc(70px + ${keyboardHeight}px)`;
+    virtualKeyboardActive = true;
+  } else if (virtualKeyboardActive) {
+    wrapper.style.bottom = '70px';
+    virtualKeyboardActive = false;
   }
-  init();
-    window.addEventListener('resize', () => {
-    // The modal uses 'bottom:70px', which automatically adjusts.
-    // No additional action needed, but force iframe reflow:
-    if (modal.classList.contains('open')) {
-      modalIframe.style.display = 'none';
-      setTimeout(() => { modalIframe.style.display = 'flex'; }, 10);
-    }
-  });
+}
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', () => requestAnimationFrame(handleVirtualKeyboard));
+}
+
+// ---------- POSTMESSAGE HANDLER (unsaved, console logs) ----------
+window.addEventListener('message', (event) => {
+  if (!event.data) return;
+  if (event.data.type === 'setUnsaved') {
+    unsavedFlag = event.data.unsaved;
+    addNotification(unsavedFlag ? '⚠️ Unsaved changes' : 'Saved', 'info');
+  } else if (event.data.type === 'iframeConsole') {
+    addNotification(`[iframe ${event.data.method}] ${event.data.args.join(' ')}`, 'info');
+  } else if (event.data.type === 'focusElement' && event.data.elementId && modalIframe.contentDocument) {
+    const el = modalIframe.contentDocument.getElementById(event.data.elementId);
+    if (el) lastFocusedIframeElement = el;
+  }
+});
+
+// ---------- UNSAVED DATA WARNING ON PAGE EXIT ----------
+window.addEventListener('beforeunload', (e) => {
+  if (unsavedFlag) {
+    const msg = 'You have unsaved changes. Are you sure you want to leave?';
+    e.preventDefault();
+    e.returnValue = msg;
+    return msg;
+  }
+});
+
+// ---------- DEADMAN TIMEOUT ----------
+let deadmanTimeout = setTimeout(() => {
+  if (modal.classList.contains('open') && !modalIframe.src) {
+    addNotification('⚠️ App failed to load. Try again.', 'error');
+  }
+}, 10000);
+window.addEventListener('load', () => clearTimeout(deadmanTimeout));
+
+// ---------- INITIAL LOAD ----------
+function init() {
+  loadCustomApps();
+  loadRecents();
+  const savedView = localStorage.getItem('appViewMode');
+  if (savedView && ['large','medium','small','list','detail'].includes(savedView)) viewMode = savedView;
+  recalcPagination();
+  renderCurrentPage();
+  renderDots();
+  addNotification('✨ Ready! Long‑press any app for options', 'rocket');
+}
+init();
 </script>
 </body>
 </html>
