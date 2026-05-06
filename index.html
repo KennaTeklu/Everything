@@ -282,7 +282,7 @@
             align-items: center;
         }
 
-        /* ─── RECENTS DRAWER ─── */
+        /* ─── RECENTS DRAWER (slide-up from bottom) ─── */
         .recents-drawer {
             position: fixed;
             bottom: 0;
@@ -343,6 +343,18 @@
         .recent-item .app-icon-small i {
             font-size: 18px;
             color: var(--primary);
+        }
+        .recents-close-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--text);
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        .recents-close-btn:hover {
+            opacity: 1;
         }
 
         /* ─── MAIN GRID ─── */
@@ -634,7 +646,7 @@
             background: white;
         }
 
-        /* ─── TASK SWITCHER ─── */
+        /* ─── TASK SWITCHER (full-screen card view) ─── */
         .task-switcher {
             position: fixed;
             top: 0;
@@ -1135,8 +1147,10 @@
         body.desktop-mode .settings-dots,
         body.desktop-mode .menu-dropdown,
         body.desktop-mode .notification-drawer,
-        body.desktop-mode .recents-drawer,
         body.desktop-mode .dots-container {
+            display: none !important;
+        }
+        body.desktop-mode .recents-drawer {
             display: none !important;
         }
         body.desktop-mode .taskbar {
@@ -1155,9 +1169,6 @@
         }
         body.desktop-mode .app-tile {
             width: 100px;
-        }
-        body.desktop-mode .search-box {
-            display: none;
         }
         body.desktop-mode .app-tile .app-icon {
             width: 64px;
@@ -1249,11 +1260,11 @@
         <div class="notif-list" id="notifList"></div>
     </div>
 
-    <!-- ─── RECENTS DRAWER ─── -->
+    <!-- ─── RECENTS DRAWER (slide-up from bottom) ─── -->
     <div class="recents-drawer" id="recentsDrawer">
         <div class="recents-header">
             <span><i class="fas fa-history"></i> Recent Apps</span>
-            <button class="close-modal" id="closeRecentsBtn" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text);opacity:0.7;">&times;</button>
+            <button class="recents-close-btn" id="closeRecentsBtn">&times;</button>
         </div>
         <div class="recents-list" id="recentsList"></div>
     </div>
@@ -1285,7 +1296,7 @@
         title="app"></iframe>
     </div>
 
-    <!-- ─── TASK SWITCHER ─── -->
+    <!-- ─── TASK SWITCHER (full-screen card view) ─── -->
     <div id="taskSwitcher" class="task-switcher">
         <button class="close-switcher" id="closeSwitcher">&times;</button>
         <div class="task-cards" id="taskCards"></div>
@@ -1655,13 +1666,22 @@
         //  PAGINATION
         // ═══════════════════════════════════════════════════════════════════
         function calculateItemsPerPage() {
+            // Use the old method: insert a dummy tile to measure height accurately
+            const grid = appGrid;
+            const dummy = document.createElement('div');
+            dummy.className = 'app-tile';
+            dummy.style.visibility = 'hidden';
+            dummy.innerHTML = `<div class="app-icon" style="width:70px;height:70px"></div><div class="app-name">Test</div>`;
+            grid.appendChild(dummy);
+            const tileH = dummy.offsetHeight + 20;
+            grid.removeChild(dummy);
             let cols = 4;
             if (viewMode === 'large') cols = 2;
             else if (viewMode === 'medium') cols = window.innerWidth < 500 ? 3 : 4;
             else if (viewMode === 'small') cols = window.innerWidth < 500 ? 4 : 6;
             else if (viewMode === 'list' || viewMode === 'detail') cols = 1;
-            let rows = Math.max(1, Math.floor((window.innerHeight - 200) / 100));
-            return cols * rows;
+            const rows = Math.max(1, Math.floor((window.innerHeight - 200) / tileH));
+            return Math.max(cols * rows, 1);
         }
 
         function recalcPagination() {
@@ -1694,7 +1714,7 @@
         }
 
         // ═══════════════════════════════════════════════════════════════════
-        //  RENDER GRID (with DnD + Touch support)
+        //  RENDER GRID (with DnD + Touch support + Floating Context Menu)
         // ═══════════════════════════════════════════════════════════════════
         function renderGrid(query) {
             query = query || '';
@@ -1704,6 +1724,7 @@
             const start = currentPage * itemsPerPage;
             const pageApps = apps.slice(start, start + itemsPerPage);
 
+            appGrid.className = 'app-grid ' + viewMode;
             appGrid.innerHTML = '';
             pageApps.forEach(app => {
                 let tile = document.createElement('div');
@@ -1814,45 +1835,20 @@
                     }
                 }, { passive: true });
 
-                // Context menu
-                tile.oncontextmenu = (e) => {
+                // ─── FLOATING CONTEXT MENU (from old version) ───
+                tile.addEventListener('contextmenu', (e) => {
                     e.preventDefault();
-                    if (!app.isDefault) {
-                        sysDialog({
-                            title: 'App Options',
-                            message: `What would you like to do with "${app.name}"?`,
-                            buttons: [
-                                { label: 'Rename', value: 'rename', primary: true },
-                                { label: 'Delete', value: 'delete', danger: true },
-                                { label: 'Cancel', value: null, primary: false }
-                            ]
-                        }).then(result => {
-                            if (result === 'rename') {
-                                sysDialog({
-                                    type: 'prompt',
-                                    title: 'Rename App',
-                                    message: 'Enter new name:',
-                                    default: app.name,
-                                    placeholder: 'New name'
-                                }).then(newName => {
-                                    if (newName && newName.trim()) renameCustomApp(app.id, newName
-                                    .trim());
-                                });
-                            } else if (result === 'delete') {
-                                sysDialog({
-                                    title: 'Delete App',
-                                    message: `Are you sure you want to delete "${app.name}"?`,
-                                    buttons: [
-                                        { label: 'Cancel', value: false, primary: false },
-                                        { label: 'Delete', value: true, danger: true }
-                                    ]
-                                }).then(confirmed => { if (confirmed) deleteCustomApp(app.id); });
-                            }
-                        });
-                    } else {
-                        toast('Default app cannot be deleted or renamed');
-                    }
-                };
+                    showContextMenu(e, app);
+                });
+                // Long-press for touch devices
+                let pressTimer = null;
+                tile.addEventListener('touchstart', (e) => {
+                    pressTimer = setTimeout(() => {
+                        showContextMenu(e, app);
+                    }, 500);
+                }, { passive: true });
+                tile.addEventListener('touchend', () => { if (pressTimer) clearTimeout(pressTimer); }, { passive: true });
+                tile.addEventListener('touchmove', () => { if (pressTimer) clearTimeout(pressTimer); }, { passive: true });
 
                 appGrid.appendChild(tile);
             });
@@ -1880,6 +1876,79 @@
             renderStartMenu();
             if (focusedGridIndex >= appGrid.children.length) focusedGridIndex = 0;
             updateGridFocus();
+        }
+
+        // ─── FLOATING CONTEXT MENU (from old version) ───
+        function showContextMenu(event, app) {
+            let menu = document.getElementById('dynamicContextMenu');
+            if (menu) menu.remove();
+            menu = document.createElement('div');
+            menu.id = 'dynamicContextMenu';
+            menu.style.position = 'fixed';
+            const x = event.pageX || event.touches?.[0]?.clientX || 0;
+            const y = event.pageY || event.touches?.[0]?.clientY || 0;
+            menu.style.left = x + 'px';
+            menu.style.top = y + 'px';
+            menu.style.background = 'rgba(30,33,41,0.94)';
+            menu.style.backdropFilter = 'blur(20px)';
+            menu.style.borderRadius = '12px';
+            menu.style.padding = '8px 0';
+            menu.style.zIndex = 1000;
+            menu.style.minWidth = '150px';
+            menu.style.border = '0.5px solid var(--border)';
+            if (app.isDefault) {
+                menu.innerHTML = `<div class="menu-item" data-action="info"><i class="fas fa-info-circle"></i> Info</div>`;
+            } else {
+                menu.innerHTML = `
+              <div class="menu-item" data-action="rename"><i class="fas fa-edit"></i> Rename</div>
+              <div class="menu-item" data-action="delete"><i class="fas fa-trash"></i> Delete</div>
+              <div class="menu-item" data-action="info"><i class="fas fa-info-circle"></i> Info</div>
+            `;
+            }
+            document.body.appendChild(menu);
+            // Adjust position to stay within viewport
+            const rect = menu.getBoundingClientRect();
+            if (rect.right > window.innerWidth) menu.style.left = (window.innerWidth - rect.width - 10) + 'px';
+            if (rect.bottom > window.innerHeight) menu.style.top = (y - rect.height - 10) + 'px';
+            // Action handlers
+            menu.querySelectorAll('.menu-item').forEach(el => {
+                el.addEventListener('click', async (e) => {
+                    const action = el.dataset.action;
+                    if (action === 'rename' && !app.isDefault) {
+                        sysDialog({
+                            type: 'prompt',
+                            title: 'Rename App',
+                            message: 'Enter new name:',
+                            default: app.name,
+                            placeholder: 'New name'
+                        }).then(newName => {
+                            if (newName && newName.trim()) renameCustomApp(app.id, newName.trim());
+                        });
+                    } else if (action === 'delete' && !app.isDefault) {
+                        sysDialog({
+                            title: 'Delete App',
+                            message: `Are you sure you want to delete "${app.name}"?`,
+                            buttons: [
+                                { label: 'Cancel', value: false, primary: false },
+                                { label: 'Delete', value: true, danger: true }
+                            ]
+                        }).then(confirmed => { if (confirmed) deleteCustomApp(app.id); });
+                    } else if (action === 'info') {
+                        sysDialog({
+                            title: 'App Info',
+                            message: `Name: ${app.name}\nURL: ${app.url || 'local file'}\nType: ${app.isDefault ? 'Default app' : 'Custom app'}`,
+                            buttons: [{ label: 'OK', value: true, primary: true }]
+                        });
+                    }
+                    menu.remove();
+                });
+            });
+            // Close menu on click outside
+            const closeMenu = (e) => {
+                if (!menu.contains(e.target)) menu.remove();
+                document.removeEventListener('click', closeMenu);
+            };
+            setTimeout(() => document.addEventListener('click', closeMenu), 10);
         }
 
         function renderStartMenu() {
@@ -2083,33 +2152,21 @@
                 modal.classList.remove('open');
                 modalTitle.innerText = app.name;
                 const content = runningApps[id].contentNode;
-                // If using iframe in modal, we need to use the modal's iframe
                 if (app.type === 'iframe') {
                     const iframe = content.querySelector('iframe');
                     if (iframe) {
                         modalIframe.src = iframe.src;
-                        // Copy sandbox/allow attributes
                         modalIframe.setAttribute('sandbox', iframe.getAttribute('sandbox') || '');
                         modalIframe.setAttribute('allow', iframe.getAttribute('allow') || '');
-                        // Restore scroll if available
                         if (runningApps[id].scrollY) {
                             modalIframe.onload = () => { modalIframe.contentWindow?.scrollTo(0, runningApps[id]
                                     .scrollY); };
                         }
                     }
                 } else {
-                    // Native apps: use modalContent div
                     const mc = document.getElementById('modalContent');
-                    if (!mc) {
-                        const newMc = document.createElement('div');
-                        newMc.id = 'modalContent';
-                        newMc.style.cssText =
-                            'flex:1;position:relative;background:var(--surface-solid);display:flex;flex-direction:column;overflow:hidden;';
-                        modal.querySelector('.modal-header').after(newMc);
-                    }
-                    const mc2 = document.getElementById('modalContent');
-                    mc2.innerHTML = '';
-                    mc2.appendChild(content);
+                    mc.innerHTML = '';
+                    mc.appendChild(content);
                 }
                 modal.classList.add('open');
                 notifDrawer.classList.add('higher');
@@ -2340,7 +2397,7 @@
         }
 
         // ═══════════════════════════════════════════════════════════════════
-        //  TASK SWITCHER
+        //  TASK SWITCHER (full-screen card view)
         // ═══════════════════════════════════════════════════════════════════
         function showTaskSwitcher() {
             taskCards.innerHTML = '';
@@ -2377,6 +2434,34 @@
                 };
             });
             taskSwitcher.classList.add('open');
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        //  RECENTS DRAWER (slide-up from bottom)
+        // ═══════════════════════════════════════════════════════════════════
+        function renderRecentsDrawer() {
+            if (!recentsList) return;
+            if (recentApps.length === 0) {
+                recentsList.innerHTML = '<div style="padding:16px;text-align:center;opacity:0.6;">No recent apps</div>';
+                return;
+            }
+            recentsList.innerHTML = recentApps.map(app => `
+            <div class="recent-item" data-id="${app.id}">
+              <div class="app-icon-small"><i class="fas ${app.icon || 'fa-globe'}"></i></div>
+              <span style="flex:1;font-weight:500;">${escapeHtml(app.name)}</span>
+            </div>
+          `).join('');
+            recentsList.querySelectorAll('.recent-item').forEach(el => {
+                const id = el.dataset.id;
+                const app = recentApps.find(a => a.id === id);
+                if (app) {
+                    el.onclick = () => {
+                        closeModal();
+                        launchApp(app.id);
+                        recentsDrawer.classList.remove('open');
+                    };
+                }
+            });
         }
 
         // ═══════════════════════════════════════════════════════════════════
@@ -2480,14 +2565,23 @@
         window.addEventListener('keydown', (e) => {
             if (isIframeActive()) return;
 
-            if (e.key === ' ' && document.activeElement === document.body && isMobile() && !modal.classList.contains(
-                    'open')) {
+            // SPACEBAR → add app (from old version)
+            if (e.key === ' ' && document.activeElement === document.body && !modal.classList.contains('open') && !
+                taskSwitcher.classList.contains('open')) {
                 e.preventDefault();
-                const url = prompt('Enter website URL:', 'https://');
-                if (url) addCustomApp(url);
+                sysDialog({
+                    type: 'prompt',
+                    title: 'Add App',
+                    message: 'Enter URL:',
+                    default: 'https://',
+                    placeholder: 'https://example.com'
+                }).then(url => {
+                    if (url && url.trim()) addCustomApp(url.trim());
+                });
                 return;
             }
 
+            // Grid navigation
             if ((document.activeElement === document.body) && !modal.classList.contains('open') && !taskSwitcher
                 .classList.contains('open')) {
                 const gridItems = document.querySelectorAll('.app-tile');
@@ -2536,26 +2630,43 @@
         });
 
         // ═══════════════════════════════════════════════════════════════════
+        //  TOUCH SWIPE FOR PAGINATION (from old version)
+        // ═══════════════════════════════════════════════════════════════════
+        let touchStartX = 0,
+            touchEndX = 0;
+        pageViewport.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+        pageViewport.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            const diff = touchEndX - touchStartX;
+            if (Math.abs(diff) > 50) {
+                if (diff > 0 && currentPage > 0) goToPage(currentPage - 1);
+                else if (diff < 0 && currentPage < totalPages - 1) goToPage(currentPage + 1);
+            }
+        }, { passive: true });
+
+        // ═══════════════════════════════════════════════════════════════════
         //  EDGE SWIPE GESTURES (Back)
         // ═══════════════════════════════════════════════════════════════════
-        let swipeStartX = 0;
-        let swipeStartY = 0;
+        let swipeStartXEdge = 0;
+        let swipeStartYEdge = 0;
         let isSwiping = false;
         let swipeTimeout = null;
 
         document.addEventListener('touchstart', (e) => {
             const t = e.touches[0];
-            swipeStartX = t.clientX;
-            swipeStartY = t.clientY;
+            swipeStartXEdge = t.clientX;
+            swipeStartYEdge = t.clientY;
             isSwiping = true;
         }, { passive: true });
 
         document.addEventListener('touchmove', (e) => {
             if (!isSwiping) return;
             const t = e.touches[0];
-            const dx = t.clientX - swipeStartX;
-            const dy = t.clientY - swipeStartY;
-            if (Math.abs(dx) > Math.abs(dy) && dx > 40 && swipeStartX < 20) {
+            const dx = t.clientX - swipeStartXEdge;
+            const dy = t.clientY - swipeStartYEdge;
+            if (Math.abs(dx) > Math.abs(dy) && dx > 40 && swipeStartXEdge < 20) {
                 e.preventDefault();
                 isSwiping = false;
                 haptic();
@@ -2735,7 +2846,8 @@
         };
 
         recentsBtn.onclick = () => { haptic();
-            showTaskSwitcher(); };
+            recentsDrawer.classList.toggle('open');
+            renderRecentsDrawer(); };
 
         closeSwitcher.onclick = () => taskSwitcher.classList.remove('open');
         closeModalBtn.onclick = closeModal;
@@ -2767,36 +2879,8 @@
         });
 
         // ═══════════════════════════════════════════════════════════════════
-        //  RECENTS DRAWER (open/close)
+        //  MESSAGE HANDLING (From iframes)
         // ═══════════════════════════════════════════════════════════════════
-        function renderRecentsDrawer() {
-            if (!recentsList) return;
-            if (recentApps.length === 0) {
-                recentsList.innerHTML = '<div style="padding:16px;text-align:center;opacity:0.6;">No recent apps</div>';
-                return;
-            }
-            recentsList.innerHTML = recentApps.map(app => `
-            <div class="recent-item" data-id="${app.id}">
-              <div class="app-icon-small"><i class="fas ${app.icon || 'fa-globe'}"></i></div>
-              <span style="flex:1;font-weight:500;">${escapeHtml(app.name)}</span>
-            </div>
-          `).join('');
-            recentsList.querySelectorAll('.recent-item').forEach(el => {
-                const id = el.dataset.id;
-                const app = recentApps.find(a => a.id === id);
-                if (app) {
-                    el.onclick = () => {
-                        closeModal();
-                        launchApp(app.id);
-                        recentsDrawer.classList.remove('open');
-                    };
-                }
-            });
-        }
-
-        // ────────────────────────────────────────────────────────────────
-        //  Message handling from iframes
-        // ────────────────────────────────────────────────────────────────
         window.addEventListener('message', (e) => {
             if (e.data && e.data.type === 'setUnsaved') {
                 const id = findAppIdByFrame(e.source);
@@ -2872,7 +2956,7 @@
 
         console.log('🚀 Unified OS v5.0 — Phone + Desktop (Fully Merged)');
         console.log('📱 Phone mode (mobile) | 🖥️ Desktop mode (desktop)');
-        console.log('🔒 Double-tap status bar to lock | Press Space for URL prompt');
+        console.log('🔒 Double-tap status bar to lock | Press Space to add app');
         console.log('🔄 Drag & Drop to reorder apps | Edge swipe for back');
     </script>
 </body>
