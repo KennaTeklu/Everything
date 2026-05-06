@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Unified OS – Phone & Desktop (Full Combo)</title>
+    <title>Unified OS – Ultimate Monolithic Container (Full Combo)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="icon" type="image/svg+xml" href="icons/Everything.svg">
     <style>
         :root {
             --bg: #0a0c12;
@@ -51,7 +52,6 @@
             flex-direction: column;
             transition: background 0.2s;
         }
-        /* Desktop Background Layer */
         #desktop-bg {
             position: absolute;
             inset: 0;
@@ -66,7 +66,7 @@
             opacity: 1;
         }
 
-        /* ===== LOCK SCREEN ===== */
+        /* ─── LOCK SCREEN ─── */
         .lock-screen {
             position: fixed;
             inset: 0;
@@ -89,6 +89,7 @@
             font-size: 80px;
             font-weight: 200;
             margin-bottom: 10px;
+            font-variant-numeric: tabular-nums;
         }
         .lock-date {
             font-size: 18px;
@@ -96,9 +97,10 @@
             margin-bottom: 60px;
         }
         .lock-icon {
-            font-size: 30px;
+            font-size: 32px;
             animation: pulse 2s infinite;
             cursor: pointer;
+            color: var(--primary);
         }
         @keyframes pulse {
             0% {
@@ -115,7 +117,7 @@
             }
         }
 
-        /* ===== STATUS BAR (Phone) ===== */
+        /* ─── STATUS BAR ─── */
         .status-bar {
             padding: calc(12px + var(--safe-top)) 20px 6px;
             background: rgba(0, 0, 0, 0.3);
@@ -130,8 +132,9 @@
         .status-bar.hide {
             transform: translateY(-100%);
         }
-        .status-bar .time {
+        .time {
             font-weight: 600;
+            font-variant-numeric: tabular-nums;
         }
         .battery-area {
             display: flex;
@@ -161,7 +164,7 @@
             width: 87%;
             background: white;
             border-radius: 2px;
-            transition: width 0.2s;
+            transition: width 0.2s, background-color 0.2s;
         }
         .indicator-dot {
             width: 8px;
@@ -169,6 +172,7 @@
             border-radius: 50%;
             display: inline-block;
             margin-left: 6px;
+            transition: opacity 0.2s;
         }
         .indicator-dot.mic {
             background: var(--success);
@@ -177,7 +181,7 @@
             background: var(--warning);
         }
 
-        /* ===== SETTINGS DROPDOWN (Phone) ===== */
+        /* ─── SETTINGS DOTS ─── */
         .settings-dots {
             position: fixed;
             top: calc(12px + var(--safe-top));
@@ -191,22 +195,28 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 22px;
+            font-size: 20px;
             cursor: pointer;
+            color: white;
+            transition: 0.1s;
+        }
+        .settings-dots:active {
+            transform: scale(0.92);
+            background: rgba(255, 255, 255, 0.2);
         }
         .menu-dropdown {
             position: fixed;
             top: calc(56px + var(--safe-top));
             right: 16px;
-            background: var(--surface);
+            background: rgba(30, 33, 41, 0.94);
             backdrop-filter: blur(20px);
             border-radius: 20px;
             padding: 8px 0;
-            min-width: 160px;
+            min-width: 170px;
             display: none;
             flex-direction: column;
             z-index: 101;
-            border: 1px solid var(--border);
+            border: 0.5px solid var(--border);
         }
         .menu-dropdown.show {
             display: flex;
@@ -214,39 +224,47 @@
         .menu-item {
             padding: 12px 20px;
             font-size: 14px;
+            font-weight: 500;
             cursor: pointer;
             color: var(--text);
+            white-space: nowrap;
         }
         .menu-item i {
             width: 24px;
             margin-right: 8px;
+            text-align: center;
         }
         .menu-item:hover {
             background: var(--surface-hover);
         }
 
-        /* ===== NOTIFICATION DRAWER ===== */
+        /* ─── NOTIFICATION DRAWER ─── */
         .notification-drawer {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
-            background: var(--surface);
+            background: rgba(20, 22, 30, 0.96);
             backdrop-filter: blur(20px);
+            z-index: 60;
             transform: translateY(-100%);
-            transition: transform 0.3s ease-out;
+            transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
             border-bottom-left-radius: 28px;
             border-bottom-right-radius: 28px;
             padding: 16px 20px;
-            z-index: 50;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            pointer-events: auto;
         }
         .notification-drawer.open {
             transform: translateY(0);
         }
+        .notification-drawer.higher {
+            z-index: 300;
+        }
         .notif-header {
             font-weight: 600;
             margin-bottom: 12px;
+            font-size: 16px;
             display: flex;
             gap: 8px;
             align-items: center;
@@ -257,41 +275,178 @@
         }
         .notif-item {
             padding: 8px 0;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 0.5px solid var(--border);
             font-size: 13px;
             display: flex;
             gap: 10px;
             align-items: center;
         }
 
-        /* ===== MAIN GRID (Phone) ===== */
-        .grid-main {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px 16px 80px;
-            position: relative;
-            z-index: 10;
+        /* ─── RECENTS DRAWER ─── */
+        .recents-drawer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(20, 22, 30, 0.96);
+            backdrop-filter: blur(20px);
+            border-top-left-radius: 28px;
+            border-top-right-radius: 28px;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            z-index: 300;
+            padding: 16px 20px 30px;
+            pointer-events: auto;
+        }
+        .recents-drawer.open {
+            transform: translateY(0);
+        }
+        .recents-header {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .recents-list {
             display: flex;
             flex-direction: column;
+            gap: 8px;
+            max-height: 40vh;
+            overflow-y: auto;
+        }
+        .recent-item {
+            background: var(--surface);
+            padding: 10px 16px;
+            border-radius: 28px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+            transition: background 0.15s;
+            border: 1px solid transparent;
+        }
+        .recent-item:active {
+            background: var(--surface-hover);
+            transform: scale(0.97);
+        }
+        .recent-item .app-icon-small {
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            background: var(--surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .recent-item .app-icon-small i {
+            font-size: 18px;
+            color: var(--primary);
+        }
+
+        /* ─── MAIN GRID ─── */
+        .grid-main {
+            flex: 1;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            touch-action: pan-y pinch-zoom;
         }
         .page-viewport {
-            width: 100%;
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+            padding: 16px 16px 8px;
         }
         .app-grid {
             display: grid;
-            gap: 24px 16px;
+            gap: 20px 12px;
             justify-items: center;
-            grid-template-columns: repeat(auto-fill, minmax(80px, 100px));
+            align-items: start;
+            transition: all 0.2s;
         }
+        /* View modes */
+        .app-grid.large {
+            grid-template-columns: repeat(2, minmax(100px, 130px));
+        }
+        .app-grid.large .app-icon {
+            width: 90px;
+            height: 90px;
+        }
+        .app-grid.large .app-name {
+            font-size: 13px;
+        }
+        .app-grid.medium {
+            grid-template-columns: repeat(4, minmax(70px, 90px));
+        }
+        .app-grid.medium .app-icon {
+            width: 70px;
+            height: 70px;
+        }
+        .app-grid.medium .app-name {
+            font-size: 11px;
+        }
+        .app-grid.small {
+            grid-template-columns: repeat(6, minmax(60px, 75px));
+        }
+        .app-grid.small .app-icon {
+            width: 55px;
+            height: 55px;
+        }
+        .app-grid.small .app-name {
+            font-size: 10px;
+        }
+        .app-grid.list {
+            grid-template-columns: 1fr;
+        }
+        .app-grid.list .app-tile {
+            flex-direction: row;
+            justify-content: flex-start;
+            gap: 16px;
+            background: var(--surface);
+            padding: 10px 16px;
+            border-radius: 28px;
+            width: 100%;
+        }
+        .app-grid.list .app-icon {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 0;
+        }
+        .app-grid.detail {
+            grid-template-columns: 1fr;
+        }
+        .app-grid.detail .app-tile {
+            flex-direction: row;
+            justify-content: flex-start;
+            gap: 18px;
+            background: var(--surface-hover);
+            padding: 16px 20px;
+            border-radius: 32px;
+            width: 100%;
+        }
+        .app-grid.detail .app-icon {
+            width: 64px;
+            height: 64px;
+        }
+        .app-grid.detail .app-name {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
         .app-tile {
             display: flex;
             flex-direction: column;
             align-items: center;
             width: 100%;
             cursor: pointer;
-            transition: transform 0.1s;
+            transition: transform 0.1s, background 0.15s;
             border-radius: 12px;
             padding: 4px;
+            position: relative;
         }
         .app-tile.focused {
             background: var(--surface-hover);
@@ -299,53 +454,84 @@
             outline-offset: 2px;
         }
         .app-tile:active {
-            transform: scale(0.95);
+            transform: scale(0.96);
+        }
+        .app-tile.dragging {
+            opacity: 0.5;
+            transform: scale(0.9);
+        }
+        .app-tile.drag-over {
+            border: 2px dashed var(--primary);
+            background: var(--surface-hover);
         }
         .app-icon {
-            width: 70px;
-            height: 70px;
             background: var(--surface);
-            backdrop-filter: blur(8px);
+            backdrop-filter: blur(4px);
             border-radius: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
             margin-bottom: 8px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            position: relative;
         }
         .app-icon i {
             font-size: 32px;
             color: var(--primary);
         }
         .app-icon img {
-            width: 60%;
-            height: 60%;
+            width: 70%;
+            height: 70%;
             object-fit: contain;
+            border-radius: 12px;
         }
         .app-name {
             font-size: 11px;
             font-weight: 500;
-            text-align: center;
-            max-width: 80px;
+            color: var(--text);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            max-width: 80px;
+            text-align: center;
         }
         .add-tile .app-icon {
+            background: rgba(255, 255, 255, 0.08);
             border: 2px dashed var(--text-dim);
-            background: transparent;
+        }
+        .add-tile .app-name {
+            color: var(--text-dim);
+        }
+        .badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: var(--danger);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }
 
-        /* ===== PAGINATION DOTS ===== */
+        /* ─── PAGINATION DOTS ─── */
         .dots-container {
             display: flex;
             justify-content: center;
             gap: 10px;
-            padding: 10px 0;
+            padding: 10px 0 18px;
+            flex-shrink: 0;
         }
         .dot {
             width: 8px;
             height: 8px;
-            background: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.3);
             border-radius: 50%;
             transition: all 0.2s;
             cursor: pointer;
@@ -356,24 +542,39 @@
             border-radius: 10px;
         }
 
-        /* ===== SEARCH (Phone) ===== */
-        .search-box {
-            width: 100%;
-            padding: 12px 20px;
-            border-radius: 20px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            color: var(--text);
-            outline: none;
-            margin-bottom: 16px;
-            backdrop-filter: blur(10px);
-            font-size: 14px;
+        /* ─── BOTTOM NAV ─── */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 8px 20px;
+            border-top: 0.5px solid var(--border);
+            z-index: 300;
+            pointer-events: auto;
         }
-        .search-box::placeholder {
-            color: var(--text-dim);
+        .nav-btn {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 8px 20px;
+            border-radius: 40px;
+            transition: transform 0.1s, background 0.15s;
+        }
+        .nav-btn:active {
+            transform: scale(0.92);
+            background: rgba(255, 255, 255, 0.15);
         }
 
-        /* ===== APP MODAL (Phone) ===== */
+        /* ─── APP MODAL ─── */
         .app-modal {
             position: fixed;
             top: 0;
@@ -386,7 +587,7 @@
             flex-direction: column;
             visibility: hidden;
             opacity: 0;
-            transition: visibility 0.2s, opacity 0.2s, transform 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            transition: visibility 0.25s, opacity 0.25s, transform 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1);
             transform: scale(0.95);
             transform-origin: center center;
         }
@@ -403,6 +604,7 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
         }
         .modal-title {
             font-size: 16px;
@@ -419,6 +621,11 @@
             font-size: 24px;
             cursor: pointer;
             padding: 0 8px;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+        .close-modal:hover {
+            opacity: 1;
         }
         .modal-iframe {
             flex: 1;
@@ -427,7 +634,7 @@
             background: white;
         }
 
-        /* ===== TASK SWITCHER (Phone) ===== */
+        /* ─── TASK SWITCHER ─── */
         .task-switcher {
             position: fixed;
             top: 0;
@@ -469,7 +676,7 @@
             transform: scale(1.02);
         }
         .task-thumb {
-            height: 200px;
+            height: 180px;
             background: #1e293b;
             border-radius: 24px;
             display: flex;
@@ -488,8 +695,9 @@
             background: none;
             border: none;
             color: var(--danger);
-            font-size: 20px;
+            font-size: 18px;
             cursor: pointer;
+            padding: 4px;
         }
         .task-title {
             font-weight: 600;
@@ -506,24 +714,32 @@
             width: 48px;
             height: 48px;
             border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        .close-switcher:hover {
+            background: rgba(255, 255, 255, 0.15);
         }
 
-        /* ===== TOASTS ===== */
+        /* ─── TOASTS ─── */
         .toast-zone {
             position: fixed;
             bottom: 90px;
-            left: 20px;
-            right: 20px;
+            left: 50%;
+            transform: translateX(-50%);
             z-index: 1000;
             display: flex;
             flex-direction: column;
             gap: 8px;
             pointer-events: none;
+            align-items: center;
         }
         .toast {
             background: #1e293b;
             color: white;
-            padding: 12px 20px;
+            padding: 12px 24px;
             border-radius: 40px;
             font-size: 14px;
             font-weight: 500;
@@ -531,63 +747,36 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             animation: slideUp 0.3s ease;
             pointer-events: auto;
+            max-width: 90vw;
         }
         @keyframes slideUp {
             from {
                 opacity: 0;
-                transform: translateY(20px);
+                transform: translateY(20px) scale(0.95);
             }
             to {
                 opacity: 1;
-                transform: translateY(0);
+                transform: translateY(0) scale(1);
             }
         }
 
-        /* ===== BOTTOM NAV (Phone) ===== */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 70px;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(20px);
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            padding: 8px 20px;
-            border-top: 0.5px solid var(--border);
-            z-index: 30;
-        }
-        .nav-btn {
-            background: transparent;
-            border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            padding: 8px 20px;
-            border-radius: 40px;
-            transition: transform 0.1s;
-        }
-        .nav-btn:active {
-            transform: scale(0.95);
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        /* ===== DESKTOP TASKBAR ===== */
+        /* ─── DESKTOP TASKBAR ─── */
         .taskbar {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
             height: 50px;
-            background: rgba(10, 12, 18, 0.85);
+            background: rgba(10, 12, 18, 0.88);
             backdrop-filter: blur(20px);
             border-top: 1px solid var(--border);
             display: none;
             align-items: center;
             padding: 0 16px;
             z-index: 2000;
+        }
+        body.desktop-mode .taskbar {
+            display: flex;
         }
         .taskbar-start {
             font-size: 20px;
@@ -618,19 +807,46 @@
             cursor: pointer;
             border: 1px solid transparent;
             white-space: nowrap;
+            position: relative;
+            transition: all 0.15s;
+        }
+        .taskbar-item:hover {
+            background: var(--surface-hover);
         }
         .taskbar-item.active {
             border-color: var(--primary);
-            background: rgba(59, 130, 246, 0.1);
+            background: rgba(59, 130, 246, 0.15);
+        }
+        .taskbar-item .taskbar-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: var(--danger);
+            color: white;
+            font-size: 8px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .taskbar-tray {
             font-size: 12px;
             display: flex;
             gap: 12px;
             align-items: center;
+            color: var(--text-dim);
+        }
+        .taskbar-tray i {
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .taskbar-tray i:hover {
+            color: var(--text);
         }
 
-        /* ===== DESKTOP START MENU ===== */
+        /* ─── DESKTOP START MENU ─── */
         .start-menu {
             position: fixed;
             bottom: 60px;
@@ -667,12 +883,17 @@
             font-size: 11px;
             padding: 8px;
             border-radius: 8px;
+            transition: background 0.15s;
         }
         .start-item:hover {
             background: var(--surface-hover);
         }
+        .start-item i {
+            font-size: 24px;
+            color: var(--primary);
+        }
 
-        /* ===== DESKTOP WINDOWS ===== */
+        /* ─── DESKTOP WINDOWS ─── */
         .window {
             position: absolute;
             background: var(--surface-solid);
@@ -685,7 +906,6 @@
             z-index: 1000;
             min-width: 300px;
             min-height: 200px;
-            resize: both;
         }
         body.desktop-mode .window {
             display: flex;
@@ -711,6 +931,10 @@
             border: none;
             cursor: pointer;
             padding: 0;
+            transition: transform 0.15s;
+        }
+        .win-btn:hover {
+            transform: scale(1.2);
         }
         .win-close {
             background: #ff5f56;
@@ -728,14 +952,8 @@
             flex-direction: column;
             overflow: hidden;
         }
-        .win-content iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            background: white;
-        }
 
-        /* ===== NATIVE APP HELPERS ===== */
+        /* ─── NATIVE APP HELPERS ─── */
         .app-iframe {
             width: 100%;
             height: 100%;
@@ -759,9 +977,13 @@
             padding: 10px;
             border-radius: 8px;
             resize: none;
-            font-family: monospace;
+            font-family: 'Courier New', monospace;
             outline: none;
             font-size: 14px;
+            line-height: 1.6;
+        }
+        textarea.native-notepad:focus {
+            border-color: var(--primary);
         }
         .calc-grid {
             display: grid;
@@ -777,7 +999,9 @@
             border-radius: 8px;
             margin-bottom: 10px;
             word-break: break-all;
-            font-family: monospace;
+            font-family: 'Courier New', monospace;
+            font-weight: 300;
+            min-height: 80px;
         }
         .calc-btn {
             background: var(--surface-hover);
@@ -788,22 +1012,130 @@
             cursor: pointer;
             transition: 0.1s;
             padding: 8px;
+            font-weight: 500;
         }
         .calc-btn:active {
-            transform: scale(0.95);
+            transform: scale(0.92);
         }
         .calc-btn.op {
             background: var(--primary);
             color: white;
         }
+        .calc-btn.op:active {
+            background: var(--primary-dark);
+        }
 
-        /* ===== DESKTOP MODE OVERRIDES ===== */
+        /* ─── SYSTEM DIALOG ─── */
+        #sysDialog {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(20px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        #sysDialog.open {
+            display: flex;
+        }
+        .dialog-box {
+            background: var(--surface-solid);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 28px 32px;
+            max-width: 400px;
+            width: 92%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: dialogIn 0.2s ease;
+        }
+        @keyframes dialogIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        .dialog-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .dialog-msg {
+            font-size: 14px;
+            color: var(--text-dim);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        .dialog-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+        .dialog-btn {
+            padding: 10px 24px;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: 0.2s;
+            font-size: 14px;
+        }
+        .dialog-btn:hover {
+            transform: scale(1.02);
+        }
+        .dialog-btn:active {
+            transform: scale(0.96);
+        }
+        .dialog-btn.primary {
+            background: var(--primary);
+            color: white;
+        }
+        .dialog-btn.primary:hover {
+            background: var(--primary-dark);
+        }
+        .dialog-btn.secondary {
+            background: var(--surface-hover);
+            color: var(--text);
+        }
+        .dialog-btn.secondary:hover {
+            background: var(--border);
+        }
+        .dialog-btn.danger {
+            background: var(--danger);
+            color: white;
+        }
+        .dialog-btn.danger:hover {
+            background: #dc2626;
+        }
+        .dialog-input {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            margin: 12px 0;
+            outline: none;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        .dialog-input:focus {
+            border-color: var(--primary);
+        }
+
+        /* ─── DESKTOP MODE OVERRIDES ─── */
         body.desktop-mode .status-bar,
         body.desktop-mode .bottom-nav,
         body.desktop-mode .app-modal,
         body.desktop-mode .settings-dots,
         body.desktop-mode .menu-dropdown,
         body.desktop-mode .notification-drawer,
+        body.desktop-mode .recents-drawer,
         body.desktop-mode .dots-container {
             display: none !important;
         }
@@ -832,19 +1164,45 @@
             height: 64px;
         }
 
-        /* ===== RESPONSIVE ===== */
+        /* ─── RESPONSIVE ─── */
         @media (max-width: 500px) {
-            .app-grid {
+            .app-grid.medium {
                 grid-template-columns: repeat(3, 1fr);
+            }
+            .app-grid.small {
+                grid-template-columns: repeat(4, 1fr);
             }
             .task-card {
                 flex: 0 0 90%;
+            }
+            .start-menu {
+                width: 280px;
+                left: 8px;
             }
         }
         @media (min-width: 769px) {
             body:not(.desktop-mode) .grid-main {
                 padding: 20px 16px 80px;
             }
+            .app-grid.medium {
+                grid-template-columns: repeat(4, minmax(80px, 100px));
+            }
+        }
+
+        /* ─── SCROLLBAR ─── */
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-dim);
         }
     </style>
 </head>
@@ -853,15 +1211,15 @@
     <!-- Desktop Background -->
     <div id="desktop-bg"></div>
 
-    <!-- ===== LOCK SCREEN ===== -->
+    <!-- ─── LOCK SCREEN ─── -->
     <div class="lock-screen locked" id="lockScreen">
         <div class="lock-time" id="lockTime">--:--</div>
         <div class="lock-date" id="lockDate">--</div>
         <i class="fas fa-fingerprint lock-icon" id="unlockBtn"></i>
-        <div style="margin-top:20px; color:#64748b; font-size:14px;">Tap to unlock</div>
+        <div style="margin-top:20px; color:var(--text-dim); font-size:14px;">Tap to unlock</div>
     </div>
 
-    <!-- ===== STATUS BAR (Phone) ===== -->
+    <!-- ─── STATUS BAR ─── -->
     <div class="status-bar" id="statusBar">
         <span class="time" id="liveTime">--:--</span>
         <div class="battery-area">
@@ -873,7 +1231,7 @@
         </div>
     </div>
 
-    <!-- ===== SETTINGS DROPDOWN (Phone) ===== -->
+    <!-- ─── SETTINGS DOTS ─── -->
     <div class="settings-dots" id="dotsMenu">⋮</div>
     <div class="menu-dropdown" id="viewMenu">
         <div class="menu-item" data-view="large"><i class="fas fa-expand"></i> Large</div>
@@ -882,137 +1240,262 @@
         <div class="menu-item" data-view="list"><i class="fas fa-list"></i> List</div>
         <div class="menu-item" data-view="detail"><i class="fas fa-align-left"></i> Detail</div>
         <div class="menu-item" id="themeToggle"><i class="fas fa-moon"></i> Dark/Light</div>
+        <div class="menu-item" id="fullscreenToggle"><i class="fas fa-expand"></i> Fullscreen</div>
     </div>
 
-    <!-- ===== NOTIFICATION DRAWER (Phone) ===== -->
+    <!-- ─── NOTIFICATION DRAWER ─── -->
     <div class="notification-drawer" id="notifDrawer">
         <div class="notif-header"><i class="fas fa-bell"></i> Notifications</div>
         <div class="notif-list" id="notifList"></div>
     </div>
 
-    <!-- ===== MAIN GRID (Phone) ===== -->
+    <!-- ─── RECENTS DRAWER ─── -->
+    <div class="recents-drawer" id="recentsDrawer">
+        <div class="recents-header">
+            <span><i class="fas fa-history"></i> Recent Apps</span>
+            <button class="close-modal" id="closeRecentsBtn" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text);opacity:0.7;">&times;</button>
+        </div>
+        <div class="recents-list" id="recentsList"></div>
+    </div>
+
+    <!-- ─── MAIN GRID ─── -->
     <div class="grid-main" id="desktop">
-        <input type="text" id="appSearch" class="search-box" placeholder="Spotlight Search... (Press Space)">
         <div class="page-viewport" id="pageViewport">
             <div class="app-grid medium" id="appGrid"></div>
         </div>
         <div class="dots-container" id="dotsContainer"></div>
     </div>
 
-    <!-- ===== BOTTOM NAV (Phone) ===== -->
+    <!-- ─── BOTTOM NAV ─── -->
     <div class="bottom-nav" id="bottomNav">
         <button class="nav-btn" id="backBtn"><i class="fas fa-arrow-left"></i></button>
         <button class="nav-btn" id="homeBtn"><i class="fas fa-home"></i></button>
         <button class="nav-btn" id="recentsBtn"><i class="fas fa-square"></i></button>
     </div>
 
-    <!-- ===== APP MODAL (Phone) ===== -->
+    <!-- ─── APP MODAL ─── -->
     <div id="appModal" class="app-modal">
         <div class="modal-header">
             <span class="modal-title" id="modalTitle">App</span>
             <button class="close-modal" id="closeModalBtn">&times;</button>
         </div>
         <iframe id="modalIframe" class="modal-iframe"
-        sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-microphone allow-camera allow-geolocation allow-notifications allow-clipboard-read allow-clipboard-write allow-downloads allow-pointer-lock allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
+        sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-downloads allow-popups-to-escape-sandbox allow-microphone allow-camera allow-geolocation allow-notifications allow-clipboard-read allow-clipboard-write allow-pointer-lock allow-storage-access-by-user-activation"
         allow="fullscreen; microphone; camera; geolocation; clipboard-read; clipboard-write; notifications; screen-wake-lock"
         title="app"></iframe>
     </div>
 
-    <!-- ===== TASK SWITCHER (Phone) ===== -->
+    <!-- ─── TASK SWITCHER ─── -->
     <div id="taskSwitcher" class="task-switcher">
         <button class="close-switcher" id="closeSwitcher">&times;</button>
         <div class="task-cards" id="taskCards"></div>
     </div>
 
-    <!-- ===== DESKTOP START MENU ===== -->
+    <!-- ─── DESKTOP START MENU ─── -->
     <div class="start-menu" id="startMenu">
         <div style="font-size:14px; font-weight:600; margin-bottom:10px;">Pinned Apps</div>
         <div class="start-grid" id="startGrid"></div>
         <hr style="border:0; height:1px; background:var(--border); margin:16px 0;">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-size:12px; color:var(--text-dim);">Unified OS v2.0</span>
-            <i class="fas fa-power-off" style="cursor:pointer; color:var(--danger);" onclick="location.reload()"></i>
+            <span style="font-size:12px; color:var(--text-dim);">Unified OS v5.0</span>
+            <i class="fas fa-power-off" style="cursor:pointer; color:var(--danger);" onclick="location.reload()" title="Restart"></i>
         </div>
     </div>
 
-    <!-- ===== DESKTOP TASKBAR ===== -->
+    <!-- ─── DESKTOP TASKBAR ─── -->
     <div class="taskbar" id="taskbar">
         <div class="taskbar-start" id="startBtn"><i class="fab fa-windows"></i></div>
         <div class="taskbar-apps" id="taskbarApps"></div>
         <div class="taskbar-tray">
-            <i class="fas fa-moon" style="cursor:pointer;" onclick="toggleTheme()" title="Toggle Theme"></i>
+            <i class="fas fa-moon" onclick="toggleTheme()" title="Toggle Theme"></i>
             <i class="fas fa-wifi"></i>
             <span id="taskbarTime">--:--</span>
         </div>
     </div>
 
-    <!-- ===== WINDOW CONTAINER (Desktop) ===== -->
+    <!-- ─── WINDOW CONTAINER ─── -->
     <div id="windowContainer"></div>
 
-    <!-- ===== TOAST ZONE ===== -->
+    <!-- ─── TOAST ZONE ─── -->
     <div class="toast-zone" id="toastZone"></div>
 
+    <!-- ─── SYSTEM DIALOG ─── -->
+    <div id="sysDialog">
+        <div class="dialog-box">
+            <div class="dialog-title" id="dialogTitle">Title</div>
+            <div class="dialog-msg" id="dialogMsg">Message</div>
+            <div class="dialog-actions" id="dialogActions"></div>
+        </div>
+    </div>
 
     <script>
-        // ================================================================
+        // ═══════════════════════════════════════════════════════════════════
         //  CORE UTILITIES
-        // ================================================================
-        function haptic() { if ('vibrate' in navigator) navigator.vibrate(15); }
+        // ═══════════════════════════════════════════════════════════════════
+        function haptic(heavy = false) {
+            if ('vibrate' in navigator) {
+                if (heavy) navigator.vibrate([15, 50, 15, 50, 15]);
+                else navigator.vibrate(15);
+            }
+        }
 
-        function toast(msg, type) {
+        function toast(msg, type = 'info') {
             const t = document.createElement('div');
             t.className = 'toast';
             t.innerText = msg;
             document.getElementById('toastZone').appendChild(t);
-            setTimeout(() => t.remove(), 2500);
+            setTimeout(() => t.remove(), 2800);
         }
 
-        function isMobile() { return window.innerWidth <= 768; }
+        function isMobile() { return window.innerWidth <= 768 && !document.body.classList.contains('desktop-mode'); }
 
-        function escapeHtml(s) { return s.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' } [m])); }
+        function escapeHtml(s) {
+            return s.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' } [m]));
+        }
 
-        function uid() { return Date.now() + '-' + Math.random().toString(36).substr(2, 6); }
+        function uid() { return Date.now() + '-' + Math.random().toString(36).substr(2, 8); }
 
-        function getFaviconUrl(url) { try { return
-                    `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=128`; } catch (e) { return ''; } }
+        function getFaviconUrl(url) {
+            try { return `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=128`; } catch (e) { return ''; }
+        }
 
+        // ────────────────────────────────────────────────────────────────
+        //  SYSTEM DIALOG (replaces alert/confirm/prompt)
+        // ────────────────────────────────────────────────────────────────
+        function sysDialog(options) {
+            return new Promise((resolve) => {
+                const dialog = document.getElementById('sysDialog');
+                const title = document.getElementById('dialogTitle');
+                const msg = document.getElementById('dialogMsg');
+                const actions = document.getElementById('dialogActions');
 
-        // ================================================================
-        //  APP DATA (Merged from both sources)
-        // ================================================================
+                title.innerText = options.title || '';
+                msg.innerText = options.message || '';
+                actions.innerHTML = '';
+
+                if (options.type === 'prompt') {
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.value = options.default || '';
+                    input.className = 'dialog-input';
+                    input.placeholder = options.placeholder || 'Enter value';
+                    msg.appendChild(input);
+                    const ok = document.createElement('button');
+                    ok.className = 'dialog-btn primary';
+                    ok.innerText = 'OK';
+                    ok.onclick = () => { dialog.classList.remove('open');
+                        resolve(input.value); };
+                    const cancel = document.createElement('button');
+                    cancel.className = 'dialog-btn secondary';
+                    cancel.innerText = 'Cancel';
+                    cancel.onclick = () => { dialog.classList.remove('open');
+                        resolve(null); };
+                    actions.appendChild(cancel);
+                    actions.appendChild(ok);
+                    dialog.classList.add('open');
+                    setTimeout(() => input.focus(), 100);
+                    return;
+                }
+
+                const buttons = options.buttons || [{ label: 'OK', value: true, primary: true }];
+                buttons.forEach(b => {
+                    const btn = document.createElement('button');
+                    btn.className = `dialog-btn ${b.primary ? 'primary' : b.danger ? 'danger' : 'secondary'}`;
+                    btn.innerText = b.label;
+                    btn.onclick = () => { dialog.classList.remove('open');
+                        resolve(b.value); };
+                    actions.appendChild(btn);
+                });
+                dialog.classList.add('open');
+            });
+        }
+
+        // Override native dialogs
+        window.alert = (msg) => {
+            sysDialog({ title: 'Alert', message: msg, buttons: [{ label: 'OK', value: true, primary: true }] });
+        };
+        window.confirm = (msg) => {
+            return sysDialog({
+                title: 'Confirm',
+                message: msg,
+                buttons: [
+                    { label: 'Cancel', value: false, primary: false },
+                    { label: 'OK', value: true, primary: true }
+                ]
+            });
+        };
+        window.prompt = (msg, defaultValue = '') => {
+            return sysDialog({
+                type: 'prompt',
+                title: 'Prompt',
+                message: msg,
+                default: defaultValue,
+                placeholder: 'Enter value'
+            });
+        };
+
+        // ────────────────────────────────────────────────────────────────
+        //  Global error handling
+        // ────────────────────────────────────────────────────────────────
+        window.addEventListener('error', (e) => {
+            toast('Error: ' + e.message, 'error');
+            console.error('Global error:', e);
+        });
+        window.addEventListener('unhandledrejection', (e) => {
+            toast('Unhandled rejection: ' + e.reason, 'error');
+            console.error('Unhandled rejection:', e);
+        });
+
+        // ────────────────────────────────────────────────────────────────
+        //  Beforeunload — warn about unsaved changes
+        // ────────────────────────────────────────────────────────────────
+        let hasUnsavedChanges = false;
+        window.addEventListener('beforeunload', (e) => {
+            const hasUnsaved = Object.values(runningApps).some(app => app.unsavedFlag === true) || hasUnsavedChanges;
+            if (hasUnsaved) {
+                const msg = 'You have unsaved work. Are you sure you want to leave?';
+                e.preventDefault();
+                e.returnValue = msg;
+                return msg;
+            }
+        });
+
+        // ═══════════════════════════════════════════════════════════════════
+        //  APP DATA
+        // ═══════════════════════════════════════════════════════════════════
         const DEFAULT_APPS = [
-            { id: 'default-3dmap', name: '3D Map', type: 'iframe', url: 'map.html', icon: 'fa-cube', isDefault: true },
+            { id: 'default-3dmap', name: '3D Map', type: 'iframe', url: 'map.html', icon: 'fa-cube', isDefault: true,
+                favicon: 'icons/map.svg' },
             { id: 'default-quiz', name: 'Quiz', type: 'iframe', url: 'quiz.html', icon: 'fa-question-circle',
-            isDefault: true },
+                isDefault: true, favicon: 'icons/quiz.png' },
             { id: 'default-flashcards', name: 'Medical Flashcards', type: 'iframe', url: 'flashcards.html',
-                icon: 'fa-stethoscope', isDefault: true },
+                icon: 'fa-stethoscope', isDefault: true, favicon: 'icons/medical.png' },
             { id: 'default-spanish', name: 'Spanish Flashcards', type: 'iframe', url: 'spanish.html',
-                icon: 'fa-flag-checkered', isDefault: true },
+                icon: 'fa-flag-checkered', isDefault: true, favicon: 'icons/spanish.png' },
             { id: 'default-oromo', name: 'Afaan Oromo Flashcards', type: 'iframe', url: 'oromo.html',
-                icon: 'fa-comment-dots', isDefault: true },
+                icon: 'fa-comment-dots', isDefault: true, favicon: 'icons/oromo.png' },
             { id: 'default-tts', name: 'Text to Speech', type: 'iframe', url: 'tts.html', icon: 'fa-head-side-vr',
-                isDefault: true },
+                isDefault: true, favicon: 'icons/tts.png' },
             { id: 'default-nutrient', name: 'Nutrient Tracker', type: 'iframe', url: 'nutrient.html', icon: 'fa-apple-alt',
-                isDefault: true },
+                isDefault: true, favicon: 'icons/nutrient.png' },
             { id: 'default-inventory', name: 'Inventory', type: 'iframe', url: 'inventory.html', icon: 'fa-boxes',
-                isDefault: true },
+                isDefault: true, favicon: 'icons/inventory.png' },
             { id: 'default-chat', name: 'Chat App', type: 'iframe', url: 'chat.html', icon: 'fa-comment-dots',
-                isDefault: true },
+                isDefault: true, favicon: 'icons/chat.png' },
             { id: 'default-sport', name: 'Sport Tracker', type: 'iframe', url: 'sport.html', icon: 'fa-heartbeat',
-                isDefault: true },
+                isDefault: true, favicon: 'icons/sport.png' },
             { id: 'default-church', name: 'Church Attendance', type: 'iframe', url: 'church.html', icon: 'fa-church',
-                isDefault: true },
+                isDefault: true, favicon: 'icons/church.png' },
             { id: 'default-prayer', name: 'Prayer Game', type: 'iframe', url: 'prayer.html', icon: 'fa-hands-praying',
-                isDefault: true },
+                isDefault: true, favicon: 'icons/prayer.png' },
             { id: 'default-voice', name: 'Voice to Text', type: 'iframe', url: 'voice.html', icon: 'fa-microphone-alt',
-                isDefault: true },
+                isDefault: true, favicon: 'icons/voice.svg' },
             { id: 'default-chatbot', name: 'AI Support', type: 'iframe', url: 'chatbot.html', icon: 'fa-robot',
-                isDefault: true },
+                isDefault: true, favicon: 'icons/chatbot.png' },
             { id: 'default-scheduler', name: 'Smart Scheduler', type: 'iframe', url: 'scheduler.html',
-                icon: 'fa-calendar-alt', isDefault: true },
-            // Native apps from second file
+                icon: 'fa-calendar-alt', isDefault: true, favicon: '' },
             { id: 'native-browser', name: 'Browser', type: 'iframe', url: 'https://bing.com', icon: 'fa-globe',
-                isDefault: true },
+                isDefault: true, favicon: '' },
             { id: 'native-notepad', name: 'Notepad', type: 'native', component: 'notepad', icon: 'fa-file-alt',
                 isDefault: true },
             { id: 'native-calc', name: 'Calculator', type: 'native', component: 'calculator', icon: 'fa-calculator',
@@ -1022,24 +1505,21 @@
 
         let customApps = [];
         let recentApps = [];
-        let openIframes = [];
-        let currentApp = null;
-        let unsavedFlag = false;
+        let appOrder = [];
+        let runningApps = {};
         let viewMode = 'medium';
         let currentPage = 0;
         let itemsPerPage = 0;
         let totalPages = 1;
-        let lastFocusedSelector = null;
         let darkMode = true;
         let notifications = [];
         let focusedGridIndex = -1;
         let lastSearchQuery = '';
         let lastActiveAppId = null;
-
-        // Desktop-specific state
-        let openApps = {};
         let zIndexCounter = 1000;
         let isResizing = false;
+        let dragData = null;
+        let isLocked = true;
 
         // DOM refs
         const appGrid = document.getElementById('appGrid');
@@ -1057,9 +1537,12 @@
         const dotsBtn = document.getElementById('dotsMenu');
         const viewMenu = document.getElementById('viewMenu');
         const themeToggleBtn = document.getElementById('themeToggle');
-        const toastZone = document.getElementById('toastZone');
+        const fullscreenToggle = document.getElementById('fullscreenToggle');
         const notifList = document.getElementById('notifList');
         const notifDrawer = document.getElementById('notifDrawer');
+        const recentsDrawer = document.getElementById('recentsDrawer');
+        const recentsList = document.getElementById('recentsList');
+        const closeRecentsBtn = document.getElementById('closeRecentsBtn');
         const micIndicator = document.getElementById('micIndicator');
         const camIndicator = document.getElementById('camIndicator');
         const statusBar = document.getElementById('statusBar');
@@ -1076,15 +1559,12 @@
         const lockDate = document.getElementById('lockDate');
         const batteryFill = document.getElementById('batteryFill');
         const batteryPercent = document.getElementById('batteryPercent');
-        const appSearch = document.getElementById('appSearch');
         const windowContainer = document.getElementById('windowContainer');
 
-
-        // ================================================================
+        // ═══════════════════════════════════════════════════════════════════
         //  NOTIFICATIONS
-        // ================================================================
-        function addNotification(msg, icon) {
-            icon = icon || 'info-circle';
+        // ═══════════════════════════════════════════════════════════════════
+        function addNotification(msg, icon = 'info-circle') {
             notifications.unshift({ msg, icon, time: new Date().toLocaleTimeString() });
             if (notifications.length > 8) notifications.pop();
             renderNotifications();
@@ -1102,23 +1582,37 @@
             ).join('');
         }
 
-
-        // ================================================================
-        //  APP MANAGEMENT (Merged)
-        // ================================================================
+        // ═══════════════════════════════════════════════════════════════════
+        //  APP MANAGEMENT
+        // ═══════════════════════════════════════════════════════════════════
         function getAllApps() {
             const defaults = DEFAULT_APPS.filter(a => !customApps.some(c => c.id === a.id));
-            return [...defaults, ...customApps];
+            const all = [...defaults, ...customApps];
+            if (appOrder.length > 0) {
+                const ordered = [];
+                const unordered = [];
+                all.forEach(a => {
+                    const idx = appOrder.indexOf(a.id);
+                    if (idx !== -1) ordered[idx] = a;
+                    else unordered.push(a);
+                });
+                return [...ordered.filter(Boolean), ...unordered];
+            }
+            return all;
+        }
+
+        function findAppById(id) {
+            return getAllApps().find(a => a.id === id);
         }
 
         function addCustomApp(link, name) {
             if (!link) return;
             if (!link.startsWith('http') && !link.startsWith('https')) link = 'https://' + link;
             try { new URL(link); } catch (e) { toast('Invalid URL', 'error'); return; }
-            const appName = name || new URL(link).hostname;
+            const appName = name || new URL(link).hostname.replace(/^www\./, '');
             const newApp = {
                 id: uid(),
-                name: appName,
+                name: appName.substring(0, 24),
                 type: 'iframe',
                 url: link,
                 isDefault: false,
@@ -1126,7 +1620,9 @@
                 icon: 'fa-globe'
             };
             customApps.push(newApp);
+            appOrder.push(newApp.id);
             localStorage.setItem('customApps', JSON.stringify(customApps));
+            localStorage.setItem('appOrder', JSON.stringify(appOrder));
             recalcPagination();
             renderGrid();
             toast('Added ' + appName);
@@ -1134,7 +1630,9 @@
 
         function deleteCustomApp(id) {
             customApps = customApps.filter(a => a.id !== id);
+            appOrder = appOrder.filter(i => i !== id);
             localStorage.setItem('customApps', JSON.stringify(customApps));
+            localStorage.setItem('appOrder', JSON.stringify(appOrder));
             recalcPagination();
             renderGrid();
             toast('Deleted');
@@ -1142,15 +1640,20 @@
 
         function renameCustomApp(id, newName) {
             const app = customApps.find(a => a.id === id);
-            if (app) { app.name = newName;
+            if (app) { app.name = newName.substring(0, 24);
                 localStorage.setItem('customApps', JSON.stringify(customApps));
                 renderGrid(); }
         }
 
+        function updateAppOrder(newOrder) {
+            appOrder = newOrder;
+            localStorage.setItem('appOrder', JSON.stringify(appOrder));
+            renderGrid();
+        }
 
-        // ================================================================
+        // ═══════════════════════════════════════════════════════════════════
         //  PAGINATION
-        // ================================================================
+        // ═══════════════════════════════════════════════════════════════════
         function calculateItemsPerPage() {
             let cols = 4;
             if (viewMode === 'large') cols = 2;
@@ -1170,9 +1673,12 @@
         }
 
         function goToPage(p) {
+            if (p < 0) p = 0;
+            if (p >= totalPages) p = totalPages - 1;
             currentPage = p;
             renderGrid();
             renderDots();
+            haptic();
         }
 
         function renderDots() {
@@ -1187,12 +1693,11 @@
             }
         }
 
-
-        // ================================================================
-        //  RENDER GRID (Phone + Desktop shared)
-        // ================================================================
+        // ═══════════════════════════════════════════════════════════════════
+        //  RENDER GRID (with DnD + Touch support)
+        // ═══════════════════════════════════════════════════════════════════
         function renderGrid(query) {
-            query = query || lastSearchQuery || '';
+            query = query || '';
             let apps = getAllApps();
             if (query) apps = apps.filter(a => a.name.toLowerCase().includes(query.toLowerCase()));
 
@@ -1204,42 +1709,175 @@
                 let tile = document.createElement('div');
                 tile.className = 'app-tile';
                 tile.dataset.appId = app.id;
-                let iconHtml = app.favicon ?
-                    `<img src="${app.favicon}" onerror="this.parentElement.innerHTML='<i class=\\'fas ${app.icon||'fa-globe'}\\'></i>'">` :
-                    `<i class="fas ${app.icon||'fa-globe'}"></i>`;
+                tile.draggable = !isMobile();
+
+                let iconHtml = '';
+                if (app.favicon) {
+                    iconHtml =
+                        `<img src="${app.favicon}" onerror="this.parentElement.innerHTML='<i class=\\'fas ${app.icon||'fa-globe'}\\'></i>'" alt="${escapeHtml(app.name)}">`;
+                } else if (app.icon) {
+                    iconHtml = `<i class="fas ${app.icon}"></i>`;
+                } else {
+                    iconHtml = '<i class="fas fa-globe"></i>';
+                }
+
+                let badge = '';
+                if (app.notificationCount && app.notificationCount > 0) {
+                    badge = `<div class="badge">${app.notificationCount}</div>`;
+                }
+
                 tile.innerHTML =
-                    `<div class="app-icon">${iconHtml}</div><div class="app-name">${escapeHtml(app.name)}</div>`;
+                    `<div class="app-icon">${iconHtml}${badge}</div><div class="app-name">${escapeHtml(app.name)}</div>`;
                 tile.onclick = () => { haptic();
                     focusedGridIndex = Array.from(appGrid.children).indexOf(tile);
                     updateGridFocus();
                     launchApp(app.id); };
+
+                // Desktop Drag & Drop
+                tile.ondragstart = (e) => {
+                    dragData = { id: app.id, index: Array.from(appGrid.children).indexOf(tile) };
+                    tile.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/plain', app.id);
+                    haptic(true);
+                };
+                tile.ondragend = () => {
+                    tile.classList.remove('dragging');
+                    document.querySelectorAll('.app-tile.drag-over').forEach(el => el.classList.remove('drag-over'));
+                };
+                tile.ondragover = (e) => {
+                    e.preventDefault();
+                    tile.classList.add('drag-over');
+                };
+                tile.ondragleave = () => {
+                    tile.classList.remove('drag-over');
+                };
+                tile.ondrop = (e) => {
+                    e.preventDefault();
+                    tile.classList.remove('drag-over');
+                    const draggedId = e.dataTransfer.getData('text/plain');
+                    const targetId = app.id;
+                    if (draggedId === targetId) return;
+                    const allIds = appOrder.length > 0 ? appOrder : getAllApps().map(a => a.id);
+                    const fromIdx = allIds.indexOf(draggedId);
+                    const toIdx = allIds.indexOf(targetId);
+                    if (fromIdx !== -1 && toIdx !== -1) {
+                        const [removed] = allIds.splice(fromIdx, 1);
+                        allIds.splice(toIdx, 0, removed);
+                        updateAppOrder(allIds);
+                        toast('App reordered');
+                        haptic(true);
+                    }
+                };
+
+                // Touch Drag & Drop (mobile)
+                let touchDrag = false;
+                let touchStartX = 0,
+                    touchStartY = 0;
+                tile.addEventListener('touchstart', (e) => {
+                    if (e.touches.length === 1) {
+                        touchStartX = e.touches[0].clientX;
+                        touchStartY = e.touches[0].clientY;
+                        touchDrag = false;
+                    }
+                }, { passive: true });
+                tile.addEventListener('touchmove', (e) => {
+                    if (e.touches.length === 1) {
+                        const dx = e.touches[0].clientX - touchStartX;
+                        const dy = e.touches[0].clientY - touchStartY;
+                        if (Math.abs(dx) > 30 || Math.abs(dy) > 30) {
+                            touchDrag = true;
+                            tile.classList.add('dragging');
+                            e.preventDefault();
+                        }
+                    }
+                }, { passive: false });
+                tile.addEventListener('touchend', (e) => {
+                    if (touchDrag) {
+                        tile.classList.remove('dragging');
+                        const touch = e.changedTouches[0];
+                        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+                        const targetTile = target?.closest('.app-tile');
+                        if (targetTile && targetTile.dataset.appId !== app.id) {
+                            const allIds = appOrder.length > 0 ? appOrder : getAllApps().map(a => a.id);
+                            const fromIdx = allIds.indexOf(app.id);
+                            const toIdx = allIds.indexOf(targetTile.dataset.appId);
+                            if (fromIdx !== -1 && toIdx !== -1) {
+                                const [removed] = allIds.splice(fromIdx, 1);
+                                allIds.splice(toIdx, 0, removed);
+                                updateAppOrder(allIds);
+                                toast('App reordered');
+                                haptic(true);
+                            }
+                        }
+                        touchDrag = false;
+                    }
+                }, { passive: true });
+
+                // Context menu
                 tile.oncontextmenu = (e) => {
                     e.preventDefault();
                     if (!app.isDefault) {
-                        let newName = prompt('Rename', app.name);
-                        if (newName) renameCustomApp(app.id, newName);
-                        else if (confirm('Delete ' + app.name + '?')) deleteCustomApp(app.id);
+                        sysDialog({
+                            title: 'App Options',
+                            message: `What would you like to do with "${app.name}"?`,
+                            buttons: [
+                                { label: 'Rename', value: 'rename', primary: true },
+                                { label: 'Delete', value: 'delete', danger: true },
+                                { label: 'Cancel', value: null, primary: false }
+                            ]
+                        }).then(result => {
+                            if (result === 'rename') {
+                                sysDialog({
+                                    type: 'prompt',
+                                    title: 'Rename App',
+                                    message: 'Enter new name:',
+                                    default: app.name,
+                                    placeholder: 'New name'
+                                }).then(newName => {
+                                    if (newName && newName.trim()) renameCustomApp(app.id, newName
+                                    .trim());
+                                });
+                            } else if (result === 'delete') {
+                                sysDialog({
+                                    title: 'Delete App',
+                                    message: `Are you sure you want to delete "${app.name}"?`,
+                                    buttons: [
+                                        { label: 'Cancel', value: false, primary: false },
+                                        { label: 'Delete', value: true, danger: true }
+                                    ]
+                                }).then(confirmed => { if (confirmed) deleteCustomApp(app.id); });
+                            }
+                        });
                     } else {
-                        toast('Default app cannot be deleted');
+                        toast('Default app cannot be deleted or renamed');
                     }
                 };
+
                 appGrid.appendChild(tile);
             });
 
-            // Add tile (only when no search query)
+            // Add tile (only when no search)
             if (!query) {
                 let addTile = document.createElement('div');
                 addTile.className = 'app-tile add-tile';
                 addTile.innerHTML =
-                    `<div class="app-icon"><i class="fas fa-plus"></i></div><div class="app-name">Add</div>`;
-                addTile.onclick = () => addCustomApp(prompt('Enter URL:', 'https://'));
+                    `<div class="app-icon"><i class="fas fa-plus" style="font-size:32px;color:var(--text-dim);"></i></div><div class="app-name">Add</div>`;
+                addTile.onclick = () => {
+                    sysDialog({
+                        type: 'prompt',
+                        title: 'Add App',
+                        message: 'Enter URL:',
+                        default: 'https://',
+                        placeholder: 'https://example.com'
+                    }).then(url => {
+                        if (url && url.trim()) addCustomApp(url.trim());
+                    });
+                };
                 appGrid.appendChild(addTile);
             }
 
-            // Render start menu apps (pinned)
             renderStartMenu();
-
-            // Update grid focus
             if (focusedGridIndex >= appGrid.children.length) focusedGridIndex = 0;
             updateGridFocus();
         }
@@ -1252,7 +1890,7 @@
                 let tile = document.createElement('div');
                 tile.className = 'start-item';
                 tile.innerHTML =
-                    `<i class="fas ${app.icon}" style="font-size:24px;color:var(--primary)"></i><span>${app.name}</span>`;
+                    `<i class="fas ${app.icon || 'fa-globe'}"></i><span>${escapeHtml(app.name)}</span>`;
                 tile.onclick = () => { startMenu.classList.remove('open');
                     launchApp(app.id); };
                 startGrid.appendChild(tile);
@@ -1267,30 +1905,54 @@
             });
         }
 
-
-        // ================================================================
-        //  LAUNCH APP (Unified: Phone modal + Desktop window)
-        // ================================================================
-        function findAppById(id) {
-            return getAllApps().find(a => a.id === id);
-        }
-
+        // ═══════════════════════════════════════════════════════════════════
+        //  GENERATE APP CONTENT
+        // ═══════════════════════════════════════════════════════════════════
         function generateAppContent(app) {
             const wrap = document.createElement('div');
             wrap.style.width = '100%';
             wrap.style.height = '100%';
+            wrap.style.display = 'flex';
+            wrap.style.flexDirection = 'column';
 
             if (app.type === 'iframe') {
                 let iframe = document.createElement('iframe');
                 iframe.className = 'app-iframe';
                 iframe.src = app.url || 'about:blank';
                 iframe.setAttribute('sandbox',
-                    'allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-downloads allow-popups-to-escape-sandbox allow-microphone allow-camera allow-geolocation allow-notifications allow-clipboard-read allow-clipboard-write allow-pointer-lock'
+                    'allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-downloads allow-popups-to-escape-sandbox allow-microphone allow-camera allow-geolocation allow-notifications allow-clipboard-read allow-clipboard-write allow-pointer-lock allow-storage-access-by-user-activation'
                     );
                 iframe.setAttribute('allow',
                     'fullscreen; microphone; camera; geolocation; clipboard-read; clipboard-write; notifications; screen-wake-lock'
                     );
                 wrap.appendChild(iframe);
+
+                let timeout = setTimeout(() => {
+                    if (!iframe.contentWindow || iframe.contentDocument?.readyState !== 'complete') {
+                        const errorDiv = document.createElement('div');
+                        errorDiv.style.cssText =
+                            'position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--surface-solid);color:var(--text);gap:16px;';
+                        errorDiv.innerHTML =
+                            `<i class="fas fa-exclamation-triangle" style="font-size:48px;color:var(--danger);"></i><div>App failed to load</div><div style="font-size:12px;color:var(--text-dim);">${escapeHtml(app.url)}</div>`;
+                        wrap.appendChild(errorDiv);
+                        toast('App load timeout: ' + app.name, 'error');
+                    }
+                }, 10000);
+                iframe.onload = () => {
+                    clearTimeout(timeout);
+                    iframe.contentWindow?.postMessage({ type: 'iframeResize', width: wrap.clientWidth, height: wrap
+                            .clientHeight }, '*');
+                };
+                iframe.onerror = () => {
+                    clearTimeout(timeout);
+                    const errorDiv = document.createElement('div');
+                    errorDiv.style.cssText =
+                        'position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--surface-solid);color:var(--text);gap:16px;';
+                    errorDiv.innerHTML =
+                        `<i class="fas fa-exclamation-triangle" style="font-size:48px;color:var(--danger);"></i><div>Failed to load</div><div style="font-size:12px;color:var(--text-dim);">${escapeHtml(app.url)}</div>`;
+                    wrap.appendChild(errorDiv);
+                    toast('App load error: ' + app.name, 'error');
+                };
             } else if (app.type === 'native') {
                 wrap.className = 'app-native';
                 if (app.component === 'notepad') {
@@ -1298,11 +1960,12 @@
                     textarea.className = 'native-notepad';
                     textarea.placeholder = 'Type here... Unsaved changes are tracked.';
                     textarea.oninput = () => {
-                        if (openApps[app.id]) openApps[app.id].unsavedFlag = true;
+                        if (runningApps[app.id]) runningApps[app.id].unsavedFlag = true;
+                        hasUnsavedChanges = true;
                     };
                     wrap.appendChild(textarea);
-                    if (openApps[app.id] && openApps[app.id].componentData) {
-                        textarea.value = openApps[app.id].componentData;
+                    if (runningApps[app.id] && runningApps[app.id].componentData) {
+                        textarea.value = runningApps[app.id].componentData;
                     }
                 } else if (app.component === 'calculator') {
                     let disp = document.createElement('div');
@@ -1321,8 +1984,8 @@
                     });
                     wrap.appendChild(disp);
                     wrap.appendChild(calcGrid);
-                    if (openApps[app.id] && openApps[app.id].componentData) {
-                        disp.innerText = openApps[app.id].componentData;
+                    if (runningApps[app.id] && runningApps[app.id].componentData) {
+                        disp.innerText = runningApps[app.id].componentData;
                     }
                 } else if (app.component === 'paint') {
                     let canvas = document.createElement('canvas');
@@ -1333,10 +1996,10 @@
                     canvas.style.touchAction = 'none';
                     wrap.appendChild(canvas);
                     setTimeout(() => initPaint(canvas, app.id), 100);
-                    if (openApps[app.id] && openApps[app.id].componentData) {
+                    if (runningApps[app.id] && runningApps[app.id].componentData) {
                         const img = new Image();
                         img.onload = () => canvas.getContext('2d').drawImage(img, 0, 0);
-                        img.src = openApps[app.id].componentData;
+                        img.src = runningApps[app.id].componentData;
                     }
                 }
             }
@@ -1351,9 +2014,10 @@
             else if (val === '=') { try { calcExpr = String(eval(calcExpr)); } catch (e) { calcExpr = 'Err'; } } else calcExpr +=
                 val;
             disp.innerText = calcExpr || '0';
-            if (openApps[id]) {
-                openApps[id].unsavedFlag = true;
-                openApps[id].componentData = disp.innerText;
+            if (runningApps[id]) {
+                runningApps[id].unsavedFlag = true;
+                runningApps[id].componentData = disp.innerText;
+                hasUnsavedChanges = true;
             }
         };
 
@@ -1373,147 +2037,196 @@
             canvas.onpointerup = () => drawing = false;
             canvas.onpointercancel = () => drawing = false;
             setInterval(() => {
-                if (openApps[appId] && canvas.toDataURL) {
-                    openApps[appId].componentData = canvas.toDataURL();
-                    openApps[appId].unsavedFlag = true;
+                if (runningApps[appId] && canvas.toDataURL) {
+                    runningApps[appId].componentData = canvas.toDataURL();
+                    runningApps[appId].unsavedFlag = true;
+                    hasUnsavedChanges = true;
                 }
             }, 1000);
         }
 
+        // ═══════════════════════════════════════════════════════════════════
+        //  LAUNCH APP (Unified)
+        // ═══════════════════════════════════════════════════════════════════
         function launchApp(id) {
             haptic();
             const app = findAppById(id);
             if (!app) { toast('App not found'); return; }
 
-            // Check if already open
-            if (openApps[id] && openApps[id].active) {
-                if (isMobile()) {
-                    // Already in modal, just ensure visible
-                    if (!modal.classList.contains('open')) {
-                        modal.classList.add('open');
-                        modalTitle.innerText = app.name;
-                        const mc = document.getElementById('modalContent');
-                        mc.innerHTML = '';
-                        mc.appendChild(openApps[id].contentNode);
-                    }
-                } else {
-                    if (openApps[id].winEl) {
-                        openApps[id].winEl.style.display = 'flex';
-                        bringToFront(openApps[id].winEl);
-                        openApps[id].active = true;
-                        updateTaskbar();
-                    }
-                }
-                return;
+            // LRU: limit to 5 concurrent apps
+            const runningIds = Object.keys(runningApps);
+            if (runningIds.length >= 5 && !runningApps[id]) {
+                let oldestId = runningIds.reduce((a, b) => {
+                    return (runningApps[a].lastActive || 0) < (runningApps[b].lastActive || 0) ? a : b;
+                });
+                closeApp(oldestId, true);
             }
 
-            // Create or reuse content
-            if (!openApps[id]) {
-                openApps[id] = {
+            if (!runningApps[id]) {
+                runningApps[id] = {
                     app: app,
-                    active: true,
                     contentNode: generateAppContent(app),
                     winEl: null,
                     unsavedFlag: false,
-                    componentData: null
+                    componentData: null,
+                    scrollY: 0,
+                    lastActive: Date.now(),
+                    focusedSelector: null
                 };
             } else {
-                openApps[id].active = true;
+                runningApps[id].lastActive = Date.now();
             }
+            runningApps[id].active = true;
             lastActiveAppId = id;
 
-            if (isMobile()) {
-                // Phone mode: use modal
+            if (isMobile() && !document.body.classList.contains('desktop-mode')) {
                 modal.classList.remove('open');
                 modalTitle.innerText = app.name;
-                const mc = document.getElementById('modalContent');
-                mc.innerHTML = '';
-                mc.appendChild(openApps[id].contentNode);
-                modal.classList.add('open');
-                currentApp = app;
-            } else {
-                // Desktop mode: use window
-                if (!openApps[id].winEl) {
-                    openApps[id].winEl = createDesktopWindow(id, app, openApps[id].contentNode);
+                const content = runningApps[id].contentNode;
+                // If using iframe in modal, we need to use the modal's iframe
+                if (app.type === 'iframe') {
+                    const iframe = content.querySelector('iframe');
+                    if (iframe) {
+                        modalIframe.src = iframe.src;
+                        // Copy sandbox/allow attributes
+                        modalIframe.setAttribute('sandbox', iframe.getAttribute('sandbox') || '');
+                        modalIframe.setAttribute('allow', iframe.getAttribute('allow') || '');
+                        // Restore scroll if available
+                        if (runningApps[id].scrollY) {
+                            modalIframe.onload = () => { modalIframe.contentWindow?.scrollTo(0, runningApps[id]
+                                    .scrollY); };
+                        }
+                    }
+                } else {
+                    // Native apps: use modalContent div
+                    const mc = document.getElementById('modalContent');
+                    if (!mc) {
+                        const newMc = document.createElement('div');
+                        newMc.id = 'modalContent';
+                        newMc.style.cssText =
+                            'flex:1;position:relative;background:var(--surface-solid);display:flex;flex-direction:column;overflow:hidden;';
+                        modal.querySelector('.modal-header').after(newMc);
+                    }
+                    const mc2 = document.getElementById('modalContent');
+                    mc2.innerHTML = '';
+                    mc2.appendChild(content);
                 }
-                openApps[id].winEl.style.display = 'flex';
-                bringToFront(openApps[id].winEl);
+                modal.classList.add('open');
+                notifDrawer.classList.add('higher');
+            } else if (document.body.classList.contains('desktop-mode')) {
+                if (!runningApps[id].winEl) {
+                    runningApps[id].winEl = createDesktopWindow(id, app, runningApps[id].contentNode);
+                }
+                runningApps[id].winEl.style.display = 'flex';
+                bringToFront(runningApps[id].winEl);
                 updateTaskbar();
+                setTimeout(() => {
+                    const iframe = runningApps[id].contentNode.querySelector('iframe');
+                    if (iframe && iframe.contentWindow) {
+                        const rect = runningApps[id].winEl.getBoundingClientRect();
+                        iframe.contentWindow.postMessage({ type: 'iframeResize', width: rect.width, height: rect
+                                .height - 40 }, '*');
+                    }
+                }, 100);
             }
 
-            // Update recent apps
+            // Update recents
             recentApps = recentApps.filter(a => a.id !== app.id);
-            recentApps.unshift({ id: app.id, name: app.name, url: app.url, icon: app.icon });
+            recentApps.unshift({ id: app.id, name: app.name, url: app.url, icon: app.icon || 'globe' });
             if (recentApps.length > 10) recentApps.pop();
             localStorage.setItem('recentApps', JSON.stringify(recentApps));
+            renderRecentsDrawer();
+
+            setTimeout(() => {
+                if (app.type === 'iframe') {
+                    const iframe = runningApps[id].contentNode.querySelector('iframe') || modalIframe;
+                    if (iframe) iframe.contentWindow?.postMessage({ type: 'containerVisibility', visible: true }, '*');
+                }
+            }, 100);
         }
 
-        function closeApp(id) {
-            haptic();
-            const app = openApps[id];
+        function closeApp(id, force = false) {
+            haptic(true);
+            const app = runningApps[id];
             if (!app) return;
-            if (app.unsavedFlag && !confirm('You have unsaved changes. Close anyway?')) return;
+            if (app.unsavedFlag && !force) {
+                sysDialog({
+                    title: 'Unsaved Changes',
+                    message: `You have unsaved changes in "${app.app.name}". Close anyway?`,
+                    buttons: [
+                        { label: 'Cancel', value: false, primary: false },
+                        { label: 'Close', value: true, danger: true }
+                    ]
+                }).then(confirmed => {
+                    if (confirmed) doCloseApp(id);
+                });
+            } else {
+                doCloseApp(id);
+            }
+        }
 
-            // Save native app state
+        function doCloseApp(id) {
+            const app = runningApps[id];
+            if (!app) return;
             if (app.app.type === 'native') {
                 if (app.app.component === 'notepad') {
                     const ta = app.contentNode.querySelector('textarea');
                     if (ta) app.componentData = ta.value;
                 } else if (app.app.component === 'paint') {
-                    // auto-saved via interval
+                    // auto-saved
                 } else if (app.app.component === 'calculator') {
                     const d = app.contentNode.querySelector('.calc-display');
                     if (d) app.componentData = d.innerText;
                 }
             }
-
-            if (isMobile()) {
+            if (app.app.type === 'iframe') {
+                const iframe = app.contentNode.querySelector('iframe') || modalIframe;
+                if (iframe && iframe.contentWindow) {
+                    app.scrollY = iframe.contentWindow.scrollY;
+                    const active = iframe.contentDocument?.activeElement;
+                    if (active && active.id) app.focusedSelector = '#' + active.id;
+                    else if (active && active.className) app.focusedSelector = '.' + active.className.split(' ').join(
+                    '.');
+                }
+                iframe?.contentWindow?.postMessage({ type: 'disposeResources' }, '*');
+            }
+            if (isMobile() && !document.body.classList.contains('desktop-mode')) {
                 modal.classList.remove('open');
-                currentApp = null;
-            } else {
+                notifDrawer.classList.remove('higher');
+            } else if (document.body.classList.contains('desktop-mode')) {
                 if (app.winEl) {
                     app.winEl.remove();
                     app.winEl = null;
                 }
             }
             app.active = false;
-            delete openApps[id];
+            delete runningApps[id];
             updateTaskbar();
             if (lastActiveAppId === id) lastActiveAppId = null;
+            hasUnsavedChanges = Object.values(runningApps).some(a => a.unsavedFlag === true);
         }
 
         function closeModal() {
-            if (unsavedFlag && !confirm('Unsaved changes. Close anyway?')) return;
-            modal.classList.remove('open');
-            if (currentApp) {
-                if (modalIframe.contentWindow) {
-                    let existing = openIframes.find(i => i.id === currentApp.id);
-                    if (existing) existing.scrollY = modalIframe.contentWindow.scrollY;
-                    else openIframes.push({ id: currentApp.id, name: currentApp.name, url: currentApp.url,
-                        iframe: modalIframe, src: modalIframe.src, scrollY: modalIframe.contentWindow.scrollY });
-                }
-                modalIframe.src = 'about:blank';
-                currentApp = null;
-                unsavedFlag = false;
-            }
+            const activeId = Object.keys(runningApps).find(id => runningApps[id].active);
+            if (activeId) closeApp(activeId);
+            else modal.classList.remove('open');
         }
 
-
-        // ================================================================
+        // ═══════════════════════════════════════════════════════════════════
         //  DESKTOP WINDOW MANAGEMENT
-        // ================================================================
+        // ═══════════════════════════════════════════════════════════════════
         function createDesktopWindow(id, app, contentNode) {
             const win = document.createElement('div');
             win.className = 'window';
             win.id = `win-${id}`;
-            const offset = Object.keys(openApps).length * 30;
+            const offset = Math.min(Object.keys(runningApps).length * 30, 200);
             win.style.top = `${50 + offset}px`;
             win.style.left = `${50 + offset}px`;
             win.style.width = '600px';
             win.style.height = '450px';
             win.innerHTML = `
             <div class="win-header">
-              <div style="font-size:12px; font-weight:500;"><i class="fas ${app.icon}" style="margin-right:6px;"></i>${app.name}</div>
+              <div style="font-size:12px; font-weight:500;"><i class="fas ${app.icon || 'fa-globe'}" style="margin-right:6px;"></i>${escapeHtml(app.name)}</div>
               <div class="win-controls">
                 <button class="win-btn win-min" onclick="minimizeWindow('${id}')"></button>
                 <button class="win-btn win-max" onclick="maximizeWindow('${id}')"></button>
@@ -1530,15 +2243,15 @@
         }
 
         window.minimizeWindow = function(id) {
-            if (openApps[id] && openApps[id].winEl) {
-                openApps[id].winEl.style.display = 'none';
-                openApps[id].active = false;
+            if (runningApps[id] && runningApps[id].winEl) {
+                runningApps[id].winEl.style.display = 'none';
+                runningApps[id].active = false;
                 updateTaskbar();
             }
         };
 
         window.maximizeWindow = function(id) {
-            const win = openApps[id]?.winEl;
+            const win = runningApps[id]?.winEl;
             if (!win) return;
             if (win.dataset.max === 'true') {
                 win.style.width = win.dataset.w;
@@ -1581,7 +2294,7 @@
             handle.onpointermove = e => {
                 if (!isDragging) return;
                 win.style.left = startLeft + (e.clientX - startX) + 'px';
-                win.style.top = Math.max(0, startTop + (e.clientY - startY)) + 'px';
+                win.style.top = Math.max(0, Math.min(window.innerHeight - 60, startTop + (e.clientY - startY))) + 'px';
             };
             handle.onpointerup = () => isDragging = false;
             handle.onpointercancel = () => isDragging = false;
@@ -1590,45 +2303,54 @@
         function updateTaskbar() {
             if (!taskbarApps) return;
             taskbarApps.innerHTML = '';
-            Object.keys(openApps).forEach(id => {
-                const app = openApps[id].app;
+            Object.keys(runningApps).forEach(id => {
+                const app = runningApps[id].app;
                 let div = document.createElement('div');
-                div.className = `taskbar-item ${openApps[id].active ? 'active' : ''}`;
-                div.innerHTML = `<i class="fas ${app.icon}"></i> ${app.name}`;
+                div.className = `taskbar-item ${runningApps[id].active ? 'active' : ''}`;
+                let badge = '';
+                if (app.notificationCount && app.notificationCount > 0) {
+                    badge = `<div class="taskbar-badge">${app.notificationCount}</div>`;
+                }
+                div.innerHTML = `<i class="fas ${app.icon || 'fa-globe'}"></i> ${escapeHtml(app.name)}${badge}`;
                 div.onclick = () => {
-                    if (!openApps[id].winEl && isMobile()) launchApp(id);
-                    else if (openApps[id].winEl) {
-                        if (openApps[id].winEl.style.display === 'none') {
-                            openApps[id].winEl.style.display = 'flex';
-                            bringToFront(openApps[id].winEl);
-                            openApps[id].active = true;
-                            updateTaskbar();
-                        } else if (openApps[id].active) {
-                            minimizeWindow(id);
-                            openApps[id].active = false;
-                            updateTaskbar();
-                        } else {
-                            bringToFront(openApps[id].winEl);
-                            openApps[id].active = true;
-                            updateTaskbar();
+                    if (document.body.classList.contains('desktop-mode')) {
+                        if (!runningApps[id].winEl) launchApp(id);
+                        else if (runningApps[id].winEl) {
+                            if (runningApps[id].winEl.style.display === 'none') {
+                                runningApps[id].winEl.style.display = 'flex';
+                                bringToFront(runningApps[id].winEl);
+                                runningApps[id].active = true;
+                                updateTaskbar();
+                            } else if (runningApps[id].active) {
+                                minimizeWindow(id);
+                                runningApps[id].active = false;
+                                updateTaskbar();
+                            } else {
+                                bringToFront(runningApps[id].winEl);
+                                runningApps[id].active = true;
+                                updateTaskbar();
+                            }
                         }
+                    } else {
+                        launchApp(id);
                     }
                 };
                 taskbarApps.appendChild(div);
             });
         }
 
-
-        // ================================================================
-        //  TASK SWITCHER (Phone)
-        // ================================================================
+        // ═══════════════════════════════════════════════════════════════════
+        //  TASK SWITCHER
+        // ═══════════════════════════════════════════════════════════════════
         function showTaskSwitcher() {
             taskCards.innerHTML = '';
             let items = [...recentApps];
-            for (let oframe of openIframes) {
-                if (!items.find(i => i.id === oframe.id)) items.unshift({ id: oframe.id, name: oframe.name,
-                url: oframe.url });
-            }
+            Object.keys(runningApps).forEach(id => {
+                if (!items.find(i => i.id === id)) {
+                    const app = runningApps[id].app;
+                    items.unshift({ id: app.id, name: app.name, url: app.url, icon: app.icon || 'globe' });
+                }
+            });
             if (items.length === 0) {
                 taskCards.innerHTML =
                     '<div style="color:white;text-align:center;width:100%;padding:40px;">No recent apps</div>';
@@ -1639,7 +2361,7 @@
                 card.onclick = () => { taskSwitcher.classList.remove('open');
                     launchApp(app.id); };
                 card.innerHTML =
-                    `<div class="task-thumb"><i class="fas fa-apple-alt" style="font-size:48px;"></i></div>
+                    `<div class="task-thumb"><i class="fas ${app.icon || 'fa-globe'}" style="font-size:48px;"></i></div>
                 <div class="task-info"><span class="task-title">${escapeHtml(app.name)}</span>
                 <button class="task-close" data-id="${app.id}"><i class="fas fa-times-circle"></i></button></div>`;
                 taskCards.appendChild(card);
@@ -1650,16 +2372,16 @@
                     let id = btn.dataset.id;
                     recentApps = recentApps.filter(a => a.id !== id);
                     localStorage.setItem('recentApps', JSON.stringify(recentApps));
-                    showTaskSwitcher();
+                    if (runningApps[id]) closeApp(id);
+                    else showTaskSwitcher();
                 };
             });
             taskSwitcher.classList.add('open');
         }
 
-
-        // ================================================================
-        //  RESIZE HANDLER (Mode Switching)
-        // ================================================================
+        // ═══════════════════════════════════════════════════════════════════
+        //  RESIZE HANDLER (Mode Switching + Keyboard)
+        // ═══════════════════════════════════════════════════════════════════
         function handleResize() {
             if (isResizing) return;
             isResizing = true;
@@ -1673,40 +2395,46 @@
                 }
 
                 if (nowMobile) {
-                    // Switch to phone mode
                     document.body.classList.remove('desktop-mode');
-                    // Hide all desktop windows
-                    Object.keys(openApps).forEach(id => {
-                        if (openApps[id].winEl) openApps[id].winEl.style.display = 'none';
+                    Object.keys(runningApps).forEach(id => {
+                        if (runningApps[id].winEl) {
+                            runningApps[id].winEl.style.display = 'none';
+                            runningApps[id].active = false;
+                        }
                     });
-                    // If any app was active, move to modal
-                    const activeId = Object.keys(openApps).find(id => openApps[id].active);
+                    const activeId = Object.keys(runningApps).find(id => runningApps[id].active);
                     if (activeId) {
-                        const app = openApps[activeId];
+                        const app = runningApps[activeId];
                         modalTitle.innerText = app.app.name;
-                        const mc = document.getElementById('modalContent');
-                        mc.innerHTML = '';
-                        mc.appendChild(app.contentNode);
+                        // Rebuild modal content
+                        modal.classList.remove('open');
+                        if (app.app.type === 'iframe') {
+                            const iframe = app.contentNode.querySelector('iframe');
+                            if (iframe) {
+                                modalIframe.src = iframe.src;
+                                modalIframe.setAttribute('sandbox', iframe.getAttribute('sandbox') || '');
+                                modalIframe.setAttribute('allow', iframe.getAttribute('allow') || '');
+                            }
+                        } else {
+                            const mc = document.getElementById('modalContent');
+                            mc.innerHTML = '';
+                            mc.appendChild(app.contentNode);
+                        }
                         modal.classList.add('open');
-                        currentApp = app.app;
                     }
-                    // Reset grid
                     recalcPagination();
                     renderGrid();
                 } else {
-                    // Switch to desktop mode
                     document.body.classList.add('desktop-mode');
                     modal.classList.remove('open');
-                    currentApp = null;
-                    // Recreate windows for all open apps
-                    Object.keys(openApps).forEach(id => {
-                        if (!openApps[id].winEl) {
-                            openApps[id].winEl = createDesktopWindow(id, openApps[id].app, openApps[id]
-                            .contentNode);
+                    Object.keys(runningApps).forEach(id => {
+                        if (!runningApps[id].winEl) {
+                            runningApps[id].winEl = createDesktopWindow(id, runningApps[id].app, runningApps[id]
+                                .contentNode);
                         } else {
-                            openApps[id].winEl.style.display = 'flex';
+                            runningApps[id].winEl.style.display = 'flex';
                         }
-                        openApps[id].active = false;
+                        runningApps[id].active = false;
                     });
                     updateTaskbar();
                 }
@@ -1716,71 +2444,9 @@
 
         window.addEventListener('resize', handleResize);
 
-
-        // ================================================================
-        //  KEYBOARD NAVIGATION
-        // ================================================================
-        function isIframeFocused() {
-            return modal.classList.contains('open') && modalIframe.contentDocument &&
-                modalIframe.contentDocument.activeElement !== modalIframe.contentDocument.body;
-        }
-
-        window.addEventListener('keydown', (e) => {
-            // Spotlight shortcut (Space on body)
-            if (e.key === ' ' && document.activeElement === document.body && isMobile() && !modal.classList.contains(
-                    'open')) {
-                e.preventDefault();
-                appSearch.focus();
-                return;
-            }
-
-            // Grid navigation when grid visible
-            if ((document.activeElement === document.body || document.activeElement === appSearch) && !modal.classList
-                .contains('open') && !taskSwitcher.classList.contains('open')) {
-                const gridItems = document.querySelectorAll('.app-tile');
-                if (gridItems.length === 0) return;
-                let cols = Math.floor(appGrid.offsetWidth / 116);
-                if (cols < 1) cols = 1;
-
-                if (['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp', 'Enter'].includes(e.key)) {
-                    e.preventDefault();
-                    if (focusedGridIndex === -1) focusedGridIndex = 0;
-                    else if (e.key === 'ArrowRight') focusedGridIndex = Math.min(focusedGridIndex + 1, gridItems
-                        .length - 1);
-                    else if (e.key === 'ArrowLeft') focusedGridIndex = Math.max(focusedGridIndex - 1, 0);
-                    else if (e.key === 'ArrowDown') focusedGridIndex = Math.min(focusedGridIndex + cols, gridItems
-                        .length - 1);
-                    else if (e.key === 'ArrowUp') focusedGridIndex = Math.max(focusedGridIndex - cols, 0);
-                    else if (e.key === 'Enter') { gridItems[focusedGridIndex].click(); return; }
-                    updateGridFocus();
-                    return;
-                }
-            }
-
-            if (isIframeFocused()) return;
-            if (e.key === 'Escape') {
-                if (modal.classList.contains('open')) closeModal();
-                else if (taskSwitcher.classList.contains('open')) taskSwitcher.classList.remove('open');
-                else if (startMenu.classList.contains('open')) startMenu.classList.remove('open');
-                else if (!isMobile()) {
-                    const wins = Array.from(document.querySelectorAll('.window')).sort((a, b) => b.style.zIndex - a
-                    .style.zIndex);
-                    if (wins.length > 0 && wins[0].style.display !== 'none') {
-                        const id = wins[0].id.replace('win-', '');
-                        closeApp(id);
-                    }
-                }
-            } else if (e.key === 'ArrowLeft' && !modal.classList.contains('open') && !isMobile()) {
-                goToPage(currentPage - 1);
-            } else if (e.key === 'ArrowRight' && !modal.classList.contains('open') && !isMobile()) {
-                goToPage(currentPage + 1);
-            }
-        });
-
-
-        // ================================================================
-        //  VIRTUAL KEYBOARD HANDLING
-        // ================================================================
+        // ────────────────────────────────────────────────────────────────
+        //  Virtual keyboard handling
+        // ────────────────────────────────────────────────────────────────
         if (window.visualViewport) {
             window.visualViewport.addEventListener('resize', () => {
                 let keyboardHeight = window.innerHeight - window.visualViewport.height;
@@ -1789,23 +2455,151 @@
                     if (keyboardHeight > 50) modalElem.style.bottom = `calc(70px + ${keyboardHeight}px)`;
                     else modalElem.style.bottom = '70px';
                 }
-                modalIframe.contentWindow?.postMessage({ type: 'keyboardHeight', height: keyboardHeight }, '*');
+                Object.values(runningApps).forEach(app => {
+                    const iframe = app.contentNode?.querySelector('iframe');
+                    if (iframe && iframe.contentWindow) {
+                        iframe.contentWindow.postMessage({ type: 'keyboardHeight', height: keyboardHeight }, '*');
+                    }
+                });
             });
         }
 
+        // ═══════════════════════════════════════════════════════════════════
+        //  KEYBOARD NAVIGATION
+        // ═══════════════════════════════════════════════════════════════════
+        function isIframeActive() {
+            if (!modal.classList.contains('open')) return false;
+            try {
+                const doc = modalIframe.contentDocument;
+                if (!doc) return false;
+                const active = doc.activeElement;
+                return active && active.tagName !== 'BODY' && active.tagName !== 'HTML';
+            } catch (e) { return false; }
+        }
 
-        // ================================================================
-        //  SWIPE GESTURES (Notification Drawer)
-        // ================================================================
-        let touchStartY = 0;
-        let isDraggingNotif = false;
-        pageViewport.addEventListener('touchstart', (e) => {
-            if (e.touches[0].clientY < 40) { touchStartY = e.touches[0].clientY;
-                isDraggingNotif = true; }
+        window.addEventListener('keydown', (e) => {
+            if (isIframeActive()) return;
+
+            if (e.key === ' ' && document.activeElement === document.body && isMobile() && !modal.classList.contains(
+                    'open')) {
+                e.preventDefault();
+                const url = prompt('Enter website URL:', 'https://');
+                if (url) addCustomApp(url);
+                return;
+            }
+
+            if ((document.activeElement === document.body) && !modal.classList.contains('open') && !taskSwitcher
+                .classList.contains('open')) {
+                const gridItems = document.querySelectorAll('.app-tile');
+                if (gridItems.length > 0) {
+                    let cols = Math.floor(appGrid.offsetWidth / 116);
+                    if (cols < 1) cols = 1;
+                    if (['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp', 'Enter'].includes(e.key)) {
+                        e.preventDefault();
+                        if (focusedGridIndex === -1) focusedGridIndex = 0;
+                        else if (e.key === 'ArrowRight') focusedGridIndex = Math.min(focusedGridIndex + 1, gridItems
+                            .length - 1);
+                        else if (e.key === 'ArrowLeft') focusedGridIndex = Math.max(focusedGridIndex - 1, 0);
+                        else if (e.key === 'ArrowDown') focusedGridIndex = Math.min(focusedGridIndex + cols,
+                            gridItems.length - 1);
+                        else if (e.key === 'ArrowUp') focusedGridIndex = Math.max(focusedGridIndex - cols, 0);
+                        else if (e.key === 'Enter') { gridItems[focusedGridIndex].click(); return; }
+                        updateGridFocus();
+                        haptic();
+                        return;
+                    }
+                }
+
+                // Arrow keys for page navigation
+                if (e.key === 'ArrowLeft' && !modal.classList.contains('open')) {
+                    e.preventDefault();
+                    goToPage(currentPage - 1);
+                } else if (e.key === 'ArrowRight' && !modal.classList.contains('open')) {
+                    e.preventDefault();
+                    goToPage(currentPage + 1);
+                }
+            }
+
+            if (e.key === 'Escape') {
+                if (modal.classList.contains('open')) closeModal();
+                else if (taskSwitcher.classList.contains('open')) taskSwitcher.classList.remove('open');
+                else if (startMenu.classList.contains('open')) startMenu.classList.remove('open');
+                else if (document.body.classList.contains('desktop-mode')) {
+                    const wins = Array.from(document.querySelectorAll('.window')).sort((a, b) => b.style.zIndex - a
+                        .style.zIndex);
+                    if (wins.length > 0 && wins[0].style.display !== 'none') {
+                        const id = wins[0].id.replace('win-', '');
+                        closeApp(id);
+                    }
+                }
+            }
         });
+
+        // ═══════════════════════════════════════════════════════════════════
+        //  EDGE SWIPE GESTURES (Back)
+        // ═══════════════════════════════════════════════════════════════════
+        let swipeStartX = 0;
+        let swipeStartY = 0;
+        let isSwiping = false;
+        let swipeTimeout = null;
+
+        document.addEventListener('touchstart', (e) => {
+            const t = e.touches[0];
+            swipeStartX = t.clientX;
+            swipeStartY = t.clientY;
+            isSwiping = true;
+        }, { passive: true });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!isSwiping) return;
+            const t = e.touches[0];
+            const dx = t.clientX - swipeStartX;
+            const dy = t.clientY - swipeStartY;
+            if (Math.abs(dx) > Math.abs(dy) && dx > 40 && swipeStartX < 20) {
+                e.preventDefault();
+                isSwiping = false;
+                haptic();
+                if (modal.classList.contains('open')) {
+                    let responded = false;
+                    const handler = (msg) => {
+                        if (msg.data && msg.data.type === 'canGoBackResponse') {
+                            responded = true;
+                            window.removeEventListener('message', handler);
+                            if (msg.data.canGoBack) {
+                                modalIframe.contentWindow?.postMessage({ type: 'performBack' }, '*');
+                            } else {
+                                closeModal();
+                            }
+                        }
+                    };
+                    window.addEventListener('message', handler);
+                    modalIframe.contentWindow?.postMessage({ type: 'canGoBack' }, '*');
+                    swipeTimeout = setTimeout(() => {
+                        window.removeEventListener('message', handler);
+                        if (!responded) closeModal();
+                    }, 300);
+                } else {
+                    goToPage(currentPage - 1);
+                }
+            }
+        }, { passive: false });
+
+        document.addEventListener('touchend', () => { isSwiping = false; }, { passive: true });
+
+        // ═══════════════════════════════════════════════════════════════════
+        //  NOTIFICATION DRAWER (Swipe down)
+        // ═══════════════════════════════════════════════════════════════════
+        let touchStartYNotif = 0;
+        let isDraggingNotif = false;
+
+        pageViewport.addEventListener('touchstart', (e) => {
+            if (e.touches[0].clientY < 40) { touchStartYNotif = e.touches[0].clientY;
+                isDraggingNotif = true; }
+        }, { passive: true });
+
         pageViewport.addEventListener('touchmove', (e) => {
             if (!isDraggingNotif) return;
-            let delta = e.touches[0].clientY - touchStartY;
+            let delta = e.touches[0].clientY - touchStartYNotif;
             if (delta > 30) {
                 notifDrawer.classList.add('open');
                 isDraggingNotif = false;
@@ -1816,8 +2610,9 @@
                     });
                 }, 100);
             }
-        });
-        pageViewport.addEventListener('touchend', () => { isDraggingNotif = false; });
+        }, { passive: true });
+
+        pageViewport.addEventListener('touchend', () => { isDraggingNotif = false; }, { passive: true });
 
         // Auto-hide status bar on scroll
         let lastScrollY = 0;
@@ -1826,24 +2621,36 @@
             if (current > lastScrollY && current > 50) statusBar.classList.add('hide');
             else statusBar.classList.remove('hide');
             lastScrollY = current;
-        });
+        }, { passive: true });
 
-
-        // ================================================================
+        // ═══════════════════════════════════════════════════════════════════
         //  THEME
-        // ================================================================
+        // ═══════════════════════════════════════════════════════════════════
         function toggleTheme() {
             darkMode = !darkMode;
             document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
             localStorage.setItem('theme', darkMode ? 'dark' : 'light');
-            haptic();
+            haptic(true);
         }
         themeToggleBtn.onclick = toggleTheme;
 
+        // ═══════════════════════════════════════════════════════════════════
+        //  FULLSCREEN
+        // ═══════════════════════════════════════════════════════════════════
+        fullscreenToggle.onclick = () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => toast('Fullscreen not supported'));
+                toast('Entering fullscreen');
+            } else {
+                document.exitFullscreen();
+                toast('Exiting fullscreen');
+            }
+            viewMenu.classList.remove('show');
+        };
 
-        // ================================================================
+        // ═══════════════════════════════════════════════════════════════════
         //  BATTERY & TIME
-        // ================================================================
+        // ═══════════════════════════════════════════════════════════════════
         function updateClock() {
             let now = new Date();
             let t = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -1863,6 +2670,9 @@
                         let p = Math.round(b.level * 100);
                         batteryPercent.innerText = p + '%';
                         batteryFill.style.width = p + '%';
+                        if (p <= 15) batteryFill.style.backgroundColor = '#ff3b30';
+                        else if (p >= 95) batteryFill.style.backgroundColor = '#34c759';
+                        else batteryFill.style.backgroundColor = 'white';
                     };
                     update();
                     b.addEventListener('levelchange', update);
@@ -1871,10 +2681,9 @@
         }
         initBattery();
 
-
-        // ================================================================
+        // ═══════════════════════════════════════════════════════════════════
         //  VIEW MODE SWITCH
-        // ================================================================
+        // ═══════════════════════════════════════════════════════════════════
         function setViewMode(mode) {
             viewMode = mode;
             localStorage.setItem('viewMode', viewMode);
@@ -1893,10 +2702,9 @@
             if (!dotsBtn.contains(e.target) && !viewMenu.contains(e.target)) viewMenu.classList.remove('show');
         });
 
-
-        // ================================================================
+        // ═══════════════════════════════════════════════════════════════════
         //  MOBILE NAV BUTTONS
-        // ================================================================
+        // ═══════════════════════════════════════════════════════════════════
         homeBtn.onclick = () => {
             haptic();
             if (modal.classList.contains('open')) closeModal();
@@ -1906,19 +2714,24 @@
         backBtn.onclick = () => {
             haptic();
             if (!modal.classList.contains('open')) { toast('No app open'); return; }
-            let iframeWin = modalIframe.contentWindow;
-            if (iframeWin) {
-                let timeout = setTimeout(() => closeModal(), 200);
-                iframeWin.postMessage({ type: 'canGoBack' }, '*');
-                window.addEventListener('message', function handler(e) {
-                    if (e.data && e.data.type === 'canGoBackResponse') {
-                        clearTimeout(timeout);
-                        if (e.data.canGoBack) iframeWin.postMessage({ type: 'performBack' }, '*');
-                        else closeModal();
-                        window.removeEventListener('message', handler);
+            let responded = false;
+            const handler = (msg) => {
+                if (msg.data && msg.data.type === 'canGoBackResponse') {
+                    responded = true;
+                    window.removeEventListener('message', handler);
+                    if (msg.data.canGoBack) {
+                        modalIframe.contentWindow?.postMessage({ type: 'performBack' }, '*');
+                    } else {
+                        closeModal();
                     }
-                });
-            } else closeModal();
+                }
+            };
+            window.addEventListener('message', handler);
+            modalIframe.contentWindow?.postMessage({ type: 'canGoBack' }, '*');
+            setTimeout(() => {
+                window.removeEventListener('message', handler);
+                if (!responded) closeModal();
+            }, 300);
         };
 
         recentsBtn.onclick = () => { haptic();
@@ -1930,86 +2743,101 @@
         startBtn.onclick = () => { haptic();
             startMenu.classList.toggle('open'); };
 
+        closeRecentsBtn.onclick = () => recentsDrawer.classList.remove('open');
 
-        // ================================================================
+        // ═══════════════════════════════════════════════════════════════════
         //  LOCK SCREEN
-        // ================================================================
-        unlockBtn.onclick = () => { haptic();
+        // ═══════════════════════════════════════════════════════════════════
+        unlockBtn.onclick = () => { haptic(true);
             lockScreen.classList.remove('locked');
             lockScreen.classList.add('unlocked'); };
+
         // Double-tap status bar to lock
         let lastTap = 0;
         statusBar.addEventListener('click', () => {
             const now = Date.now();
             if (now - lastTap < 300) {
-                haptic();
+                haptic(true);
                 lockScreen.classList.remove('unlocked');
                 lockScreen.classList.add('locked');
-                // Close any open app
-                if (isMobile()) closeModal();
-                else { Object.keys(openApps).forEach(id => closeApp(id)); }
+                if (!document.body.classList.contains('desktop-mode')) closeModal();
+                else { Object.keys(runningApps).forEach(id => closeApp(id, true)); }
             }
             lastTap = now;
         });
 
+        // ═══════════════════════════════════════════════════════════════════
+        //  RECENTS DRAWER (open/close)
+        // ═══════════════════════════════════════════════════════════════════
+        function renderRecentsDrawer() {
+            if (!recentsList) return;
+            if (recentApps.length === 0) {
+                recentsList.innerHTML = '<div style="padding:16px;text-align:center;opacity:0.6;">No recent apps</div>';
+                return;
+            }
+            recentsList.innerHTML = recentApps.map(app => `
+            <div class="recent-item" data-id="${app.id}">
+              <div class="app-icon-small"><i class="fas ${app.icon || 'fa-globe'}"></i></div>
+              <span style="flex:1;font-weight:500;">${escapeHtml(app.name)}</span>
+            </div>
+          `).join('');
+            recentsList.querySelectorAll('.recent-item').forEach(el => {
+                const id = el.dataset.id;
+                const app = recentApps.find(a => a.id === id);
+                if (app) {
+                    el.onclick = () => {
+                        closeModal();
+                        launchApp(app.id);
+                        recentsDrawer.classList.remove('open');
+                    };
+                }
+            });
+        }
 
-        // ================================================================
-        //  SEARCH INPUT
-        // ================================================================
-        appSearch.oninput = (e) => {
-            lastSearchQuery = e.target.value;
-            renderGrid(lastSearchQuery);
-        };
-        appSearch.onkeydown = (e) => {
-            if (e.key === 'Escape') { appSearch.value = '';
-                lastSearchQuery = '';
-                renderGrid(''); }
-        };
-
-
-        // ================================================================
-        //  MESSAGE HANDLING (FROM IFRAMES)
-        // ================================================================
+        // ────────────────────────────────────────────────────────────────
+        //  Message handling from iframes
+        // ────────────────────────────────────────────────────────────────
         window.addEventListener('message', (e) => {
             if (e.data && e.data.type === 'setUnsaved') {
                 const id = findAppIdByFrame(e.source);
-                if (id && openApps[id]) openApps[id].unsavedFlag = e.data.unsaved;
-                if (id && !isMobile() && openApps[id]?.winEl) {
-                    // Update window title indicator
-                    const titleEl = openApps[id].winEl?.querySelector('.win-header div:first-child');
+                if (id && runningApps[id]) runningApps[id].unsavedFlag = e.data.unsaved;
+                if (id && document.body.classList.contains('desktop-mode') && runningApps[id]?.winEl) {
+                    const titleEl = runningApps[id].winEl?.querySelector('.win-header div:first-child');
                     if (titleEl) {
                         titleEl.innerHTML =
-                            `<i class="fas ${openApps[id].app.icon}" style="margin-right:6px;"></i>${openApps[id].app.name}${e.data.unsaved ? ' ●' : ''}`;
+                            `<i class="fas ${runningApps[id].app.icon || 'fa-globe'}" style="margin-right:6px;"></i>${escapeHtml(runningApps[id].app.name)}${e.data.unsaved ? ' ●' : ''}`;
                     }
                 }
             } else if (e.data && e.data.type === 'saved') {
                 const id = findAppIdByFrame(e.source);
-                if (id && openApps[id]) openApps[id].unsavedFlag = false;
+                if (id && runningApps[id]) runningApps[id].unsavedFlag = false;
             } else if (e.data && e.data.type === 'micActive') {
                 micIndicator.style.display = e.data.active ? 'inline-block' : 'none';
             } else if (e.data && e.data.type === 'camActive') {
                 camIndicator.style.display = e.data.active ? 'inline-block' : 'none';
-            } else if (e.data && e.data.type === 'backRequest') {
-                if (isMobile()) closeModal();
-                else { if (lastActiveAppId) closeApp(lastActiveAppId); }
+            } else if (e.data && e.data.type === 'badge') {
+                const id = findAppIdByFrame(e.source);
+                if (id) {
+                    const app = findAppById(id);
+                    if (app) {
+                        app.notificationCount = e.data.count || 0;
+                        renderGrid();
+                    }
+                }
             }
         });
 
         function findAppIdByFrame(frameWindow) {
-            for (let [id, app] of Object.entries(openApps)) {
-                if (app.contentNode && app.contentNode.querySelector('iframe')?.contentWindow === frameWindow) return id;
-            }
-            // Also check openIframes for phone mode
-            for (let oi of openIframes) {
-                if (oi.iframe && oi.iframe.contentWindow === frameWindow) return oi.id;
+            for (let [id, app] of Object.entries(runningApps)) {
+                const iframe = app.contentNode?.querySelector('iframe') || modalIframe;
+                if (iframe && iframe.contentWindow === frameWindow) return id;
             }
             return null;
         }
 
-
-        // ================================================================
+        // ═══════════════════════════════════════════════════════════════════
         //  LOAD SAVED DATA
-        // ================================================================
+        // ═══════════════════════════════════════════════════════════════════
         let savedCustom = localStorage.getItem('customApps');
         if (savedCustom) try { customApps = JSON.parse(savedCustom); } catch (e) {}
         let savedRecents = localStorage.getItem('recentApps');
@@ -2019,21 +2847,22 @@
         let savedTheme = localStorage.getItem('theme');
         if (savedTheme === 'light') { darkMode = false;
             document.documentElement.setAttribute('data-theme', 'light'); }
+        let savedOrder = localStorage.getItem('appOrder');
+        if (savedOrder) try { appOrder = JSON.parse(savedOrder); } catch (e) {}
 
-
-        // ================================================================
+        // ═══════════════════════════════════════════════════════════════════
         //  INIT
-        // ================================================================
+        // ═══════════════════════════════════════════════════════════════════
         function init() {
             recalcPagination();
             renderGrid();
             renderDots();
             renderStartMenu();
+            renderRecentsDrawer();
             handleResize();
-            // Add default notification on first load
             if (!localStorage.getItem('notifShown')) {
                 setTimeout(() => {
-                    addNotification('Welcome to Unified OS!', 'smile');
+                    addNotification('🚀 Unified OS ready — Long-press apps for options', 'rocket');
                     localStorage.setItem('notifShown', 'true');
                 }, 500);
             }
@@ -2041,10 +2870,10 @@
 
         init();
 
-        console.log('🚀 Unified OS v2.0 — Phone + Desktop Combo');
+        console.log('🚀 Unified OS v5.0 — Phone + Desktop (Fully Merged)');
         console.log('📱 Phone mode (mobile) | 🖥️ Desktop mode (desktop)');
-        console.log('🔒 Double-tap status bar to lock | Press Space for Spotlight');
+        console.log('🔒 Double-tap status bar to lock | Press Space for URL prompt');
+        console.log('🔄 Drag & Drop to reorder apps | Edge swipe for back');
     </script>
-
 </body>
 </html>
