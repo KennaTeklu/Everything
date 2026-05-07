@@ -1763,27 +1763,40 @@ function shuffleChoicesForQuestion(question) {
 function addQuestionsFromFile(fileName, fileId, questionsArray) {
     const fileQuestions = [];
     for (let q of questionsArray) {
+        // Normalize common variations
+        let questionText = q.question || q.text || q.prompt;
+        if (!questionText) throw new Error(`Missing question text in one of the questions`);
+
+        let choices = q.choices || q.options || q.answers;
+        if (!Array.isArray(choices) || choices.length < 2 || choices.length > 4) {
+            throw new Error(`Question "${questionText.substring(0, 50)}" has ${choices ? choices.length : 0} choices (need 2-4).`);
+        }
+
+        let correctIndex = (q.correct !== undefined) ? q.correct : q.answer;
+        if (correctIndex === undefined || typeof correctIndex !== 'number' || correctIndex < 0 || correctIndex >= choices.length) {
+            throw new Error(`Question "${questionText.substring(0, 50)}" has invalid correct index (must be 0-${choices.length-1}).`);
+        }
+
+        let explanation = q.explanation || q.feedback || '';
+
         const newId = nextId++;
         let newQ = {
             id: newId,
-            text: q.question,
-            choices: [...q.choices],          // copy to avoid mutating original
-            correct: q.correct,
-            explanation: q.explanation || '',
+            text: questionText,
+            choices: [...choices],
+            correct: correctIndex,
+            explanation: explanation,
             fileId: fileId,
             topic: q.topic || '',
             difficulty: q.difficulty || 'medium'
         };
-        // Shuffle choices and recompute correct index
         newQ = shuffleChoicesForQuestion(newQ);
         fileQuestions.push(newQ);
         userAnswersMap[newId] = -1;
         peekedMap[newId] = false;
     }
     allQuestions.push(...fileQuestions);
-    // Do NOT automatically select the file here; selection will be handled in handleFileUpload
     fileList.push({ name: fileName, id: fileId, questionCount: questionsArray.length });
-    // No rebuild here – will be rebuilt after selection in handleFileUpload
     saveData();
 }
 function reshuffleAllChoices() {
@@ -1812,38 +1825,47 @@ function handleFileUpload(files) {
             try {
                 const data = JSON.parse(e.target.result);
                 let questionsArray = Array.isArray(data) ? data : data.questions;
-                if (!questionsArray || !Array.isArray(questionsArray)) throw new Error('Invalid format');
-                questionsArray.forEach((q, idx) => {
-                    if (!q.question || !Array.isArray(q.choices) || q.choices.length < 2 || q.choices.length > 4 || q.correct === undefined || q.correct < 0 || q.correct >= q.choices.length) {
-                        throw new Error(`Question ${idx+1} in ${file.name} is invalid`);
+                if (!questionsArray || !Array.isArray(questionsArray)) {
+                    throw new Error('JSON must be an array or have a "questions" array.');
+                }
+
+                // Validate each question with helpful index
+                for (let idx = 0; idx < questionsArray.length; idx++) {
+                    const q = questionsArray[idx];
+                    const qText = q.question || q.text || q.prompt || `#${idx+1}`;
+                    if (!q.question && !q.text && !q.prompt) {
+                        throw new Error(`Question ${idx+1} is missing 'question' or 'text' field.`);
                     }
-                });
+                    const choices = q.choices || q.options || q.answers;
+                    if (!Array.isArray(choices) || choices.length < 2 || choices.length > 4) {
+                        throw new Error(`Question ${idx+1} ("${qText.substring(0, 40)}") has ${choices ? choices.length : 0} choices (need 2-4).`);
+                    }
+                    let correctIdx = (q.correct !== undefined) ? q.correct : q.answer;
+                    if (correctIdx === undefined || correctIdx < 0 || correctIdx >= choices.length) {
+                        throw new Error(`Question ${idx+1} has invalid 'correct' index (must be 0-${choices.length-1}).`);
+                    }
+                }
+
                 const fileId = Date.now() + '_' + Math.random();
                 addQuestionsFromFile(file.name, fileId, questionsArray);
                 newFileIds.push(fileId);
             } catch (err) {
-                alert(`Error parsing ${file.name}: ${err.message}`);
+                alert(`❌ Error in ${file.name}:\n${err.message}`);
             } finally {
                 processedCount++;
                 if (processedCount === totalFiles) {
                     if (newFileIds.length > 0) {
-                        // Select only the newly uploaded files (replace previous selection)
                         selectedFileIds.clear();
                         newFileIds.forEach(id => selectedFileIds.add(id));
                         rebuildVisibleQuestions();
-                        // Reset quiz state
                         currentIndex = 0;
                         selectedChoice = -1;
                         answerSubmitted = false;
                         quizCompleted = false;
                         renderQuestion();
                         flashScreen('green');
-                        // Auto‑collapse header if not already collapsed
-                        if (!header.classList.contains('header-collapsed')) {
-                            setHeaderCollapsed(true);
-                        }
+                        if (!header.classList.contains('header-collapsed')) setHeaderCollapsed(true);
                     } else {
-                        // No valid files – just rebuild with existing selection
                         rebuildVisibleQuestions();
                         renderQuestion();
                     }
@@ -1867,14 +1889,27 @@ function loadPastedJson() {
         if (!questionsArray || !Array.isArray(questionsArray)) {
             throw new Error('JSON must be an array or an object with a "questions" array.');
         }
-        questionsArray.forEach((q, idx) => {
-            if (!q.question || !Array.isArray(q.choices) || q.choices.length < 2 || q.choices.length > 4 || q.correct === undefined || q.correct < 0 || q.correct >= q.choices.length) {
-                throw new Error(`Question ${idx+1} is invalid: each question must have "question", "choices" (2-4 items), and a correct index.`);
+
+        // Validate each question (same as handleFileUpload)
+        for (let idx = 0; idx < questionsArray.length; idx++) {
+            const q = questionsArray[idx];
+            const qText = q.question || q.text || q.prompt || `#${idx+1}`;
+            if (!q.question && !q.text && !q.prompt) {
+                throw new Error(`Question ${idx+1} is missing 'question' or 'text' field.`);
             }
-        });
+            const choices = q.choices || q.options || q.answers;
+            if (!Array.isArray(choices) || choices.length < 2 || choices.length > 4) {
+                throw new Error(`Question ${idx+1} ("${qText.substring(0, 40)}") has ${choices ? choices.length : 0} choices (need 2-4).`);
+            }
+            let correctIdx = (q.correct !== undefined) ? q.correct : q.answer;
+            if (correctIdx === undefined || correctIdx < 0 || correctIdx >= choices.length) {
+                throw new Error(`Question ${idx+1} has invalid 'correct' index (must be 0-${choices.length-1}).`);
+            }
+        }
+
         const fileId = Date.now() + '_pasted_' + Math.random();
-        // Add questions but do not auto-select yet; we will replace selection
         addQuestionsFromFile('Pasted JSON', fileId, questionsArray);
+
         // Replace selection with this pasted file only
         selectedFileIds.clear();
         selectedFileIds.add(fileId);
@@ -1889,8 +1924,9 @@ function loadPastedJson() {
             setHeaderCollapsed(true);
         }
         flashScreen('green');
+        showNotification('Pasted JSON loaded successfully!');
     } catch (err) {
-        alert('Invalid JSON: ' + err.message);
+        alert('❌ Invalid JSON: ' + err.message);
         flashScreen('red');
     }
 }
