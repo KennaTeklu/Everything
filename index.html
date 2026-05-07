@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="icon" type="image/svg+xml" href="icons/Everything.svg">
     <style>
+        /* ─── EXISTING STYLES (from your perfect phone OS) ─── */
         :root {
             --bg: #0a0c12;
             --bg-desktop: url('https://images.unsplash.com/photo-1614121181207-4b6c334d353d?w=1920&q=80');
@@ -96,11 +97,18 @@
             color: var(--text-dim);
             margin-bottom: 60px;
         }
-        .lock-icon {
-            font-size: 32px;
-            animation: pulse 2s infinite;
+        .lock-icon-wrapper {
+            position: relative;
             cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .lock-icon-wrapper:active {
+            transform: scale(0.92);
+        }
+        .lock-icon {
+            font-size: 48px;
             color: var(--primary);
+            animation: pulse 2s infinite;
         }
         @keyframes pulse {
             0% {
@@ -114,6 +122,26 @@
             100% {
                 transform: scale(1);
                 opacity: 1;
+            }
+        }
+        /* ─── RIPPLE EFFECT ─── */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(59, 130, 246, 0.4);
+            transform: scale(0);
+            animation: rippleAnim 0.8s ease-out forwards;
+            pointer-events: none;
+            z-index: 100000;
+        }
+        @keyframes rippleAnim {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(4);
+                opacity: 0;
             }
         }
 
@@ -282,7 +310,7 @@
             align-items: center;
         }
 
-        /* ─── RECENTS DRAWER (slide-up from bottom) ─── */
+        /* ─── RECENTS DRAWER ─── */
         .recents-drawer {
             position: fixed;
             bottom: 0;
@@ -645,8 +673,11 @@
             border: none;
             background: white;
         }
+        #modalContent {
+            display: none;
+        }
 
-        /* ─── TASK SWITCHER (full-screen card view) ─── */
+        /* ─── TASK SWITCHER ─── */
         .task-switcher {
             position: fixed;
             top: 0;
@@ -872,7 +903,7 @@
             transform: translateY(20px);
             opacity: 0;
             pointer-events: none;
-            transition: 0.2s;
+            transition: 0.2s ease;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
         }
         .start-menu.open {
@@ -1215,6 +1246,47 @@
         ::-webkit-scrollbar-thumb:hover {
             background: var(--text-dim);
         }
+
+        /* ─── TASKBAR HOVER PREVIEW ─── */
+        .taskbar-preview {
+            position: fixed;
+            bottom: 60px;
+            left: 0;
+            background: var(--surface-solid);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 8px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+            z-index: 3000;
+            display: none;
+            pointer-events: none;
+            width: 280px;
+            height: 180px;
+            overflow: hidden;
+            transition: opacity 0.15s ease;
+        }
+        .taskbar-preview.visible {
+            display: block;
+            opacity: 1;
+        }
+        .taskbar-preview canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+            background: #1e293b;
+        }
+        .taskbar-preview .preview-label {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            color: white;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 4px 12px;
+            border-radius: 12px;
+            backdrop-filter: blur(4px);
+        }
     </style>
 </head>
 <body>
@@ -1226,7 +1298,9 @@
     <div class="lock-screen locked" id="lockScreen">
         <div class="lock-time" id="lockTime">--:--</div>
         <div class="lock-date" id="lockDate">--</div>
-        <i class="fas fa-fingerprint lock-icon" id="unlockBtn"></i>
+        <div class="lock-icon-wrapper" id="lockIconWrapper">
+            <i class="fas fa-fingerprint lock-icon" id="lockIcon"></i>
+        </div>
         <div style="margin-top:20px; color:var(--text-dim); font-size:14px;">Tap to unlock</div>
     </div>
 
@@ -1260,7 +1334,7 @@
         <div class="notif-list" id="notifList"></div>
     </div>
 
-    <!-- ─── RECENTS DRAWER (slide-up from bottom) ─── -->
+    <!-- ─── RECENTS DRAWER ─── -->
     <div class="recents-drawer" id="recentsDrawer">
         <div class="recents-header">
             <span><i class="fas fa-history"></i> Recent Apps</span>
@@ -1294,9 +1368,10 @@
         sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-downloads allow-popups-to-escape-sandbox allow-microphone allow-camera allow-geolocation allow-notifications allow-clipboard-read allow-clipboard-write allow-pointer-lock allow-storage-access-by-user-activation"
         allow="fullscreen; microphone; camera; geolocation; clipboard-read; clipboard-write; notifications; screen-wake-lock"
         title="app"></iframe>
+        <div id="modalContent"></div>
     </div>
 
-    <!-- ─── TASK SWITCHER (full-screen card view) ─── -->
+    <!-- ─── TASK SWITCHER ─── -->
     <div id="taskSwitcher" class="task-switcher">
         <button class="close-switcher" id="closeSwitcher">&times;</button>
         <div class="task-cards" id="taskCards"></div>
@@ -1308,8 +1383,8 @@
         <div class="start-grid" id="startGrid"></div>
         <hr style="border:0; height:1px; background:var(--border); margin:16px 0;">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-size:12px; color:var(--text-dim);">Unified OS v5.0</span>
-            <i class="fas fa-power-off" style="cursor:pointer; color:var(--danger);" onclick="location.reload()" title="Restart"></i>
+            <span style="font-size:12px; color:var(--text-dim);">Unified OS v5.1</span>
+            <i class="fas fa-power-off" style="cursor:pointer; color:var(--danger);" onclick="shutdownOS()" title="Shutdown"></i>
         </div>
     </div>
 
@@ -1322,6 +1397,12 @@
             <i class="fas fa-wifi"></i>
             <span id="taskbarTime">--:--</span>
         </div>
+    </div>
+
+    <!-- ─── TASKBAR HOVER PREVIEW ─── -->
+    <div class="taskbar-preview" id="taskbarPreview">
+        <canvas id="previewCanvas"></canvas>
+        <div class="preview-label" id="previewLabel">App</div>
     </div>
 
     <!-- ─── WINDOW CONTAINER ─── -->
@@ -1531,6 +1612,8 @@
         let isResizing = false;
         let dragData = null;
         let isLocked = true;
+        let isFullscreen = false;
+        let fullscreenWasUnlocked = false;
 
         // DOM refs
         const appGrid = document.getElementById('appGrid');
@@ -1559,6 +1642,8 @@
         const statusBar = document.getElementById('statusBar');
         const pageViewport = document.getElementById('pageViewport');
         const lockScreen = document.getElementById('lockScreen');
+        const lockIcon = document.getElementById('lockIcon');
+        const lockIconWrapper = document.getElementById('lockIconWrapper');
         const unlockBtn = document.getElementById('unlockBtn');
         const startBtn = document.getElementById('startBtn');
         const startMenu = document.getElementById('startMenu');
@@ -1571,6 +1656,9 @@
         const batteryFill = document.getElementById('batteryFill');
         const batteryPercent = document.getElementById('batteryPercent');
         const windowContainer = document.getElementById('windowContainer');
+        const taskbarPreview = document.getElementById('taskbarPreview');
+        const previewCanvas = document.getElementById('previewCanvas');
+        const previewLabel = document.getElementById('previewLabel');
 
         // ═══════════════════════════════════════════════════════════════════
         //  NOTIFICATIONS
@@ -1666,7 +1754,6 @@
         //  PAGINATION
         // ═══════════════════════════════════════════════════════════════════
         function calculateItemsPerPage() {
-            // Use the old method: insert a dummy tile to measure height accurately
             const grid = appGrid;
             const dummy = document.createElement('div');
             dummy.className = 'app-tile';
@@ -1714,7 +1801,7 @@
         }
 
         // ═══════════════════════════════════════════════════════════════════
-        //  RENDER GRID (with DnD + Touch support + Floating Context Menu)
+        //  RENDER GRID
         // ═══════════════════════════════════════════════════════════════════
         function renderGrid(query) {
             query = query || '';
@@ -1835,12 +1922,11 @@
                     }
                 }, { passive: true });
 
-                // ─── FLOATING CONTEXT MENU (from old version) ───
+                // Context menu
                 tile.addEventListener('contextmenu', (e) => {
                     e.preventDefault();
                     showContextMenu(e, app);
                 });
-                // Long-press for touch devices
                 let pressTimer = null;
                 tile.addEventListener('touchstart', (e) => {
                     pressTimer = setTimeout(() => {
@@ -1853,7 +1939,6 @@
                 appGrid.appendChild(tile);
             });
 
-            // Add tile (only when no search)
             if (!query) {
                 let addTile = document.createElement('div');
                 addTile.className = 'app-tile add-tile';
@@ -1878,7 +1963,6 @@
             updateGridFocus();
         }
 
-        // ─── FLOATING CONTEXT MENU (from old version) ───
         function showContextMenu(event, app) {
             let menu = document.getElementById('dynamicContextMenu');
             if (menu) menu.remove();
@@ -1906,11 +1990,9 @@
             `;
             }
             document.body.appendChild(menu);
-            // Adjust position to stay within viewport
             const rect = menu.getBoundingClientRect();
             if (rect.right > window.innerWidth) menu.style.left = (window.innerWidth - rect.width - 10) + 'px';
             if (rect.bottom > window.innerHeight) menu.style.top = (y - rect.height - 10) + 'px';
-            // Action handlers
             menu.querySelectorAll('.menu-item').forEach(el => {
                 el.addEventListener('click', async (e) => {
                     const action = el.dataset.action;
@@ -1943,7 +2025,6 @@
                     menu.remove();
                 });
             });
-            // Close menu on click outside
             const closeMenu = (e) => {
                 if (!menu.contains(e.target)) menu.remove();
                 document.removeEventListener('click', closeMenu);
@@ -2115,14 +2196,13 @@
         }
 
         // ═══════════════════════════════════════════════════════════════════
-        //  LAUNCH APP (Unified)
+        //  LAUNCH APP
         // ═══════════════════════════════════════════════════════════════════
         function launchApp(id) {
             haptic();
             const app = findAppById(id);
             if (!app) { toast('App not found'); return; }
 
-            // LRU: limit to 5 concurrent apps
             const runningIds = Object.keys(runningApps);
             if (runningIds.length >= 5 && !runningApps[id]) {
                 let oldestId = runningIds.reduce((a, b) => {
@@ -2187,7 +2267,6 @@
                 }, 100);
             }
 
-            // Update recents
             recentApps = recentApps.filter(a => a.id !== app.id);
             recentApps.unshift({ id: app.id, name: app.name, url: app.url, icon: app.icon || 'globe' });
             if (recentApps.length > 10) recentApps.pop();
@@ -2369,6 +2448,16 @@
                     badge = `<div class="taskbar-badge">${app.notificationCount}</div>`;
                 }
                 div.innerHTML = `<i class="fas ${app.icon || 'fa-globe'}"></i> ${escapeHtml(app.name)}${badge}`;
+                div.dataset.appId = id;
+
+                // Taskbar hover preview
+                div.addEventListener('mouseenter', () => {
+                    showTaskbarPreview(id, div);
+                });
+                div.addEventListener('mouseleave', () => {
+                    taskbarPreview.classList.remove('visible');
+                });
+
                 div.onclick = () => {
                     if (document.body.classList.contains('desktop-mode')) {
                         if (!runningApps[id].winEl) launchApp(id);
@@ -2396,48 +2485,89 @@
             });
         }
 
-        // ═══════════════════════════════════════════════════════════════════
-        //  TASK SWITCHER (full-screen card view)
-        // ═══════════════════════════════════════════════════════════════════
-        function showTaskSwitcher() {
-            taskCards.innerHTML = '';
-            let items = [...recentApps];
-            Object.keys(runningApps).forEach(id => {
-                if (!items.find(i => i.id === id)) {
-                    const app = runningApps[id].app;
-                    items.unshift({ id: app.id, name: app.name, url: app.url, icon: app.icon || 'globe' });
+        // ─── TASKBAR HOVER PREVIEW ───
+        function showTaskbarPreview(appId, element) {
+            const app = runningApps[appId];
+            if (!app) return;
+            const rect = element.getBoundingClientRect();
+            const preview = taskbarPreview;
+            const canvas = previewCanvas;
+
+            // Position preview above the taskbar item
+            preview.style.left = (rect.left + rect.width / 2 - 140) + 'px';
+            preview.style.bottom = '60px';
+            preview.style.display = 'block';
+            preview.style.opacity = '1';
+
+            // Label
+            previewLabel.textContent = app.app.name;
+
+            // Capture iframe content to canvas (if iframe)
+            if (app.app.type === 'iframe') {
+                const iframe = app.contentNode.querySelector('iframe') || modalIframe;
+                if (iframe && iframe.contentWindow) {
+                    try {
+                        const doc = iframe.contentDocument || iframe.contentWindow.document;
+                        const body = doc.body;
+                        // Draw a simplified representation
+                        const ctx = canvas.getContext('2d');
+                        ctx.fillStyle = '#1e293b';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.fillStyle = '#3b82f6';
+                        ctx.font = '32px sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText('📄', canvas.width / 2, canvas.height / 2 - 10);
+                        ctx.fillStyle = '#f0f0f0';
+                        ctx.font = '14px sans-serif';
+                        ctx.fillText(app.app.name, canvas.width / 2, canvas.height / 2 + 40);
+                    } catch (e) {
+                        // Fallback
+                        const ctx = canvas.getContext('2d');
+                        ctx.fillStyle = '#1e293b';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.fillStyle = '#3b82f6';
+                        ctx.font = '32px sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText('📄', canvas.width / 2, canvas.height / 2 - 10);
+                        ctx.fillStyle = '#f0f0f0';
+                        ctx.font = '14px sans-serif';
+                        ctx.fillText(app.app.name, canvas.width / 2, canvas.height / 2 + 40);
+                    }
+                } else {
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = '#1e293b';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = '#3b82f6';
+                    ctx.font = '32px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('📄', canvas.width / 2, canvas.height / 2 - 10);
+                    ctx.fillStyle = '#f0f0f0';
+                    ctx.font = '14px sans-serif';
+                    ctx.fillText(app.app.name, canvas.width / 2, canvas.height / 2 + 40);
                 }
-            });
-            if (items.length === 0) {
-                taskCards.innerHTML =
-                    '<div style="color:white;text-align:center;width:100%;padding:40px;">No recent apps</div>';
+            } else {
+                // Native app preview
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#1e293b';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#3b82f6';
+                ctx.font = '32px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('📄', canvas.width / 2, canvas.height / 2 - 10);
+                ctx.fillStyle = '#f0f0f0';
+                ctx.font = '14px sans-serif';
+                ctx.fillText(app.app.name, canvas.width / 2, canvas.height / 2 + 40);
             }
-            items.forEach(app => {
-                let card = document.createElement('div');
-                card.className = 'task-card';
-                card.onclick = () => { taskSwitcher.classList.remove('open');
-                    launchApp(app.id); };
-                card.innerHTML =
-                    `<div class="task-thumb"><i class="fas ${app.icon || 'fa-globe'}" style="font-size:48px;"></i></div>
-                <div class="task-info"><span class="task-title">${escapeHtml(app.name)}</span>
-                <button class="task-close" data-id="${app.id}"><i class="fas fa-times-circle"></i></button></div>`;
-                taskCards.appendChild(card);
-            });
-            document.querySelectorAll('.task-close').forEach(btn => {
-                btn.onclick = (e) => {
-                    e.stopPropagation();
-                    let id = btn.dataset.id;
-                    recentApps = recentApps.filter(a => a.id !== id);
-                    localStorage.setItem('recentApps', JSON.stringify(recentApps));
-                    if (runningApps[id]) closeApp(id);
-                    else showTaskSwitcher();
-                };
-            });
-            taskSwitcher.classList.add('open');
+
+            preview.classList.add('visible');
         }
 
         // ═══════════════════════════════════════════════════════════════════
-        //  RECENTS DRAWER (slide-up from bottom)
+        //  RECENTS DRAWER
         // ═══════════════════════════════════════════════════════════════════
         function renderRecentsDrawer() {
             if (!recentsList) return;
@@ -2465,7 +2595,7 @@
         }
 
         // ═══════════════════════════════════════════════════════════════════
-        //  RESIZE HANDLER (Mode Switching + Keyboard)
+        //  RESIZE HANDLER
         // ═══════════════════════════════════════════════════════════════════
         function handleResize() {
             if (isResizing) return;
@@ -2491,7 +2621,6 @@
                     if (activeId) {
                         const app = runningApps[activeId];
                         modalTitle.innerText = app.app.name;
-                        // Rebuild modal content
                         modal.classList.remove('open');
                         if (app.app.type === 'iframe') {
                             const iframe = app.contentNode.querySelector('iframe');
@@ -2565,7 +2694,6 @@
         window.addEventListener('keydown', (e) => {
             if (isIframeActive()) return;
 
-            // SPACEBAR → add app (from old version)
             if (e.key === ' ' && document.activeElement === document.body && !modal.classList.contains('open') && !
                 taskSwitcher.classList.contains('open')) {
                 e.preventDefault();
@@ -2581,7 +2709,6 @@
                 return;
             }
 
-            // Grid navigation
             if ((document.activeElement === document.body) && !modal.classList.contains('open') && !taskSwitcher
                 .classList.contains('open')) {
                 const gridItems = document.querySelectorAll('.app-tile');
@@ -2604,7 +2731,6 @@
                     }
                 }
 
-                // Arrow keys for page navigation
                 if (e.key === 'ArrowLeft' && !modal.classList.contains('open')) {
                     e.preventDefault();
                     goToPage(currentPage - 1);
@@ -2630,7 +2756,7 @@
         });
 
         // ═══════════════════════════════════════════════════════════════════
-        //  TOUCH SWIPE FOR PAGINATION (from old version)
+        //  TOUCH SWIPE FOR PAGINATION
         // ═══════════════════════════════════════════════════════════════════
         let touchStartX = 0,
             touchEndX = 0;
@@ -2759,6 +2885,134 @@
             viewMenu.classList.remove('show');
         };
 
+        // ─── SHUTDOWN OS ───
+        window.shutdownOS = function() {
+            // Exit fullscreen if active
+            if (document.fullscreenElement) {
+                document.exitFullscreen().then(() => {
+                    // Lock the screen
+                    lockScreen.classList.remove('unlocked');
+                    lockScreen.classList.add('locked');
+                    isLocked = true;
+                    // Close all apps
+                    Object.keys(runningApps).forEach(id => closeApp(id, true));
+                    toast('Shutting down...');
+                });
+            } else {
+                lockScreen.classList.remove('unlocked');
+                lockScreen.classList.add('locked');
+                isLocked = true;
+                Object.keys(runningApps).forEach(id => closeApp(id, true));
+                toast('Shutting down...');
+            }
+        };
+
+        // ─── START MENU CLICK OUTSIDE ───
+        document.addEventListener('click', (e) => {
+            if (startMenu.classList.contains('open')) {
+                if (!startMenu.contains(e.target) && e.target !== startBtn && !startBtn.contains(e.target)) {
+                    startMenu.classList.remove('open');
+                }
+            }
+        });
+
+        // ═══════════════════════════════════════════════════════════════════
+        //  LOCK SCREEN (with ripple and fullscreen)
+        // ═══════════════════════════════════════════════════════════════════
+        function lockScreenUnlock(e) {
+            haptic(true);
+
+            // Create ripple at click/tap point
+            const rect = lockIconWrapper.getBoundingClientRect();
+            const x = (e.clientX || e.touches?.[0]?.clientX || rect.left + rect.width / 2) - rect.left;
+            const y = (e.clientY || e.touches?.[0]?.clientY || rect.top + rect.height / 2) - rect.top;
+
+            const ripple = document.createElement('div');
+            ripple.className = 'ripple';
+            const size = Math.max(rect.width, rect.height);
+            ripple.style.width = size + 'px';
+            ripple.style.height = size + 'px';
+            ripple.style.left = (x - size / 2) + 'px';
+            ripple.style.top = (y - size / 2) + 'px';
+            lockIconWrapper.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 800);
+
+            // Request fullscreen after ripple (desktop mode only)
+            if (document.body.classList.contains('desktop-mode')) {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(() => {
+                        // Fallback: just unlock without fullscreen
+                        lockScreen.classList.remove('locked');
+                        lockScreen.classList.add('unlocked');
+                        isLocked = false;
+                        toast('Unlocked');
+                    }).then(() => {
+                        lockScreen.classList.remove('locked');
+                        lockScreen.classList.add('unlocked');
+                        isLocked = false;
+                        isFullscreen = true;
+                        fullscreenWasUnlocked = true;
+                        toast('Unlocked in fullscreen');
+                    });
+                } else {
+                    lockScreen.classList.remove('locked');
+                    lockScreen.classList.add('unlocked');
+                    isLocked = false;
+                    toast('Unlocked');
+                }
+            } else {
+                // Phone mode: just unlock
+                lockScreen.classList.remove('locked');
+                lockScreen.classList.add('unlocked');
+                isLocked = false;
+                toast('Unlocked');
+            }
+        }
+
+        // Lock icon: fingerprint on phone, lock on desktop
+        function updateLockIcon() {
+            if (document.body.classList.contains('desktop-mode')) {
+                lockIcon.className = 'fas fa-lock lock-icon';
+            } else {
+                lockIcon.className = 'fas fa-fingerprint lock-icon';
+            }
+        }
+
+        // Listen for fullscreen exit → lock screen
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement && fullscreenWasUnlocked) {
+                fullscreenWasUnlocked = false;
+                isFullscreen = false;
+                // Lock the screen
+                lockScreen.classList.remove('unlocked');
+                lockScreen.classList.add('locked');
+                isLocked = true;
+                toast('Locked (fullscreen exited)');
+            }
+        });
+
+        lockIconWrapper.addEventListener('click', lockScreenUnlock);
+        lockIconWrapper.addEventListener('touchstart', (e) => {
+            // Prevent double-tap zoom on mobile
+            lockScreenUnlock(e);
+        }, { passive: true });
+
+        // Double-tap status bar to lock
+        let lastTap = 0;
+        statusBar.addEventListener('click', () => {
+            const now = Date.now();
+            if (now - lastTap < 300) {
+                haptic(true);
+                lockScreen.classList.remove('unlocked');
+                lockScreen.classList.add('locked');
+                isLocked = true;
+                if (!document.body.classList.contains('desktop-mode')) closeModal();
+                else { Object.keys(runningApps).forEach(id => closeApp(id, true)); }
+                toast('Locked');
+            }
+            lastTap = now;
+        });
+
         // ═══════════════════════════════════════════════════════════════════
         //  BATTERY & TIME
         // ═══════════════════════════════════════════════════════════════════
@@ -2858,27 +3112,6 @@
         closeRecentsBtn.onclick = () => recentsDrawer.classList.remove('open');
 
         // ═══════════════════════════════════════════════════════════════════
-        //  LOCK SCREEN
-        // ═══════════════════════════════════════════════════════════════════
-        unlockBtn.onclick = () => { haptic(true);
-            lockScreen.classList.remove('locked');
-            lockScreen.classList.add('unlocked'); };
-
-        // Double-tap status bar to lock
-        let lastTap = 0;
-        statusBar.addEventListener('click', () => {
-            const now = Date.now();
-            if (now - lastTap < 300) {
-                haptic(true);
-                lockScreen.classList.remove('unlocked');
-                lockScreen.classList.add('locked');
-                if (!document.body.classList.contains('desktop-mode')) closeModal();
-                else { Object.keys(runningApps).forEach(id => closeApp(id, true)); }
-            }
-            lastTap = now;
-        });
-
-        // ═══════════════════════════════════════════════════════════════════
         //  MESSAGE HANDLING (From iframes)
         // ═══════════════════════════════════════════════════════════════════
         window.addEventListener('message', (e) => {
@@ -2938,6 +3171,7 @@
         //  INIT
         // ═══════════════════════════════════════════════════════════════════
         function init() {
+            updateLockIcon();
             recalcPagination();
             renderGrid();
             renderDots();
@@ -2954,10 +3188,12 @@
 
         init();
 
-        console.log('🚀 Unified OS v5.0 — Phone + Desktop (Fully Merged)');
+        console.log('🚀 Unified OS v5.1 — Phone + Desktop (Full Combo)');
         console.log('📱 Phone mode (mobile) | 🖥️ Desktop mode (desktop)');
         console.log('🔒 Double-tap status bar to lock | Press Space to add app');
         console.log('🔄 Drag & Drop to reorder apps | Edge swipe for back');
+        console.log('💧 Ripple effect on unlock | 🖼️ Taskbar hover preview');
+        console.log('⏻ Shutdown exits fullscreen and locks');
     </script>
 </body>
 </html>
