@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="icon" type="image/svg+xml" href="icons/Everything.svg">
     <style>
-        /* ─── EXISTING STYLES (from your perfect phone OS) ─── */
+        /* ─── ROOT VARIABLES ─── */
         :root {
             --bg: #0a0c12;
             --bg-desktop: url('https://images.unsplash.com/photo-1614121181207-4b6c334d353d?w=1920&q=80');
@@ -124,7 +124,6 @@
                 opacity: 1;
             }
         }
-        /* ─── RIPPLE EFFECT ─── */
         .ripple {
             position: absolute;
             border-radius: 50%;
@@ -408,7 +407,6 @@
             align-items: start;
             transition: all 0.2s;
         }
-        /* View modes */
         .app-grid.large {
             grid-template-columns: repeat(2, minmax(100px, 130px));
         }
@@ -666,12 +664,6 @@
         }
         .close-modal:hover {
             opacity: 1;
-        }
-        .modal-iframe {
-            flex: 1;
-            width: 100%;
-            border: none;
-            background: white;
         }
         #modalContent {
             display: none;
@@ -1206,47 +1198,6 @@
             height: 64px;
         }
 
-        /* ─── RESPONSIVE ─── */
-        @media (max-width: 500px) {
-            .app-grid.medium {
-                grid-template-columns: repeat(3, 1fr);
-            }
-            .app-grid.small {
-                grid-template-columns: repeat(4, 1fr);
-            }
-            .task-card {
-                flex: 0 0 90%;
-            }
-            .start-menu {
-                width: 280px;
-                left: 8px;
-            }
-        }
-        @media (min-width: 769px) {
-            body:not(.desktop-mode) .grid-main {
-                padding: 20px 16px 80px;
-            }
-            .app-grid.medium {
-                grid-template-columns: repeat(4, minmax(80px, 100px));
-            }
-        }
-
-        /* ─── SCROLLBAR ─── */
-        ::-webkit-scrollbar {
-            width: 4px;
-            height: 4px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: var(--border);
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--text-dim);
-        }
-
         /* ─── TASKBAR HOVER PREVIEW ─── */
         .taskbar-preview {
             position: fixed;
@@ -1287,11 +1238,52 @@
             border-radius: 12px;
             backdrop-filter: blur(4px);
         }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 500px) {
+            .app-grid.medium {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .app-grid.small {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            .task-card {
+                flex: 0 0 90%;
+            }
+            .start-menu {
+                width: 280px;
+                left: 8px;
+            }
+        }
+        @media (min-width: 769px) {
+            body:not(.desktop-mode) .grid-main {
+                padding: 20px 16px 80px;
+            }
+            .app-grid.medium {
+                grid-template-columns: repeat(4, minmax(80px, 100px));
+            }
+        }
+
+        /* ─── SCROLLBAR ─── */
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-dim);
+        }
     </style>
 </head>
 <body>
 
-    <!-- Desktop Background -->
+    <!-- ─── DESKTOP BACKGROUND ─── -->
     <div id="desktop-bg"></div>
 
     <!-- ─── LOCK SCREEN ─── -->
@@ -1383,7 +1375,7 @@
         <div class="start-grid" id="startGrid"></div>
         <hr style="border:0; height:1px; background:var(--border); margin:16px 0;">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-size:12px; color:var(--text-dim);">Unified OS v5.1</span>
+            <span style="font-size:12px; color:var(--text-dim);">Unified OS v6.0</span>
             <i class="fas fa-power-off" style="cursor:pointer; color:var(--danger);" onclick="shutdownOS()" title="Shutdown"></i>
         </div>
     </div>
@@ -1644,7 +1636,6 @@
         const lockScreen = document.getElementById('lockScreen');
         const lockIcon = document.getElementById('lockIcon');
         const lockIconWrapper = document.getElementById('lockIconWrapper');
-        const unlockBtn = document.getElementById('unlockBtn');
         const startBtn = document.getElementById('startBtn');
         const startMenu = document.getElementById('startMenu');
         const startGrid = document.getElementById('startGrid');
@@ -2499,7 +2490,6 @@
             preview.style.display = 'block';
             preview.style.opacity = '1';
 
-            // Label
             previewLabel.textContent = app.app.name;
 
             // Capture iframe content to canvas (if iframe)
@@ -2509,7 +2499,6 @@
                     try {
                         const doc = iframe.contentDocument || iframe.contentWindow.document;
                         const body = doc.body;
-                        // Draw a simplified representation
                         const ctx = canvas.getContext('2d');
                         ctx.fillStyle = '#1e293b';
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -2522,7 +2511,6 @@
                         ctx.font = '14px sans-serif';
                         ctx.fillText(app.app.name, canvas.width / 2, canvas.height / 2 + 40);
                     } catch (e) {
-                        // Fallback
                         const ctx = canvas.getContext('2d');
                         ctx.fillStyle = '#1e293b';
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -2549,7 +2537,6 @@
                     ctx.fillText(app.app.name, canvas.width / 2, canvas.height / 2 + 40);
                 }
             } else {
-                // Native app preview
                 const ctx = canvas.getContext('2d');
                 ctx.fillStyle = '#1e293b';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -2887,14 +2874,11 @@
 
         // ─── SHUTDOWN OS ───
         window.shutdownOS = function() {
-            // Exit fullscreen if active
             if (document.fullscreenElement) {
                 document.exitFullscreen().then(() => {
-                    // Lock the screen
                     lockScreen.classList.remove('unlocked');
                     lockScreen.classList.add('locked');
                     isLocked = true;
-                    // Close all apps
                     Object.keys(runningApps).forEach(id => closeApp(id, true));
                     toast('Shutting down...');
                 });
@@ -2922,7 +2906,6 @@
         function lockScreenUnlock(e) {
             haptic(true);
 
-            // Create ripple at click/tap point
             const rect = lockIconWrapper.getBoundingClientRect();
             const x = (e.clientX || e.touches?.[0]?.clientX || rect.left + rect.width / 2) - rect.left;
             const y = (e.clientY || e.touches?.[0]?.clientY || rect.top + rect.height / 2) - rect.top;
@@ -2937,11 +2920,9 @@
             lockIconWrapper.appendChild(ripple);
             setTimeout(() => ripple.remove(), 800);
 
-            // Request fullscreen after ripple (desktop mode only)
             if (document.body.classList.contains('desktop-mode')) {
                 if (!document.fullscreenElement) {
                     document.documentElement.requestFullscreen().catch(() => {
-                        // Fallback: just unlock without fullscreen
                         lockScreen.classList.remove('locked');
                         lockScreen.classList.add('unlocked');
                         isLocked = false;
@@ -2961,7 +2942,6 @@
                     toast('Unlocked');
                 }
             } else {
-                // Phone mode: just unlock
                 lockScreen.classList.remove('locked');
                 lockScreen.classList.add('unlocked');
                 isLocked = false;
@@ -2969,7 +2949,6 @@
             }
         }
 
-        // Lock icon: fingerprint on phone, lock on desktop
         function updateLockIcon() {
             if (document.body.classList.contains('desktop-mode')) {
                 lockIcon.className = 'fas fa-lock lock-icon';
@@ -2978,12 +2957,10 @@
             }
         }
 
-        // Listen for fullscreen exit → lock screen
         document.addEventListener('fullscreenchange', () => {
             if (!document.fullscreenElement && fullscreenWasUnlocked) {
                 fullscreenWasUnlocked = false;
                 isFullscreen = false;
-                // Lock the screen
                 lockScreen.classList.remove('unlocked');
                 lockScreen.classList.add('locked');
                 isLocked = true;
@@ -2993,11 +2970,9 @@
 
         lockIconWrapper.addEventListener('click', lockScreenUnlock);
         lockIconWrapper.addEventListener('touchstart', (e) => {
-            // Prevent double-tap zoom on mobile
             lockScreenUnlock(e);
         }, { passive: true });
 
-        // Double-tap status bar to lock
         let lastTap = 0;
         statusBar.addEventListener('click', () => {
             const now = Date.now();
@@ -3180,7 +3155,7 @@
             handleResize();
             if (!localStorage.getItem('notifShown')) {
                 setTimeout(() => {
-                    addNotification('🚀 Unified OS ready — Long-press apps for options', 'rocket');
+                    addNotification('🚀 Unified OS v6.0 ready — All your apps, all your data', 'rocket');
                     localStorage.setItem('notifShown', 'true');
                 }, 500);
             }
@@ -3188,12 +3163,17 @@
 
         init();
 
-        console.log('🚀 Unified OS v5.1 — Phone + Desktop (Full Combo)');
+        console.log('🚀 Unified OS v6.0 — Phone + Desktop (Full Combo)');
         console.log('📱 Phone mode (mobile) | 🖥️ Desktop mode (desktop)');
         console.log('🔒 Double-tap status bar to lock | Press Space to add app');
         console.log('🔄 Drag & Drop to reorder apps | Edge swipe for back');
         console.log('💧 Ripple effect on unlock | 🖼️ Taskbar hover preview');
         console.log('⏻ Shutdown exits fullscreen and locks');
+        console.log('✅ Sandbox + Allow flags fully configured');
+        console.log('✅ 10s load timeout + error overlay');
+        console.log('✅ PostMessage back negotiation');
+        console.log('✅ Resize observer + keyboard height');
+        console.log('✅ Top-level navigation prevented');
     </script>
 </body>
 </html>
