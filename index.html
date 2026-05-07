@@ -96,41 +96,11 @@
             color: var(--text-dim);
             margin-bottom: 60px;
         }
-        .lock-icon-wrapper {
-            position: relative;
-            display: inline-block;
-            cursor: pointer;
-        }
         .lock-icon {
             font-size: 32px;
             animation: pulse 2s infinite;
             cursor: pointer;
             color: var(--primary);
-            transition: transform 0.2s;
-        }
-        .lock-icon:active {
-            transform: scale(1.1);
-        }
-        /* Ripple container */
-        .ripple-container {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            overflow: visible;
-        }
-        .ripple {
-            position: absolute;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.6);
-            transform: scale(0);
-            animation: rippleAnim 0.6s ease-out forwards;
-            pointer-events: none;
-        }
-        @keyframes rippleAnim {
-            to {
-                transform: scale(4);
-                opacity: 0;
-            }
         }
         @keyframes pulse {
             0% {
@@ -995,57 +965,6 @@
             overflow: hidden;
         }
 
-        /* ─── TASKBAR HOVER PREVIEW ─── */
-        .taskbar-preview {
-            position: fixed;
-            bottom: 60px;
-            left: 0;
-            background: var(--surface-solid);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 8px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-            z-index: 3000;
-            display: none;
-            pointer-events: none;
-            width: 240px;
-            height: 160px;
-            overflow: hidden;
-        }
-        .taskbar-preview.active {
-            display: block;
-        }
-        .taskbar-preview iframe,
-        .taskbar-preview .preview-placeholder {
-            width: 100%;
-            height: 100%;
-            border: none;
-            border-radius: 8px;
-            background: #1e293b;
-        }
-        .taskbar-preview .preview-placeholder {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-dim);
-            font-size: 12px;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .taskbar-preview .preview-title {
-            position: absolute;
-            bottom: 12px;
-            left: 12px;
-            right: 12px;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(8px);
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            color: white;
-            text-align: center;
-        }
-
         /* ─── NATIVE APP HELPERS ─── */
         .app-iframe {
             width: 100%;
@@ -1228,8 +1147,10 @@
         body.desktop-mode .settings-dots,
         body.desktop-mode .menu-dropdown,
         body.desktop-mode .notification-drawer,
-        body.desktop-mode .recents-drawer,
         body.desktop-mode .dots-container {
+            display: none !important;
+        }
+        body.desktop-mode .recents-drawer {
             display: none !important;
         }
         body.desktop-mode .taskbar {
@@ -1305,11 +1226,8 @@
     <div class="lock-screen locked" id="lockScreen">
         <div class="lock-time" id="lockTime">--:--</div>
         <div class="lock-date" id="lockDate">--</div>
-        <div class="lock-icon-wrapper" id="lockIconWrapper">
-            <i class="fas fa-fingerprint lock-icon" id="lockIcon"></i>
-            <div class="ripple-container" id="rippleContainer"></div>
-        </div>
-        <div style="margin-top:20px; color:var(--text-dim); font-size:14px;" id="lockHint">Tap to unlock</div>
+        <i class="fas fa-fingerprint lock-icon" id="unlockBtn"></i>
+        <div style="margin-top:20px; color:var(--text-dim); font-size:14px;">Tap to unlock</div>
     </div>
 
     <!-- ─── STATUS BAR ─── -->
@@ -1342,7 +1260,7 @@
         <div class="notif-list" id="notifList"></div>
     </div>
 
-    <!-- ─── RECENTS DRAWER ─── -->
+    <!-- ─── RECENTS DRAWER (slide-up from bottom) ─── -->
     <div class="recents-drawer" id="recentsDrawer">
         <div class="recents-header">
             <span><i class="fas fa-history"></i> Recent Apps</span>
@@ -1378,7 +1296,7 @@
         title="app"></iframe>
     </div>
 
-    <!-- ─── TASK SWITCHER ─── -->
+    <!-- ─── TASK SWITCHER (full-screen card view) ─── -->
     <div id="taskSwitcher" class="task-switcher">
         <button class="close-switcher" id="closeSwitcher">&times;</button>
         <div class="task-cards" id="taskCards"></div>
@@ -1391,7 +1309,7 @@
         <hr style="border:0; height:1px; background:var(--border); margin:16px 0;">
         <div style="display:flex; justify-content:space-between; align-items:center;">
             <span style="font-size:12px; color:var(--text-dim);">Unified OS v5.0</span>
-            <i class="fas fa-power-off" style="cursor:pointer; color:var(--danger);" id="shutdownBtn" title="Shut down"></i>
+            <i class="fas fa-power-off" style="cursor:pointer; color:var(--danger);" onclick="location.reload()" title="Restart"></i>
         </div>
     </div>
 
@@ -1404,15 +1322,6 @@
             <i class="fas fa-wifi"></i>
             <span id="taskbarTime">--:--</span>
         </div>
-    </div>
-
-    <!-- ─── TASKBAR HOVER PREVIEW ─── -->
-    <div class="taskbar-preview" id="taskbarPreview">
-        <div class="preview-placeholder" id="previewPlaceholder">
-            <i class="fas fa-window-maximize" style="font-size:24px;opacity:0.5;"></i>
-            <span>App preview</span>
-        </div>
-        <div class="preview-title" id="previewTitle">App Name</div>
     </div>
 
     <!-- ─── WINDOW CONTAINER ─── -->
@@ -1562,21 +1471,6 @@
             }
         });
 
-        // ────────────────────────────────────────────────────────────────
-        //  Fullscreen helpers
-        // ────────────────────────────────────────────────────────────────
-        function enterFullscreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(() => toast('Fullscreen not supported'));
-            }
-        }
-
-        function exitFullscreen() {
-            if (document.fullscreenElement) {
-                document.exitFullscreen();
-            }
-        }
-
         // ═══════════════════════════════════════════════════════════════════
         //  APP DATA
         // ═══════════════════════════════════════════════════════════════════
@@ -1636,8 +1530,7 @@
         let zIndexCounter = 1000;
         let isResizing = false;
         let dragData = null;
-        let isLocked = false; // start unlocked? no, start locked.
-        let fullscreenActive = false;
+        let isLocked = true;
 
         // DOM refs
         const appGrid = document.getElementById('appGrid');
@@ -1666,10 +1559,6 @@
         const statusBar = document.getElementById('statusBar');
         const pageViewport = document.getElementById('pageViewport');
         const lockScreen = document.getElementById('lockScreen');
-        const lockIcon = document.getElementById('lockIcon');
-        const lockIconWrapper = document.getElementById('lockIconWrapper');
-        const lockHint = document.getElementById('lockHint');
-        const rippleContainer = document.getElementById('rippleContainer');
         const unlockBtn = document.getElementById('unlockBtn');
         const startBtn = document.getElementById('startBtn');
         const startMenu = document.getElementById('startMenu');
@@ -1682,10 +1571,6 @@
         const batteryFill = document.getElementById('batteryFill');
         const batteryPercent = document.getElementById('batteryPercent');
         const windowContainer = document.getElementById('windowContainer');
-        const shutdownBtn = document.getElementById('shutdownBtn');
-        const taskbarPreview = document.getElementById('taskbarPreview');
-        const previewTitle = document.getElementById('previewTitle');
-        const previewPlaceholder = document.getElementById('previewPlaceholder');
 
         // ═══════════════════════════════════════════════════════════════════
         //  NOTIFICATIONS
@@ -1781,6 +1666,7 @@
         //  PAGINATION
         // ═══════════════════════════════════════════════════════════════════
         function calculateItemsPerPage() {
+            // Use the old method: insert a dummy tile to measure height accurately
             const grid = appGrid;
             const dummy = document.createElement('div');
             dummy.className = 'app-tile';
@@ -1949,11 +1835,12 @@
                     }
                 }, { passive: true });
 
-                // ─── FLOATING CONTEXT MENU ───
+                // ─── FLOATING CONTEXT MENU (from old version) ───
                 tile.addEventListener('contextmenu', (e) => {
                     e.preventDefault();
                     showContextMenu(e, app);
                 });
+                // Long-press for touch devices
                 let pressTimer = null;
                 tile.addEventListener('touchstart', (e) => {
                     pressTimer = setTimeout(() => {
@@ -1966,6 +1853,7 @@
                 appGrid.appendChild(tile);
             });
 
+            // Add tile (only when no search)
             if (!query) {
                 let addTile = document.createElement('div');
                 addTile.className = 'app-tile add-tile';
@@ -1990,6 +1878,7 @@
             updateGridFocus();
         }
 
+        // ─── FLOATING CONTEXT MENU (from old version) ───
         function showContextMenu(event, app) {
             let menu = document.getElementById('dynamicContextMenu');
             if (menu) menu.remove();
@@ -2017,9 +1906,11 @@
             `;
             }
             document.body.appendChild(menu);
+            // Adjust position to stay within viewport
             const rect = menu.getBoundingClientRect();
             if (rect.right > window.innerWidth) menu.style.left = (window.innerWidth - rect.width - 10) + 'px';
             if (rect.bottom > window.innerHeight) menu.style.top = (y - rect.height - 10) + 'px';
+            // Action handlers
             menu.querySelectorAll('.menu-item').forEach(el => {
                 el.addEventListener('click', async (e) => {
                     const action = el.dataset.action;
@@ -2052,6 +1943,7 @@
                     menu.remove();
                 });
             });
+            // Close menu on click outside
             const closeMenu = (e) => {
                 if (!menu.contains(e.target)) menu.remove();
                 document.removeEventListener('click', closeMenu);
@@ -2230,6 +2122,7 @@
             const app = findAppById(id);
             if (!app) { toast('App not found'); return; }
 
+            // LRU: limit to 5 concurrent apps
             const runningIds = Object.keys(runningApps);
             if (runningIds.length >= 5 && !runningApps[id]) {
                 let oldestId = runningIds.reduce((a, b) => {
@@ -2294,6 +2187,7 @@
                 }, 100);
             }
 
+            // Update recents
             recentApps = recentApps.filter(a => a.id !== app.id);
             recentApps.unshift({ id: app.id, name: app.name, url: app.url, icon: app.icon || 'globe' });
             if (recentApps.length > 10) recentApps.pop();
@@ -2498,29 +2392,6 @@
                         launchApp(id);
                     }
                 };
-                // ─── TASKBAR HOVER PREVIEW ───
-                div.addEventListener('mouseenter', (e) => {
-                    const rect = div.getBoundingClientRect();
-                    const preview = document.getElementById('taskbarPreview');
-                    const title = document.getElementById('previewTitle');
-                    const placeholder = document.getElementById('previewPlaceholder');
-                    title.innerText = app.name;
-                    // Try to show an iframe preview if the app has one
-                    const iframe = runningApps[id]?.contentNode?.querySelector('iframe');
-                    if (iframe) {
-                        placeholder.innerHTML =
-                            `<iframe srcdoc="${iframe.srcdoc || ''}" src="${iframe.src}" style="width:100%;height:100%;border:none;border-radius:8px;"></iframe>`;
-                    } else {
-                        placeholder.innerHTML =
-                            `<div class="preview-placeholder"><i class="fas fa-window-maximize" style="font-size:24px;opacity:0.5;"></i><span>${escapeHtml(app.name)}</span></div>`;
-                    }
-                    preview.style.left = (rect.left + rect.width / 2 - 120) + 'px';
-                    preview.style.bottom = '60px';
-                    preview.classList.add('active');
-                });
-                div.addEventListener('mouseleave', () => {
-                    document.getElementById('taskbarPreview').classList.remove('active');
-                });
                 taskbarApps.appendChild(div);
             });
         }
@@ -2620,6 +2491,7 @@
                     if (activeId) {
                         const app = runningApps[activeId];
                         modalTitle.innerText = app.app.name;
+                        // Rebuild modal content
                         modal.classList.remove('open');
                         if (app.app.type === 'iframe') {
                             const iframe = app.contentNode.querySelector('iframe');
@@ -2693,6 +2565,7 @@
         window.addEventListener('keydown', (e) => {
             if (isIframeActive()) return;
 
+            // SPACEBAR → add app (from old version)
             if (e.key === ' ' && document.activeElement === document.body && !modal.classList.contains('open') && !
                 taskSwitcher.classList.contains('open')) {
                 e.preventDefault();
@@ -2708,6 +2581,7 @@
                 return;
             }
 
+            // Grid navigation
             if ((document.activeElement === document.body) && !modal.classList.contains('open') && !taskSwitcher
                 .classList.contains('open')) {
                 const gridItems = document.querySelectorAll('.app-tile');
@@ -2730,6 +2604,7 @@
                     }
                 }
 
+                // Arrow keys for page navigation
                 if (e.key === 'ArrowLeft' && !modal.classList.contains('open')) {
                     e.preventDefault();
                     goToPage(currentPage - 1);
@@ -2755,7 +2630,7 @@
         });
 
         // ═══════════════════════════════════════════════════════════════════
-        //  TOUCH SWIPE FOR PAGINATION
+        //  TOUCH SWIPE FOR PAGINATION (from old version)
         // ═══════════════════════════════════════════════════════════════════
         let touchStartX = 0,
             touchEndX = 0;
@@ -2983,138 +2858,25 @@
         closeRecentsBtn.onclick = () => recentsDrawer.classList.remove('open');
 
         // ═══════════════════════════════════════════════════════════════════
-        //  LOCK SCREEN (with Ripple, Fullscreen, and Desktop Icon Switch)
+        //  LOCK SCREEN
         // ═══════════════════════════════════════════════════════════════════
-        function unlockUI() {
-            haptic(true);
-            // Ripple effect
-            const container = document.getElementById('rippleContainer');
-            const iconWrapper = document.getElementById('lockIconWrapper');
-            const rect = iconWrapper.getBoundingClientRect();
-            const ripple = document.createElement('div');
-            ripple.className = 'ripple';
-            const size = 100;
-            ripple.style.width = size + 'px';
-            ripple.style.height = size + 'px';
-            ripple.style.left = (rect.width / 2 - size / 2) + 'px';
-            ripple.style.top = (rect.height / 2 - size / 2) + 'px';
-            container.appendChild(ripple);
-            setTimeout(() => ripple.remove(), 700);
-
-            // Enter fullscreen
-            enterFullscreen();
-            fullscreenActive = true;
-
-            // Unlock
+        unlockBtn.onclick = () => { haptic(true);
             lockScreen.classList.remove('locked');
-            lockScreen.classList.add('unlocked');
-            toast('Unlocked');
-        }
-
-        function lockUI() {
-            haptic(true);
-            lockScreen.classList.remove('unlocked');
-            lockScreen.classList.add('locked');
-            // Exit fullscreen
-            if (fullscreenActive) {
-                exitFullscreen();
-                fullscreenActive = false;
-            }
-            // Close any open app
-            if (!document.body.classList.contains('desktop-mode')) closeModal();
-            else { Object.keys(runningApps).forEach(id => closeApp(id, true)); }
-        }
-
-        // Lock icon: fingerprint on phone, lock symbol on desktop
-        function updateLockIcon() {
-            if (document.body.classList.contains('desktop-mode') || !isMobile()) {
-                lockIcon.className = 'fas fa-lock lock-icon';
-                lockHint.innerText = 'Click to unlock';
-            } else {
-                lockIcon.className = 'fas fa-fingerprint lock-icon';
-                lockHint.innerText = 'Tap to unlock';
-            }
-        }
-
-        // Initial lock state: locked and fullscreen
-        lockScreen.classList.add('locked');
-        lockScreen.classList.remove('unlocked');
-        updateLockIcon();
-
-        // Unlock event: click on lock icon
-        lockIconWrapper.addEventListener('click', (e) => {
-            if (lockScreen.classList.contains('locked')) unlockUI();
-        });
+            lockScreen.classList.add('unlocked'); };
 
         // Double-tap status bar to lock
         let lastTap = 0;
         statusBar.addEventListener('click', () => {
             const now = Date.now();
             if (now - lastTap < 300) {
-                lockUI();
+                haptic(true);
+                lockScreen.classList.remove('unlocked');
+                lockScreen.classList.add('locked');
+                if (!document.body.classList.contains('desktop-mode')) closeModal();
+                else { Object.keys(runningApps).forEach(id => closeApp(id, true)); }
             }
             lastTap = now;
         });
-
-        // Shutdown button: exit fullscreen and lock
-        shutdownBtn.addEventListener('click', () => {
-            lockUI();
-            startMenu.classList.remove('open');
-            toast('Shut down — locked');
-        });
-
-        // Start menu: close when clicking outside
-        document.addEventListener('click', (e) => {
-            if (startMenu.classList.contains('open') && !startMenu.contains(e.target) && e.target !== startBtn &&
-                !startBtn.contains(e.target)) {
-                startMenu.classList.remove('open');
-            }
-        });
-
-        // Re-check lock icon on resize
-        window.addEventListener('resize', updateLockIcon);
-
-        // ═══════════════════════════════════════════════════════════════════
-        //  MESSAGE HANDLING (From iframes)
-        // ═══════════════════════════════════════════════════════════════════
-        window.addEventListener('message', (e) => {
-            if (e.data && e.data.type === 'setUnsaved') {
-                const id = findAppIdByFrame(e.source);
-                if (id && runningApps[id]) runningApps[id].unsavedFlag = e.data.unsaved;
-                if (id && document.body.classList.contains('desktop-mode') && runningApps[id]?.winEl) {
-                    const titleEl = runningApps[id].winEl?.querySelector('.win-header div:first-child');
-                    if (titleEl) {
-                        titleEl.innerHTML =
-                            `<i class="fas ${runningApps[id].app.icon || 'fa-globe'}" style="margin-right:6px;"></i>${escapeHtml(runningApps[id].app.name)}${e.data.unsaved ? ' ●' : ''}`;
-                    }
-                }
-            } else if (e.data && e.data.type === 'saved') {
-                const id = findAppIdByFrame(e.source);
-                if (id && runningApps[id]) runningApps[id].unsavedFlag = false;
-            } else if (e.data && e.data.type === 'micActive') {
-                micIndicator.style.display = e.data.active ? 'inline-block' : 'none';
-            } else if (e.data && e.data.type === 'camActive') {
-                camIndicator.style.display = e.data.active ? 'inline-block' : 'none';
-            } else if (e.data && e.data.type === 'badge');
-        });
-
-        // Shutdown button: exit fullscreen and lock
-        shutdownBtn.addEventListener('click', () => {
-            lockUI();
-            startMenu.classList.remove('open');
-            toast('Shut down — locked');
-        });
-
-        // Start menu: close when clicking outside
-        document.addEventListener('click', (e) => {
-            if (startMenu.classList.contains('open') && !startMenu.contains(e.target) && e.target !== startBtn &&
-                !startBtn.contains(e.target)) {
-                startMenu.classList.remove('open');
-            }
-        });
-
-        // Re-check lock icon on resize
-        window.addEventListener('resize', updateLockIcon);
 
         // ═══════════════════════════════════════════════════════════════════
         //  MESSAGE HANDLING (From iframes)
@@ -3138,7 +2900,6 @@
             } else if (e.data && e.data.type === 'camActive') {
                 camIndicator.style.display = e.data.active ? 'inline-block' : 'none';
             } else if (e.data && e.data.type === 'badge') {
-                {
                 const id = findAppIdByFrame(e.source);
                 if (id) {
                     const app = findAppById(id);
@@ -3150,113 +2911,53 @@
             }
         });
 
-        function findAppIdByFrame const id = findAppIdByFrame(e.source);
-                if (id) {
-                    const app = findAppById(id);
-                    if (app) {
-                        app.notificationCount = e.data.count || 0;
-                        renderGrid();
-                    }
-                }
-            }
-        });
-
         function findAppIdByFrame(frameWindow) {
-            for (let(frameWindow) {
             for (let [id, app] of Object.entries(runningApps)) {
- [id, app] of Object.entries(runningApps)) {
-                const                const iframe = iframe = app.contentNode?.querySelector app.contentNode?.querySelector('iframe('iframe') ||') || modal modalIframeIframe;
-               ;
-                if (iframe && if if (iframe && iframe.contentrame.contentWindow === frameWindow) return id;
-           Window === frameWindow) return id;
- }
+                const iframe = app.contentNode?.querySelector('iframe') || modalIframe;
+                if (iframe && iframe.contentWindow === frameWindow) return id;
+            }
             return null;
         }
 
-                   }
-            return null;
-        // ═════════════ }
-
-        // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
-        //  LOAD SAVED══════════════
+        // ═══════════════════════════════════════════════════════════════════
         //  LOAD SAVED DATA
- DATA
-        // ═════════        // ═══════════════════════════════════════════════════════════════
-       ══════════════════════════════════════════════════════════════
-        let savedCustom = localStorage.getItem('custom let savedCustom = localStorage.getItem('customApps');
-        if (savedCustom)Apps');
+        // ═══════════════════════════════════════════════════════════════════
+        let savedCustom = localStorage.getItem('customApps');
         if (savedCustom) try { customApps = JSON.parse(savedCustom); } catch (e) {}
         let savedRecents = localStorage.getItem('recentApps');
- try { customApps = JSON.parse(savedCustom); } catch (e) {}
-        let savedRecents = localStorage.getItem('recentApps');
-        if        if (savedRecents (savedRecents) try) try { recent { recentApps =Apps = JSON JSON.parse(saved.parse(savedRecents); } catchRecents); } catch (e) (e) {}
-        let savedView {}
-        let savedView = localStorage.getItem = localStorage.getItem('viewMode');
-('viewMode');
-        if (savedView && ['large', 'medium', 'small', 'list', 'detail'].includes        if (savedView && ['large', 'medium', 'small', 'list', 'detail'].includes(savedView(savedView)) viewMode = savedView)) viewMode = savedView;
-       ;
-        let let savedTheme = localStorage.getItem('theme');
-        if savedTheme = localStorage.getItem('theme');
- (saved        if (savedTheme ===Theme === 'light 'light') { darkMode = false') { darkMode = false;
-           ;
+        if (savedRecents) try { recentApps = JSON.parse(savedRecents); } catch (e) {}
+        let savedView = localStorage.getItem('viewMode');
+        if (savedView && ['large', 'medium', 'small', 'list', 'detail'].includes(savedView)) viewMode = savedView;
+        let savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light') { darkMode = false;
             document.documentElement.setAttribute('data-theme', 'light'); }
-        let savedOrder = localStorage.getItem('app document.documentElement.setAttribute('data-theme', 'light'); }
         let savedOrder = localStorage.getItem('appOrder');
-        if (savedOrder)Order');
-        if (saved try { appOrder = JSON.parse(savedOrder); } catch (e) {}
-
-        // ═══════════════════════════════════════════════════════════════════
-       Order) try { appOrder = JSON.parse(savedOrder); } catch (e) {}
+        if (savedOrder) try { appOrder = JSON.parse(savedOrder); } catch (e) {}
 
         // ═══════════════════════════════════════════════════════════════════
         //  INIT
-        // //  INIT
         // ═══════════════════════════════════════════════════════════════════
-        function init() {
-            rec ═══════════════════════════════════════════════════════════════════
         function init() {
             recalcPagination();
             renderGrid();
             renderDots();
             renderStartMenu();
             renderRecentsDrawer();
-            handlealcPagination();
-            renderGrid();
-            renderDots();
-            renderStartMenu();
-            renderRecentsDrawer();
-            handleResizeResize();
-            updateLockIcon();
+            handleResize();
             if (!localStorage.getItem('notifShown')) {
                 setTimeout(() => {
-                    addNotification('();
-            updateLockIcon();
-            if (!localStorage.getItem('notifShown')) {
-                setTimeout(() => {
-                    addNotification('🚀 Unified OS ready — Long-press apps for options',🚀 Unified OS ready — Long-press apps for options', 'rock 'rocket');
-                    localStorage.setItemet');
+                    addNotification('🚀 Unified OS ready — Long-press apps for options', 'rocket');
                     localStorage.setItem('notifShown', 'true');
                 }, 500);
             }
         }
 
-       ('notifShown', 'true');
-                }, 500);
-            }
-        }
-
- init();
-
-        console.log('🚀 Unified OS v5.0 — Phone + Desktop (Fully Merg        init();
+        init();
 
         console.log('🚀 Unified OS v5.0 — Phone + Desktop (Fully Merged)');
-ed)');
-        console.log('📱 Phone mode (        console.log('📱 Phone mode (mobile)mobile) | 🖥️ | 🖥️ Desktop mode (desktop) Desktop mode (desktop)');
-        console.log('🔒 Double-tap status');
-        console.log('🔒 Double-tap status bar to lock | bar to lock | Press Space to add app Press Space to add app');
-        console');
-        console.log('🔄.log('🔄 Drag & Drag & Drop to reorder apps | Edge swipe for Drop to reorder apps | back');
-        console.log('🖱️ Hover taskbar apps for preview | Lock icon changes on desktop');
+        console.log('📱 Phone mode (mobile) | 🖥️ Desktop mode (desktop)');
+        console.log('🔒 Double-tap status bar to lock | Press Space to add app');
+        console.log('🔄 Drag & Drop to reorder apps | Edge swipe for back');
     </script>
 </body>
 </html>
