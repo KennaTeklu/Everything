@@ -1744,15 +1744,16 @@
             if (!link.startsWith('http') && !link.startsWith('https')) link = 'https://' + link;
             try { new URL(link); } catch (e) { toast('Invalid URL', 'error'); return; }
             const appName = name || new URL(link).hostname.replace(/^www\./, '');
-            const newApp = {
-                id: uid(),
-                name: appName.substring(0, 24),
-                type: 'iframe',
-                url: link,
-                isDefault: false,
-                favicon: getFaviconUrl(link),
-                icon: 'fa-globe'
-            };
+        const newApp = {
+            id: uid(),
+            name: appName.substring(0, 24),
+            type: link.startsWith('http') ? 'native' : 'iframe',
+            component: link.startsWith('http') ? 'browser' : undefined,
+            url: link,
+            isDefault: false,
+            favicon: getFaviconUrl(link),
+            icon: 'fa-globe'
+        };
             customApps.push(newApp);
             appOrder.push(newApp.id);
             localStorage.setItem('customApps', JSON.stringify(customApps));
@@ -2162,10 +2163,16 @@ if (app.type === 'iframe') {
                         <i class="fas fa-exclamation-triangle" style="font-size:48px;color:var(--danger);"></i>
                         <div>App failed to load</div>
                         <div style="font-size:12px;color:var(--text-dim);">${escapeHtml(app.url)}</div>
-                        <button onclick="this.closest('.app-native')?.querySelector('iframe')?.src='${app.url}'"
-                                style="padding:8px 24px;border-radius:30px;background:var(--primary);color:white;border:none;cursor:pointer;font-weight:500;">
-                            Retry
-                        </button>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
+                            <button onclick="this.closest('.app-native')?.querySelector('iframe')?.src='${app.url}'"
+                                    style="padding:8px 24px;border-radius:30px;background:var(--primary);color:white;border:none;cursor:pointer;font-weight:500;">
+                                Retry
+                            </button>
+                            <button onclick="window.open('${app.url}', '_blank'); this.closest('.app-native')?.closest('.app-modal, .window')?.style?.display='none';"
+                                    style="padding:8px 24px;border-radius:30px;background:var(--surface-hover);color:var(--text);border:none;cursor:pointer;font-weight:500;">
+                                Open in system browser
+                            </button>
+                        </div>
                     </div>
                 `;
                 toast('App load timeout: ' + app.name, 'error');
@@ -2184,10 +2191,16 @@ if (app.type === 'iframe') {
                     <i class="fas fa-exclamation-triangle" style="font-size:48px;color:var(--danger);"></i>
                     <div>Failed to load</div>
                     <div style="font-size:12px;color:var(--text-dim);">${escapeHtml(app.url)}</div>
-                    <button onclick="this.closest('.app-native')?.querySelector('iframe')?.src='${app.url}'"
-                            style="padding:8px 24px;border-radius:30px;background:var(--primary);color:white;border:none;cursor:pointer;font-weight:500;">
-                        Retry
-                    </button>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
+                        <button onclick="this.closest('.app-native')?.querySelector('iframe')?.src='${app.url}'"
+                                style="padding:8px 24px;border-radius:30px;background:var(--primary);color:white;border:none;cursor:pointer;font-weight:500;">
+                            Retry
+                        </button>
+                        <button onclick="window.open('${app.url}', '_blank'); this.closest('.app-native')?.closest('.app-modal, .window')?.style?.display='none';"
+                                style="padding:8px 24px;border-radius:30px;background:var(--surface-hover);color:var(--text);border:none;cursor:pointer;font-weight:500;">
+                            Open in system browser
+                        </button>
+                    </div>
                 </div>
             `;
             toast('App load error: ' + app.name, 'error');
@@ -2197,7 +2210,7 @@ if (app.type === 'iframe') {
         } else if (app.type === 'native') {
             wrap.className = 'app-native';
             if (app.component === 'browser') {
-                const startUrl = 'https://www.bing.com';
+                const startUrl = app.url || 'https://www.bing.com';
                 wrap.innerHTML = `
                     <div class="browser-nav">
                         <button class="nav-btn" id="nav-back-${app.id}"><i class="fas fa-arrow-left"></i></button>
@@ -2247,19 +2260,22 @@ if (app.type === 'iframe') {
                         frame.src = url;
                     };
 
-                    const navigate = () => {
-                        let url = urlInput.value.trim();
-                        if (!url.startsWith('http') && !url.startsWith('blob:') && !url.startsWith('file:')) {
-                            url = 'https://' + url;
-                        }
-                        if (url !== historyStack[currentIndex]) {
-                            historyStack = historyStack.slice(0, currentIndex + 1);
-                            historyStack.push(url);
-                            currentIndex++;
-                        }
-                        updateUI();
-                        loadFrame(url);
-                    };
+const navigate = () => {
+    let url = urlInput.value.trim();
+    if (!url.startsWith('http') && !url.startsWith('blob:') && !url.startsWith('file:')) {
+        url = 'https://' + url;
+    }
+    
+    let proxiedUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+    
+    if (url !== historyStack[currentIndex]) {
+        historyStack = historyStack.slice(0, currentIndex + 1);
+        historyStack.push(url);
+        currentIndex++;
+    }
+    updateUI();
+    loadFrame(proxiedUrl); 
+};
 
                     urlInput.onkeydown = e => { if (e.key === 'Enter') navigate(); };
                     goBtn.onclick = navigate;
@@ -2419,15 +2435,26 @@ if (app.type === 'iframe') {
     }
 
             if (!runningApps[id]) {
+                // Check if we have saved state from localStorage
+                const savedState = localStorage.getItem('runningAppsState');
+                let savedData = null;
+                if (savedState) {
+                    try {
+                        const parsed = JSON.parse(savedState);
+                        if (parsed[id]) {
+                            savedData = parsed[id];
+                        }
+                    } catch (e) {}
+                }
                 runningApps[id] = {
                     app: app,
                     contentNode: generateAppContent(app),
                     winEl: null,
-                    unsavedFlag: false,
-                    componentData: null,
-                    scrollY: 0,
+                    unsavedFlag: savedData ? savedData.unsavedFlag || false : false,
+                    componentData: savedData ? savedData.componentData || null : null,
+                    scrollY: savedData ? savedData.scrollY || 0 : 0,
                     lastActive: Date.now(),
-                    focusedSelector: null
+                    focusedSelector: savedData ? savedData.focusedSelector || null : null
                 };
             } else {
                 runningApps[id].lastActive = Date.now();
@@ -2585,12 +2612,21 @@ if (app.type === 'iframe') {
             makeDraggable(win);
             win.onmousedown = () => bringToFront(win);
         // Fix: ensure clicking inside the iframe also brings window to front
+win.addEventListener('pointerdown', () => {
+    bringToFront(win);
+}, { capture: true }); 
+// Using 'capture: true' intercepts the click before the inner app can swallow it.
+
+        // Restore scroll position after iframe loads
         const iframe = contentNode.querySelector('iframe');
         if (iframe) {
-            iframe.addEventListener('pointerdown', (e) => {
-                bringToFront(win);
+            iframe.addEventListener('load', () => {
+                if (runningApps[id] && runningApps[id].scrollY) {
+                    iframe.contentWindow?.scrollTo(0, runningApps[id].scrollY);
+                }
             });
         }
+
             return win;
         }
 
@@ -3401,6 +3437,61 @@ function setViewMode(mode) {
         let savedOrder = localStorage.getItem('appOrder');
         if (savedOrder) try { appOrder = JSON.parse(savedOrder); } catch (e) {}
 
+        // ─── Restore runningApps state ───
+        let savedRunning = localStorage.getItem('runningAppsState');
+        if (savedRunning) {
+            try {
+                const parsed = JSON.parse(savedRunning);
+                for (let [id, appData] of Object.entries(parsed)) {
+                    // Find the original app definition
+                    const appDef = findAppById(id);
+                    if (appDef) {
+                        // Recreate the app object without DOM nodes – they will be regenerated on launch
+                        runningApps[id] = {
+                            app: appDef,
+                            contentNode: null, // will be created when launched
+                            winEl: null,
+                            unsavedFlag: appData.unsavedFlag || false,
+                            componentData: appData.componentData || null,
+                            scrollY: appData.scrollY || 0,
+                            lastActive: appData.lastActive || Date.now(),
+                            focusedSelector: appData.focusedSelector || null,
+                            active: false
+                        };
+                    }
+                }
+            } catch (e) {
+                console.warn('Could not restore runningApps state:', e);
+            }
+        }
+
+        // ─── State persistence: save runningApps to localStorage ───
+        function saveStateToLocalStorage() {
+            try {
+                // Create a safe copy of runningApps without DOM nodes
+                const stateCopy = {};
+                for (let [id, app] of Object.entries(runningApps)) {
+                    stateCopy[id] = {
+                        app: {
+                            id: app.app.id,
+                            name: app.app.name,
+                            type: app.app.type,
+                            component: app.app.component,
+                            url: app.app.url,
+                            icon: app.app.icon
+                        },
+                        componentData: app.componentData,
+                        scrollY: app.scrollY,
+                        focusedSelector: app.focusedSelector,
+                        unsavedFlag: app.unsavedFlag,
+                        lastActive: app.lastActive
+                    };
+                }
+                localStorage.setItem('runningAppsState', JSON.stringify(stateCopy));
+            } catch (e) {
+                console.warn('Could not save runningApps state:', e);
+            }
+        }
         // ═══════════════════════════════════════════════════════════════════
         //  INIT
         // ═══════════════════════════════════════════════════════════════════
@@ -3422,6 +3513,14 @@ function setViewMode(mode) {
 
         init();
 
+        // ─── Auto‑save runningApps state every 5 seconds ───
+        setInterval(saveStateToLocalStorage, 5000);
+
+        // ─── Also save when the page is about to unload ───
+        window.addEventListener('beforeunload', () => {
+            saveStateToLocalStorage();
+        });
+
         console.log('🚀 Unified OS v6.0 — Phone + Desktop (Full Combo)');
         console.log('📱 Phone mode (mobile) | 🖥️ Desktop mode (desktop)');
         console.log('🔒 Double-tap status bar to lock | Press Space to add app');
@@ -3433,6 +3532,7 @@ function setViewMode(mode) {
         console.log('✅ PostMessage back negotiation');
         console.log('✅ Resize observer + keyboard height');
         console.log('✅ Top-level navigation prevented');
+        console.log('✅ State persistence: runningApps auto‑saved every 5 seconds');
     </script>
 </body>
 </html>
