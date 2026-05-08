@@ -2411,33 +2411,35 @@ const navigate = () => {
             const app = findAppById(id);
             if (!app) { toast('App not found'); return; }
 
-    const runningIds = Object.keys(runningApps);
-    if (runningIds.length >= 6 && !runningApps[id]) {
-        let oldestId = runningIds.reduce((a, b) => {
-            return (runningApps[a].lastActive || 0) < (runningApps[b].lastActive || 0) ? a : b;
-        });
-        const oldest = runningApps[oldestId];
-        if (oldest && oldest.unsavedFlag) {
-            sysDialog({
-                title: 'Close App with Unsaved Changes',
-                message: `"${oldest.app.name}" has unsaved changes. Close it to free up memory?`,
-                buttons: [
-                    { label: 'Cancel', value: false, primary: false },
-                    { label: 'Close anyway', value: true, danger: true }
-                ]
-            }).then(confirmed => {
-                if (confirmed) {
+            const runningIds = Object.keys(runningApps);
+            if (runningIds.length >= 3 && !runningApps[id]) {
+                let oldestId = runningIds.reduce((a, b) => {
+                    return (runningApps[a].lastActive || 0) < (runningApps[b].lastActive || 0) ? a : b;
+                });
+                const oldest = runningApps[oldestId];
+                if (oldest && oldest.unsavedFlag) {
+                    sysDialog({
+                        title: 'App Limit Reached (3/3)',
+                        message: `"${oldest.app.name}" has unsaved changes. Close it to open "${findAppById(id).name}"?`,
+                        buttons: [
+                            { label: 'Cancel', value: false, primary: false },
+                            { label: 'Close & Open', value: true, danger: true }
+                        ]
+                    }).then(confirmed => {
+                        if (confirmed) {
+                            closeApp(oldestId, true);
+                            launchApp(id);
+                        }
+                    });
+                    return;
+                } else {
                     closeApp(oldestId, true);
                     launchApp(id);
+                    return;
                 }
-            });
-            return;
-        } else {
-            closeApp(oldestId, true);
-        }
-    }
+            }
 
-                        if (!runningApps[id]) {
+            if (!runningApps[id]) {
                 const savedState = localStorage.getItem('runningAppsState');
                 let savedData = null;
                 if (savedState) {
@@ -2526,6 +2528,19 @@ const navigate = () => {
             localStorage.setItem('recentApps', JSON.stringify(recentApps));
             renderRecentsDrawer();
 
+            // Safety: If more than 3 are now open, close the oldest non-active one
+            setTimeout(() => {
+                const runningIds = Object.keys(runningApps);
+                if (runningIds.length > 3) {
+                    let oldestId = runningIds.reduce((a, b) => {
+                        return (runningApps[a].lastActive || 0) < (runningApps[b].lastActive || 0) ? a : b;
+                    });
+                    if (oldestId !== id) {
+                        closeApp(oldestId, true);
+                    }
+                }
+            }, 100);
+
             setTimeout(() => {
                 if (app.type === 'iframe') {
                     const iframe = runningApps[id].contentNode.querySelector('iframe') || modalIframe;
@@ -2533,7 +2548,6 @@ const navigate = () => {
                 }
             }, 100);
         }
-
         function closeApp(id, force = false) {
             haptic(true);
             const app = runningApps[id];
