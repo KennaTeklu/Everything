@@ -1465,8 +1465,13 @@
         // ═══════════════════════════════════════════════════════════════════
         function haptic(heavy = false) {
             if ('vibrate' in navigator) {
-                if (heavy) navigator.vibrate([15, 50, 15, 50, 15]);
-                else navigator.vibrate(15);
+                try {
+                    if (heavy) navigator.vibrate([15, 50, 15, 50, 15]);
+                    else navigator.vibrate(15);
+                } catch (e) {
+                    // Browser blocked vibration due to lack of user gesture – silently ignore
+                    // The vibration will work once the user has tapped the page
+                }
             }
         }
 
@@ -1793,6 +1798,10 @@
         //  PAGINATION
         // ═══════════════════════════════════════════════════════════════════
         function calculateItemsPerPage() {
+            // On phone, show ALL apps by returning a very high number
+            if (isMobile() && !document.body.classList.contains('desktop-mode')) {
+                return 999; // Show all apps on one page
+            }
             const grid = appGrid;
             const dummy = document.createElement('div');
             dummy.className = 'app-tile';
@@ -2159,28 +2168,30 @@ if (app.type === 'iframe') {
         iframe.style.width = '100%';
         wrap.appendChild(iframe);
 
+        let loadFailed = false;
         let timeout = setTimeout(() => {
             if (!iframe.contentWindow || iframe.contentDocument?.readyState !== 'complete') {
+                loadFailed = true;
                 spinner.innerHTML = `
                     <div style="text-align:center;gap:12px;display:flex;flex-direction:column;align-items:center;">
                         <i class="fas fa-exclamation-triangle" style="font-size:48px;color:var(--danger);"></i>
-                        <div>App failed to load</div>
+                        <div>This site cannot be opened inside this OS</div>
                         <div style="font-size:12px;color:var(--text-dim);">${escapeHtml(app.url)}</div>
-                        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:8px;">
                             <button onclick="this.closest('.app-native')?.querySelector('iframe')?.src='${app.url}'"
                                     style="padding:8px 24px;border-radius:30px;background:var(--primary);color:white;border:none;cursor:pointer;font-weight:500;">
                                 Retry
                             </button>
-                            <button onclick="window.open('${app.url}', '_blank'); this.closest('.app-native')?.closest('.app-modal, .window')?.style?.display='none';"
+                            <button onclick="window.open('${escapeHtml(app.url)}', '_blank'); this.closest('.app-modal, .window')?.style?.display='none';"
                                     style="padding:8px 24px;border-radius:30px;background:var(--surface-hover);color:var(--text);border:none;cursor:pointer;font-weight:500;">
-                                Open in system browser
+                                Open in your browser
                             </button>
                         </div>
                     </div>
                 `;
-                toast('App load timeout: ' + app.name, 'error');
+                toast('Could not load: ' + app.name, 'error');
             }
-        }, 10000);
+        }, 2000); // 2 seconds – quick fallback
 
         iframe.onload = () => {
             clearTimeout(timeout);
@@ -2188,25 +2199,28 @@ if (app.type === 'iframe') {
             iframe.contentWindow?.postMessage({ type: 'iframeResize', width: wrap.clientWidth, height: wrap.clientHeight }, '*');
         };
         iframe.onerror = () => {
-            clearTimeout(timeout);
-            spinner.innerHTML = `
-                <div style="text-align:center;gap:12px;display:flex;flex-direction:column;align-items:center;">
-                    <i class="fas fa-exclamation-triangle" style="font-size:48px;color:var(--danger);"></i>
-                    <div>Failed to load</div>
-                    <div style="font-size:12px;color:var(--text-dim);">${escapeHtml(app.url)}</div>
-                    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
-                        <button onclick="this.closest('.app-native')?.querySelector('iframe')?.src='${app.url}'"
-                                style="padding:8px 24px;border-radius:30px;background:var(--primary);color:white;border:none;cursor:pointer;font-weight:500;">
-                            Retry
-                        </button>
-                        <button onclick="window.open('${app.url}', '_blank'); this.closest('.app-native')?.closest('.app-modal, .window')?.style?.display='none';"
-                                style="padding:8px 24px;border-radius:30px;background:var(--surface-hover);color:var(--text);border:none;cursor:pointer;font-weight:500;">
-                            Open in system browser
-                        </button>
+            if (!loadFailed) {
+                clearTimeout(timeout);
+                loadFailed = true;
+                spinner.innerHTML = `
+                    <div style="text-align:center;gap:12px;display:flex;flex-direction:column;align-items:center;">
+                        <i class="fas fa-exclamation-triangle" style="font-size:48px;color:var(--danger);"></i>
+                        <div>This site cannot be opened inside this OS</div>
+                        <div style="font-size:12px;color:var(--text-dim);">${escapeHtml(app.url)}</div>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:8px;">
+                            <button onclick="this.closest('.app-native')?.querySelector('iframe')?.src='${app.url}'"
+                                    style="padding:8px 24px;border-radius:30px;background:var(--primary);color:white;border:none;cursor:pointer;font-weight:500;">
+                                Retry
+                            </button>
+                            <button onclick="window.open('${escapeHtml(app.url)}', '_blank'); this.closest('.app-modal, .window')?.style?.display='none';"
+                                    style="padding:8px 24px;border-radius:30px;background:var(--surface-hover);color:var(--text);border:none;cursor:pointer;font-weight:500;">
+                                Open in your browser
+                            </button>
+                        </div>
                     </div>
-                </div>
-            `;
-            toast('App load error: ' + app.name, 'error');
+                `;
+                toast('Could not load: ' + app.name, 'error');
+            }
         };
 
         return wrap;
@@ -3209,7 +3223,10 @@ pageViewport.addEventListener('scroll', () => {
         //  LOCK SCREEN (with ripple and fullscreen)
         // ═══════════════════════════════════════════════════════════════════
         function lockScreenUnlock(e) {
-            haptic(true);
+            // Trigger haptic after a short delay to ensure user gesture is recognized
+            setTimeout(() => {
+                haptic(true);
+            }, 50);
 
             const rect = lockIconWrapper.getBoundingClientRect();
             const x = (e.clientX || e.touches?.[0]?.clientX || rect.left + rect.width / 2) - rect.left;
