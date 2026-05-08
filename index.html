@@ -2437,8 +2437,7 @@ const navigate = () => {
         }
     }
 
-            if (!runningApps[id]) {
-                // Check if we have saved state from localStorage
+                        if (!runningApps[id]) {
                 const savedState = localStorage.getItem('runningAppsState');
                 let savedData = null;
                 if (savedState) {
@@ -2461,6 +2460,12 @@ const navigate = () => {
                 };
             } else {
                 runningApps[id].lastActive = Date.now();
+            }
+
+            // ✅ SAFETY GUARD: If contentNode is not a valid DOM node, rebuild it
+            if (!runningApps[id].contentNode || !(runningApps[id].contentNode instanceof Node)) {
+                console.warn(`Rebuilding invalid contentNode for app: ${app.name}`);
+                runningApps[id].contentNode = generateAppContent(app);
             }
             runningApps[id].active = true;
             lastActiveAppId = id;
