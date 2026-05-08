@@ -2150,7 +2150,7 @@ if (app.type === 'iframe') {
         iframe.className = 'app-iframe';
         iframe.src = app.url || 'about:blank';
         iframe.setAttribute('sandbox',
-            'allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-downloads allow-popups-to-escape-sandbox allow-microphone allow-camera allow-geolocation allow-notifications allow-clipboard-read allow-clipboard-write allow-pointer-lock allow-storage-access-by-user-activation'
+            'allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-downloads allow-popups-to-escape-sandbox allow-pointer-lock allow-storage-access-by-user-activation'
             );
         iframe.setAttribute('allow',
             'fullscreen; microphone; camera; geolocation; clipboard-read; clipboard-write; notifications; screen-wake-lock'
@@ -2473,12 +2473,16 @@ const navigate = () => {
             if (isMobile() && !document.body.classList.contains('desktop-mode')) {
                 modal.classList.remove('open');
                 modalTitle.innerText = app.name;
-                const content = runningApps[id].contentNode;
+                let content = runningApps[id].contentNode;
+                // SAFETY GUARD: If contentNode is null/undefined, regenerate it
+                if (!content || typeof content.querySelector !== 'function') {
+                    console.warn(`⚠️ ContentNode for ${app.name} was null. Regenerating...`);
+                    content = generateAppContent(app);
+                    runningApps[id].contentNode = content;
+                }
                 if (app.type === 'iframe') {
-                    // Move the existing iframe DOM node instead of copying src
                     const existingIframe = content.querySelector('iframe');
                     if (existingIframe) {
-                        // Clear modalContent and move the iframe into it
                         const mc = document.getElementById('modalContent');
                         mc.innerHTML = '';
                         mc.appendChild(existingIframe);
@@ -2490,7 +2494,12 @@ const navigate = () => {
                 } else {
                     const mc = document.getElementById('modalContent');
                     mc.innerHTML = '';
-                    mc.appendChild(content);
+                    // SAFETY GUARD: Ensure content is a Node before appending
+                    if (content instanceof Node) {
+                        mc.appendChild(content);
+                    } else {
+                        console.error(`❌ content is not a Node for ${app.name}`);
+                    }
                 }
                 modal.classList.add('open');
                 notifDrawer.classList.add('higher');
