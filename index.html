@@ -475,17 +475,18 @@
             font-weight: 600;
         }
 
-        .app-tile {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            cursor: pointer;
-            transition: transform 0.1s, background 0.15s;
-            border-radius: 12px;
-            padding: 4px;
-            position: relative;
-        }
+.app-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    cursor: pointer;
+    transition: transform 0.1s, background 0.15s;
+    border-radius: 12px;
+    padding: 4px;
+    position: relative;
+    will-change: transform;
+}
         .app-tile.focused {
             background: var(--surface-hover);
             outline: 2px solid var(--primary);
@@ -1675,21 +1676,22 @@
         // ═══════════════════════════════════════════════════════════════════
         //  APP MANAGEMENT
         // ═══════════════════════════════════════════════════════════════════
-        function getAllApps() {
-            const defaults = DEFAULT_APPS.filter(a => !customApps.some(c => c.id === a.id));
-            const all = [...defaults, ...customApps];
-            if (appOrder.length > 0) {
-                const ordered = [];
-                const unordered = [];
-                all.forEach(a => {
-                    const idx = appOrder.indexOf(a.id);
-                    if (idx !== -1) ordered[idx] = a;
-                    else unordered.push(a);
-                });
-                return [...ordered.filter(Boolean), ...unordered];
-            }
-            return all;
-        }
+ function getAllApps() {
+    const hidden = JSON.parse(localStorage.getItem('hiddenApps') || '[]');
+    const defaults = DEFAULT_APPS.filter(a => !customApps.some(c => c.id === a.id) && !hidden.includes(a.id));
+    const all = [...defaults, ...customApps];
+    if (appOrder.length > 0) {
+        const ordered = [];
+        const unordered = [];
+        all.forEach(a => {
+            const idx = appOrder.indexOf(a.id);
+            if (idx !== -1) ordered[idx] = a;
+            else unordered.push(a);
+        });
+        return [...ordered.filter(Boolean), ...unordered];
+    }
+    return all;
+}
 
         function findAppById(id) {
             return getAllApps().find(a => a.id === id);
@@ -1811,13 +1813,18 @@
                 tile.draggable = !isMobile();
 
                 let iconHtml = '';
+                const firstLetter = app.name.charAt(0).toUpperCase();
+                const color = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316'][Math.abs(app.id.split('-')[1]?.charCodeAt(0) || 0) % 8];
                 if (app.favicon) {
-                    iconHtml =
-                        `<img src="${app.favicon}" onerror="this.parentElement.innerHTML='<i class=\\'fas ${app.icon||'fa-globe'}\\'></i>'" alt="${escapeHtml(app.name)}">`;
+                    iconHtml = `
+                        <div style="position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
+                            <img src="${app.favicon}" onerror="this.style.display='none';this.parentElement.innerHTML='<div style=\\'display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:${color};border-radius:20px;\\'><span style=\\'font-size:20px;font-weight:600;color:white;\\'>${firstLetter}</span></div>'" alt="${escapeHtml(app.name)}" style="width:70%;height:70%;object-fit:contain;border-radius:12px;">
+                        </div>
+                    `;
                 } else if (app.icon) {
-                    iconHtml = `<i class="fas ${app.icon}"></i>`;
+                    iconHtml = `<i class="fas ${app.icon}" style="color:${color};"></i>`;
                 } else {
-                    iconHtml = '<i class="fas fa-globe"></i>';
+                    iconHtml = `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:${color};border-radius:20px;"><span style="font-size:20px;font-weight:600;color:white;">${firstLetter}</span></div>`;
                 }
 
                 let badge = '';
@@ -1827,10 +1834,13 @@
 
                 tile.innerHTML =
                     `<div class="app-icon">${iconHtml}${badge}</div><div class="app-name">${escapeHtml(app.name)}</div>`;
-                tile.onclick = () => { haptic();
-                    focusedGridIndex = Array.from(appGrid.children).indexOf(tile);
-                    updateGridFocus();
-                    launchApp(app.id); };
+                        tile.onclick = () => {
+                            if (document.body.dataset.interactive !== 'true') return;
+                            haptic();
+                            focusedGridIndex = Array.from(appGrid.children).indexOf(tile);
+                            updateGridFocus();
+                            launchApp(app.id);
+                        };
 
                 // Desktop Drag & Drop
                 tile.ondragstart = (e) => {
@@ -1884,9 +1894,14 @@
                     if (e.touches.length === 1) {
                         const dx = e.touches[0].clientX - touchStartX;
                         const dy = e.touches[0].clientY - touchStartY;
-                        if (Math.abs(dx) > 30 || Math.abs(dy) > 30) {
+                        if (Math.abs(dx) > 60 || Math.abs(dy) > 60) {
                             touchDrag = true;
                             tile.classList.add('dragging');
+                            if (!tile.dataset.ghostShown) {
+                                tile.dataset.ghostShown = 'true';
+                                tile.style.opacity = '0.6';
+                                tile.style.transform = 'scale(0.95)';
+                            }
                             e.preventDefault();
                         }
                     }
@@ -1972,13 +1987,16 @@
             menu.style.minWidth = '150px';
             menu.style.border = '0.5px solid var(--border)';
             if (app.isDefault) {
-                menu.innerHTML = `<div class="menu-item" data-action="info"><i class="fas fa-info-circle"></i> Info</div>`;
+                menu.innerHTML = `
+                    <div class="menu-item" data-action="hide"><i class="fas fa-eye-slash"></i> Hide from grid</div>
+                    <div class="menu-item" data-action="info"><i class="fas fa-info-circle"></i> Info</div>
+                `;
             } else {
                 menu.innerHTML = `
-              <div class="menu-item" data-action="rename"><i class="fas fa-edit"></i> Rename</div>
-              <div class="menu-item" data-action="delete"><i class="fas fa-trash"></i> Delete</div>
-              <div class="menu-item" data-action="info"><i class="fas fa-info-circle"></i> Info</div>
-            `;
+                    <div class="menu-item" data-action="rename"><i class="fas fa-edit"></i> Rename</div>
+                    <div class="menu-item" data-action="delete"><i class="fas fa-trash"></i> Delete</div>
+                    <div class="menu-item" data-action="info"><i class="fas fa-info-circle"></i> Info</div>
+                `;
             }
             document.body.appendChild(menu);
             const rect = menu.getBoundingClientRect();
@@ -2006,6 +2024,14 @@
                                 { label: 'Delete', value: true, danger: true }
                             ]
                         }).then(confirmed => { if (confirmed) deleteCustomApp(app.id); });
+                    } else if (action === 'hide' && app.isDefault) {
+                        const hidden = JSON.parse(localStorage.getItem('hiddenApps') || '[]');
+                        if (!hidden.includes(app.id)) {
+                            hidden.push(app.id);
+                            localStorage.setItem('hiddenApps', JSON.stringify(hidden));
+                        }
+                        renderGrid();
+                        toast('Hidden: ' + app.name);
                     } else if (action === 'info') {
                         sysDialog({
                             title: 'App Info',
@@ -2056,45 +2082,77 @@
             wrap.style.display = 'flex';
             wrap.style.flexDirection = 'column';
 
-            if (app.type === 'iframe') {
-                let iframe = document.createElement('iframe');
-                iframe.className = 'app-iframe';
-                iframe.src = app.url || 'about:blank';
-                iframe.setAttribute('sandbox',
-                    'allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-downloads allow-popups-to-escape-sandbox allow-microphone allow-camera allow-geolocation allow-notifications allow-clipboard-read allow-clipboard-write allow-pointer-lock allow-storage-access-by-user-activation'
-                    );
-                iframe.setAttribute('allow',
-                    'fullscreen; microphone; camera; geolocation; clipboard-read; clipboard-write; notifications; screen-wake-lock'
-                    );
-                wrap.appendChild(iframe);
+if (app.type === 'iframe') {
+        const wrap = document.createElement('div');
+        wrap.style.width = '100%';
+        wrap.style.height = '100%';
+        wrap.style.display = 'flex';
+        wrap.style.flexDirection = 'column';
+        wrap.style.position = 'relative';
 
-                let timeout = setTimeout(() => {
-                    if (!iframe.contentWindow || iframe.contentDocument?.readyState !== 'complete') {
-                        const errorDiv = document.createElement('div');
-                        errorDiv.style.cssText =
-                            'position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--surface-solid);color:var(--text);gap:16px;';
-                        errorDiv.innerHTML =
-                            `<i class="fas fa-exclamation-triangle" style="font-size:48px;color:var(--danger);"></i><div>App failed to load</div><div style="font-size:12px;color:var(--text-dim);">${escapeHtml(app.url)}</div>`;
-                        wrap.appendChild(errorDiv);
-                        toast('App load timeout: ' + app.name, 'error');
-                    }
-                }, 10000);
-                iframe.onload = () => {
-                    clearTimeout(timeout);
-                    iframe.contentWindow?.postMessage({ type: 'iframeResize', width: wrap.clientWidth, height: wrap
-                            .clientHeight }, '*');
-                };
-                iframe.onerror = () => {
-                    clearTimeout(timeout);
-                    const errorDiv = document.createElement('div');
-                    errorDiv.style.cssText =
-                        'position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--surface-solid);color:var(--text);gap:16px;';
-                    errorDiv.innerHTML =
-                        `<i class="fas fa-exclamation-triangle" style="font-size:48px;color:var(--danger);"></i><div>Failed to load</div><div style="font-size:12px;color:var(--text-dim);">${escapeHtml(app.url)}</div>`;
-                    wrap.appendChild(errorDiv);
-                    toast('App load error: ' + app.name, 'error');
-                };
-            } else if (app.type === 'native') {
+        // Loading spinner
+        const spinner = document.createElement('div');
+        spinner.style.cssText = `
+            position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+            background: var(--surface-solid); color: var(--text); font-size: 24px;
+            flex-direction: column; gap: 16px; z-index: 5;
+        `;
+        spinner.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size:48px;"></i><div>Loading...</div>';
+        wrap.appendChild(spinner);
+
+        let iframe = document.createElement('iframe');
+        iframe.className = 'app-iframe';
+        iframe.src = app.url || 'about:blank';
+        iframe.setAttribute('sandbox',
+            'allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-downloads allow-popups-to-escape-sandbox allow-microphone allow-camera allow-geolocation allow-notifications allow-clipboard-read allow-clipboard-write allow-pointer-lock allow-storage-access-by-user-activation'
+            );
+        iframe.setAttribute('allow',
+            'fullscreen; microphone; camera; geolocation; clipboard-read; clipboard-write; notifications; screen-wake-lock'
+            );
+        iframe.style.flex = '1';
+        iframe.style.width = '100%';
+        wrap.appendChild(iframe);
+
+        let timeout = setTimeout(() => {
+            if (!iframe.contentWindow || iframe.contentDocument?.readyState !== 'complete') {
+                spinner.innerHTML = `
+                    <div style="text-align:center;gap:12px;display:flex;flex-direction:column;align-items:center;">
+                        <i class="fas fa-exclamation-triangle" style="font-size:48px;color:var(--danger);"></i>
+                        <div>App failed to load</div>
+                        <div style="font-size:12px;color:var(--text-dim);">${escapeHtml(app.url)}</div>
+                        <button onclick="this.closest('.app-native')?.querySelector('iframe')?.src='${app.url}'"
+                                style="padding:8px 24px;border-radius:30px;background:var(--primary);color:white;border:none;cursor:pointer;font-weight:500;">
+                            Retry
+                        </button>
+                    </div>
+                `;
+                toast('App load timeout: ' + app.name, 'error');
+            }
+        }, 10000);
+
+        iframe.onload = () => {
+            clearTimeout(timeout);
+            spinner.remove();
+            iframe.contentWindow?.postMessage({ type: 'iframeResize', width: wrap.clientWidth, height: wrap.clientHeight }, '*');
+        };
+        iframe.onerror = () => {
+            clearTimeout(timeout);
+            spinner.innerHTML = `
+                <div style="text-align:center;gap:12px;display:flex;flex-direction:column;align-items:center;">
+                    <i class="fas fa-exclamation-triangle" style="font-size:48px;color:var(--danger);"></i>
+                    <div>Failed to load</div>
+                    <div style="font-size:12px;color:var(--text-dim);">${escapeHtml(app.url)}</div>
+                    <button onclick="this.closest('.app-native')?.querySelector('iframe')?.src='${app.url}'"
+                            style="padding:8px 24px;border-radius:30px;background:var(--primary);color:white;border:none;cursor:pointer;font-weight:500;">
+                        Retry
+                    </button>
+                </div>
+            `;
+            toast('App load error: ' + app.name, 'error');
+        };
+
+        return wrap;
+    } else if (app.type === 'native') {
                 wrap.className = 'app-native';
                 if (app.component === 'notepad') {
                     let textarea = document.createElement('textarea');
@@ -2194,13 +2252,31 @@
             const app = findAppById(id);
             if (!app) { toast('App not found'); return; }
 
-            const runningIds = Object.keys(runningApps);
-            if (runningIds.length >= 5 && !runningApps[id]) {
-                let oldestId = runningIds.reduce((a, b) => {
-                    return (runningApps[a].lastActive || 0) < (runningApps[b].lastActive || 0) ? a : b;
-                });
-                closeApp(oldestId, true);
-            }
+    const runningIds = Object.keys(runningApps);
+    if (runningIds.length >= 6 && !runningApps[id]) {
+        let oldestId = runningIds.reduce((a, b) => {
+            return (runningApps[a].lastActive || 0) < (runningApps[b].lastActive || 0) ? a : b;
+        });
+        const oldest = runningApps[oldestId];
+        if (oldest && oldest.unsavedFlag) {
+            sysDialog({
+                title: 'Close App with Unsaved Changes',
+                message: `"${oldest.app.name}" has unsaved changes. Close it to free up memory?`,
+                buttons: [
+                    { label: 'Cancel', value: false, primary: false },
+                    { label: 'Close anyway', value: true, danger: true }
+                ]
+            }).then(confirmed => {
+                if (confirmed) {
+                    closeApp(oldestId, true);
+                    launchApp(id);
+                }
+            });
+            return;
+        } else {
+            closeApp(oldestId, true);
+        }
+    }
 
             if (!runningApps[id]) {
                 runningApps[id] = {
@@ -2678,69 +2754,68 @@
             } catch (e) { return false; }
         }
 
-        window.addEventListener('keydown', (e) => {
-            if (isIframeActive()) return;
+window.addEventListener('keydown', (e) => {
+    if (isIframeActive()) return;
 
-            if (e.key === ' ' && document.activeElement === document.body && !modal.classList.contains('open') && !
-                taskSwitcher.classList.contains('open')) {
+    // Spacebar: add app (only on home screen, not in inputs)
+    if (e.key === ' ' && document.activeElement === document.body && !modal.classList.contains('open') && !taskSwitcher.classList.contains('open')) {
+        e.preventDefault();
+        sysDialog({
+            type: 'prompt',
+            title: 'Add App',
+            message: 'Enter URL:',
+            default: 'https://',
+            placeholder: 'https://example.com'
+        }).then(url => {
+            if (url && url.trim()) addCustomApp(url.trim());
+        });
+        return;
+    }
+
+    // Grid navigation with arrow keys + Enter
+    if ((document.activeElement === document.body) && !modal.classList.contains('open') && !taskSwitcher.classList.contains('open')) {
+        const gridItems = document.querySelectorAll('.app-tile');
+        if (gridItems.length > 0) {
+            let cols = Math.floor(appGrid.offsetWidth / 116);
+            if (cols < 1) cols = 1;
+            if (['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp', 'Enter'].includes(e.key)) {
                 e.preventDefault();
-                sysDialog({
-                    type: 'prompt',
-                    title: 'Add App',
-                    message: 'Enter URL:',
-                    default: 'https://',
-                    placeholder: 'https://example.com'
-                }).then(url => {
-                    if (url && url.trim()) addCustomApp(url.trim());
-                });
+                if (focusedGridIndex === -1) focusedGridIndex = 0;
+                else if (e.key === 'ArrowRight') focusedGridIndex = Math.min(focusedGridIndex + 1, gridItems.length - 1);
+                else if (e.key === 'ArrowLeft') focusedGridIndex = Math.max(focusedGridIndex - 1, 0);
+                else if (e.key === 'ArrowDown') focusedGridIndex = Math.min(focusedGridIndex + cols, gridItems.length - 1);
+                else if (e.key === 'ArrowUp') focusedGridIndex = Math.max(focusedGridIndex - cols, 0);
+                else if (e.key === 'Enter') { gridItems[focusedGridIndex].click(); return; }
+                updateGridFocus();
+                haptic();
                 return;
             }
+        }
 
-            if ((document.activeElement === document.body) && !modal.classList.contains('open') && !taskSwitcher
-                .classList.contains('open')) {
-                const gridItems = document.querySelectorAll('.app-tile');
-                if (gridItems.length > 0) {
-                    let cols = Math.floor(appGrid.offsetWidth / 116);
-                    if (cols < 1) cols = 1;
-                    if (['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp', 'Enter'].includes(e.key)) {
-                        e.preventDefault();
-                        if (focusedGridIndex === -1) focusedGridIndex = 0;
-                        else if (e.key === 'ArrowRight') focusedGridIndex = Math.min(focusedGridIndex + 1, gridItems
-                            .length - 1);
-                        else if (e.key === 'ArrowLeft') focusedGridIndex = Math.max(focusedGridIndex - 1, 0);
-                        else if (e.key === 'ArrowDown') focusedGridIndex = Math.min(focusedGridIndex + cols,
-                            gridItems.length - 1);
-                        else if (e.key === 'ArrowUp') focusedGridIndex = Math.max(focusedGridIndex - cols, 0);
-                        else if (e.key === 'Enter') { gridItems[focusedGridIndex].click(); return; }
-                        updateGridFocus();
-                        haptic();
-                        return;
-                    }
-                }
+        // Arrow left/right for page navigation (when no grid focus)
+        if (e.key === 'ArrowLeft' && !modal.classList.contains('open')) {
+            e.preventDefault();
+            goToPage(currentPage - 1);
+        } else if (e.key === 'ArrowRight' && !modal.classList.contains('open')) {
+            e.preventDefault();
+            goToPage(currentPage + 1);
+        }
+    }
 
-                if (e.key === 'ArrowLeft' && !modal.classList.contains('open')) {
-                    e.preventDefault();
-                    goToPage(currentPage - 1);
-                } else if (e.key === 'ArrowRight' && !modal.classList.contains('open')) {
-                    e.preventDefault();
-                    goToPage(currentPage + 1);
-                }
+    // Escape: close modal, switcher, menu, or app
+    if (e.key === 'Escape') {
+        if (modal.classList.contains('open')) closeModal();
+        else if (taskSwitcher.classList.contains('open')) taskSwitcher.classList.remove('open');
+        else if (startMenu.classList.contains('open')) startMenu.classList.remove('open');
+        else if (document.body.classList.contains('desktop-mode')) {
+            const wins = Array.from(document.querySelectorAll('.window')).sort((a, b) => b.style.zIndex - a.style.zIndex);
+            if (wins.length > 0 && wins[0].style.display !== 'none') {
+                const id = wins[0].id.replace('win-', '');
+                closeApp(id);
             }
-
-            if (e.key === 'Escape') {
-                if (modal.classList.contains('open')) closeModal();
-                else if (taskSwitcher.classList.contains('open')) taskSwitcher.classList.remove('open');
-                else if (startMenu.classList.contains('open')) startMenu.classList.remove('open');
-                else if (document.body.classList.contains('desktop-mode')) {
-                    const wins = Array.from(document.querySelectorAll('.window')).sort((a, b) => b.style.zIndex - a
-                        .style.zIndex);
-                    if (wins.length > 0 && wins[0].style.display !== 'none') {
-                        const id = wins[0].id.replace('win-', '');
-                        closeApp(id);
-                    }
-                }
-            }
-        });
+        }
+    }
+});
 
         // ═══════════════════════════════════════════════════════════════════
         //  TOUCH SWIPE FOR PAGINATION
@@ -2840,12 +2915,14 @@
 
         // Auto-hide status bar on scroll
         let lastScrollY = 0;
-        pageViewport.addEventListener('scroll', () => {
-            let current = pageViewport.scrollTop;
-            if (current > lastScrollY && current > 50) statusBar.classList.add('hide');
-            else statusBar.classList.remove('hide');
-            lastScrollY = current;
-        }, { passive: true });
+pageViewport.addEventListener('scroll', () => {
+    requestAnimationFrame(() => {
+        let current = pageViewport.scrollTop;
+        if (current > lastScrollY && current > 50) statusBar.classList.add('hide');
+        else statusBar.classList.remove('hide');
+        lastScrollY = current;
+    });
+}, { passive: true });
 
         // ═══════════════════════════════════════════════════════════════════
         //  THEME
@@ -2910,42 +2987,48 @@
             const x = (e.clientX || e.touches?.[0]?.clientX || rect.left + rect.width / 2) - rect.left;
             const y = (e.clientY || e.touches?.[0]?.clientY || rect.top + rect.height / 2) - rect.top;
 
-            const ripple = document.createElement('div');
-            ripple.className = 'ripple';
-            const size = Math.max(rect.width, rect.height);
-            ripple.style.width = size + 'px';
-            ripple.style.height = size + 'px';
-            ripple.style.left = (x - size / 2) + 'px';
-            ripple.style.top = (y - size / 2) + 'px';
-            lockIconWrapper.appendChild(ripple);
-            setTimeout(() => ripple.remove(), 800);
+    const ripple = document.createElement('div');
+    ripple.className = 'ripple';
+    const size = Math.max(rect.width, rect.height);
+    ripple.style.width = size + 'px';
+    ripple.style.height = size + 'px';
+    ripple.style.left = (x - size / 2) + 'px';
+    ripple.style.top = (y - size / 2) + 'px';
+    lockIconWrapper.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 800);
 
-            if (document.body.classList.contains('desktop-mode')) {
+    document.body.dataset.interactive = 'false';
+
+    if (document.body.classList.contains('desktop-mode')) {
                 if (!document.fullscreenElement) {
-                    document.documentElement.requestFullscreen().catch(() => {
-                        lockScreen.classList.remove('locked');
-                        lockScreen.classList.add('unlocked');
-                        isLocked = false;
-                        toast('Unlocked');
-                    }).then(() => {
+            document.documentElement.requestFullscreen().catch(() => {
+                lockScreen.classList.remove('locked');
+                lockScreen.classList.add('unlocked');
+                isLocked = false;
+                toast('Unlocked');
+                setTimeout(() => { document.body.dataset.interactive = 'true'; }, 200);
+            }).then(() => {
                         lockScreen.classList.remove('locked');
                         lockScreen.classList.add('unlocked');
                         isLocked = false;
                         isFullscreen = true;
                         fullscreenWasUnlocked = true;
                         toast('Unlocked in fullscreen');
+                        setTimeout(() => { document.body.dataset.interactive = 'true'; }, 200);
                     });
                 } else {
                     lockScreen.classList.remove('locked');
                     lockScreen.classList.add('unlocked');
                     isLocked = false;
                     toast('Unlocked');
+                    setTimeout(() => { document.body.dataset.interactive = 'true'; }, 200);
                 }
             } else {
                 lockScreen.classList.remove('locked');
                 lockScreen.classList.add('unlocked');
                 isLocked = false;
                 toast('Unlocked');
+                setTimeout(() => { document.body.dataset.interactive = 'true'; }, 200);
             }
         }
 
@@ -3024,14 +3107,19 @@
         // ═══════════════════════════════════════════════════════════════════
         //  VIEW MODE SWITCH
         // ═══════════════════════════════════════════════════════════════════
-        function setViewMode(mode) {
-            viewMode = mode;
-            localStorage.setItem('viewMode', viewMode);
-            recalcPagination();
-            renderGrid();
-            renderDots();
-            toast('View: ' + mode);
-        }
+function setViewMode(mode) {
+    viewMode = mode;
+    localStorage.setItem('viewMode', viewMode);
+    recalcPagination();
+    if (currentPage >= totalPages) currentPage = totalPages - 1;
+    if (currentPage < 0) currentPage = 0;
+    renderGrid();
+    renderDots();
+    const tiles = document.querySelectorAll('.app-tile');
+    if (focusedGridIndex >= tiles.length) focusedGridIndex = 0;
+    updateGridFocus();
+    toast('View: ' + mode);
+}
         document.querySelectorAll('.menu-item[data-view]').forEach(el => {
             el.onclick = () => setViewMode(el.getAttribute('data-view'));
         });
@@ -3052,27 +3140,34 @@
         };
 
         backBtn.onclick = () => {
-            haptic();
-            if (!modal.classList.contains('open')) { toast('No app open'); return; }
-            let responded = false;
-            const handler = (msg) => {
-                if (msg.data && msg.data.type === 'canGoBackResponse') {
-                    responded = true;
-                    window.removeEventListener('message', handler);
-                    if (msg.data.canGoBack) {
-                        modalIframe.contentWindow?.postMessage({ type: 'performBack' }, '*');
-                    } else {
-                        closeModal();
-                    }
-                }
-            };
-            window.addEventListener('message', handler);
-            modalIframe.contentWindow?.postMessage({ type: 'canGoBack' }, '*');
-            setTimeout(() => {
-                window.removeEventListener('message', handler);
-                if (!responded) closeModal();
-            }, 300);
-        };
+    haptic();
+    if (!modal.classList.contains('open')) { toast('No app open'); return; }
+    const activeId = Object.keys(runningApps).find(id => runningApps[id].active);
+    if (!activeId) { closeModal(); return; }
+    const app = runningApps[activeId];
+    if (app.app.type === 'native') {
+        closeModal();
+        return;
+    }
+    let responded = false;
+    const handler = (msg) => {
+        if (msg.data && msg.data.type === 'canGoBackResponse') {
+            responded = true;
+            window.removeEventListener('message', handler);
+            if (msg.data.canGoBack) {
+                modalIframe.contentWindow?.postMessage({ type: 'performBack' }, '*');
+            } else {
+                closeModal();
+            }
+        }
+    };
+    window.addEventListener('message', handler);
+    modalIframe.contentWindow?.postMessage({ type: 'canGoBack' }, '*');
+    setTimeout(() => {
+        window.removeEventListener('message', handler);
+        if (!responded) closeModal();
+    }, 300);
+};
 
         recentsBtn.onclick = () => { haptic();
             recentsDrawer.classList.toggle('open');
