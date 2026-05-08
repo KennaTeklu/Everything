@@ -1537,8 +1537,37 @@
 
         function uid() { return Date.now() + '-' + Math.random().toString(36).substr(2, 8); }
 
-        function getFaviconUrl(url) {
-            try { return `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=128`; } catch (e) { return ''; }
+        // ────────────────────────────────────────────────────────────────
+        //  CROSS-BROWSER FULLSCREEN HELPERS
+        // ────────────────────────────────────────────────────────────────
+        function isFullscreenSafe() {
+            return !!(document.fullscreenElement || document.webkitFullscreenElement || 
+                      document.mozFullScreenElement || document.msFullscreenElement);
+        }
+
+        function enterFullscreenSafe() {
+            const elem = document.documentElement;
+            try {
+                if (elem.requestFullscreen) return Promise.resolve(elem.requestFullscreen());
+                if (elem.webkitRequestFullscreen) return Promise.resolve(elem.webkitRequestFullscreen());
+                if (elem.mozRequestFullScreen) return Promise.resolve(elem.mozRequestFullScreen());
+                if (elem.msRequestFullscreen) return Promise.resolve(elem.msRequestFullscreen());
+                return Promise.reject(new Error("Fullscreen API not supported"));
+            } catch (err) {
+                return Promise.reject(err);
+            }
+        }
+
+        function exitFullscreenSafe() {
+            try {
+                if (document.exitFullscreen) return Promise.resolve(document.exitFullscreen());
+                if (document.webkitExitFullscreen) return Promise.resolve(document.webkitExitFullscreen());
+                if (document.mozCancelFullScreen) return Promise.resolve(document.mozCancelFullScreen());
+                if (document.msExitFullscreen) return Promise.resolve(document.msExitFullscreen());
+                return Promise.resolve();
+            } catch (err) {
+                return Promise.reject(err);
+            }
         }
 
         // ────────────────────────────────────────────────────────────────
@@ -3345,23 +3374,25 @@ pageViewport.addEventListener('scroll', () => {
         themeToggleBtn.onclick = toggleTheme;
 
         // ═══════════════════════════════════════════════════════════════════
-        //  FULLSCREEN
+        //  FULLSCREEN TOGGLE (Settings Menu)
         // ═══════════════════════════════════════════════════════════════════
         fullscreenToggle.onclick = () => {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(() => toast('Fullscreen not supported'));
-                toast('Entering fullscreen');
+            if (!isFullscreenSafe()) {
+                enterFullscreenSafe().then(() => {
+                    toast('Entering fullscreen');
+                }).catch(() => toast('Fullscreen not supported'));
             } else {
-                document.exitFullscreen();
-                toast('Exiting fullscreen');
+                exitFullscreenSafe().then(() => {
+                    toast('Exiting fullscreen');
+                });
             }
             viewMenu.classList.remove('show');
         };
 
         // ─── SHUTDOWN OS ───
         window.shutdownOS = function() {
-            if (document.fullscreenElement) {
-                document.exitFullscreen().then(() => {
+            if (isFullscreenSafe()) {
+                exitFullscreenSafe().then(() => {
                     lockScreen.classList.remove('unlocked');
                     lockScreen.classList.add('locked');
                     isLocked = true;
@@ -3389,61 +3420,58 @@ pageViewport.addEventListener('scroll', () => {
         // ═══════════════════════════════════════════════════════════════════
         //  LOCK SCREEN (with ripple and fullscreen)
         // ═══════════════════════════════════════════════════════════════════
+        // ═══════════════════════════════════════════════════════════════════
+        //  LOCK SCREEN (with ripple and cross-browser fullscreen)
+        // ═══════════════════════════════════════════════════════════════════
         function lockScreenUnlock(e) {
-            // Trigger haptic after a short delay to ensure user gesture is recognized
-            setTimeout(() => {
-                haptic(true);
-            }, 50);
+            // 1. Immediately request fullscreen to satisfy strict browser gesture tokens (Brave/Safari)
+            let fsPromise = null;
+            if (!isFullscreenSafe()) {
+                fsPromise = enterFullscreenSafe();
+            }
 
+            // 2. Haptics & UI
+            haptic(true);
             const rect = lockIconWrapper.getBoundingClientRect();
             const x = (e.clientX || e.touches?.[0]?.clientX || rect.left + rect.width / 2) - rect.left;
             const y = (e.clientY || e.touches?.[0]?.clientY || rect.top + rect.height / 2) - rect.top;
 
-    const ripple = document.createElement('div');
-    ripple.className = 'ripple';
-    const size = Math.max(rect.width, rect.height);
-    ripple.style.width = size + 'px';
-    ripple.style.height = size + 'px';
-    ripple.style.left = (x - size / 2) + 'px';
-    ripple.style.top = (y - size / 2) + 'px';
-    lockIconWrapper.appendChild(ripple);
-    setTimeout(() => ripple.remove(), 800);
+            const ripple = document.createElement('div');
+            ripple.className = 'ripple';
+            const size = Math.max(rect.width, rect.height);
+            ripple.style.width = size + 'px';
+            ripple.style.height = size + 'px';
+            ripple.style.left = (x - size / 2) + 'px';
+            ripple.style.top = (y - size / 2) + 'px';
+            lockIconWrapper.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 800);
 
-    document.body.dataset.interactive = 'false';
+            document.body.dataset.interactive = 'false';
 
-    if (document.body.classList.contains('desktop-mode')) {
-                if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen().catch(() => {
+            // 3. Complete Unlock execution
+            const finishUnlock = () => {
                 lockScreen.classList.remove('locked');
                 lockScreen.classList.add('unlocked');
                 isLocked = false;
-                toast('Unlocked');
                 setTimeout(() => { document.body.dataset.interactive = 'true'; }, 200);
-            }).then(() => {
-                        lockScreen.classList.remove('locked');
-                        lockScreen.classList.add('unlocked');
-                        isLocked = false;
-                        isFullscreen = true;
-                        fullscreenWasUnlocked = true;
-                        toast('Unlocked in fullscreen');
-                        setTimeout(() => { document.body.dataset.interactive = 'true'; }, 200);
-                    });
-                } else {
-                    lockScreen.classList.remove('locked');
-                    lockScreen.classList.add('unlocked');
-                    isLocked = false;
+            };
+
+            if (fsPromise) {
+                fsPromise.then(() => {
+                    isFullscreen = true;
+                    fullscreenWasUnlocked = true;
+                    toast('Unlocked in fullscreen');
+                    finishUnlock();
+                }).catch(() => {
+                    // Fallback if browser blocks fullscreen (e.g., iPhone iOS)
                     toast('Unlocked');
-                    setTimeout(() => { document.body.dataset.interactive = 'true'; }, 200);
-                }
+                    finishUnlock();
+                });
             } else {
-                lockScreen.classList.remove('locked');
-                lockScreen.classList.add('unlocked');
-                isLocked = false;
                 toast('Unlocked');
-                setTimeout(() => { document.body.dataset.interactive = 'true'; }, 200);
+                finishUnlock();
             }
         }
-
         function updateLockIcon() {
             if (document.body.classList.contains('desktop-mode')) {
                 lockIcon.className = 'fas fa-lock lock-icon';
