@@ -2529,8 +2529,8 @@
                     scrollY: savedData ? savedData.scrollY || 0 : 0,
                     lastActive: Date.now(),
                     focusedSelector: savedData ? savedData.focusedSelector || null : null,
-                    // Stores the iframe when we detach it from #modalContent while switching apps
-                    detachedIframe: null
+                    detachedIframe: null,
+                    hasActiveDialog: false // ← NEW FLAG
                 };
             } else {
                 runningApps[id].lastActive = Date.now();
@@ -2704,11 +2704,15 @@
             hasUnsavedChanges = Object.values(runningApps).some(a => a.unsavedFlag === true);
         }
 
-        function closeModal() {
-            const activeId = Object.keys(runningApps).find(id => runningApps[id].active);
-            if (activeId) closeApp(activeId);
-            else modal.classList.remove('open');
-        }
+function closeModal() {
+    const activeId = Object.keys(runningApps).find(id => runningApps[id].active);
+    if (activeId && runningApps[activeId].hasActiveDialog) {
+        toast('App has an active dialog. Close the dialog first.');
+        return;
+    }
+    if (activeId) closeApp(activeId);
+    else modal.classList.remove('open');
+}
 
         // ═══════════════════════════════════════════════════════════════════
         //  DESKTOP WINDOW MANAGEMENT
@@ -3486,17 +3490,27 @@ function setViewMode(mode) {
         // ═══════════════════════════════════════════════════════════════════
         //  MOBILE NAV BUTTONS
         // ═══════════════════════════════════════════════════════════════════
-        homeBtn.onclick = () => {
-            haptic();
-            if (modal.classList.contains('open')) closeModal();
-            else goToPage(0);
-        };
+homeBtn.onclick = () => {
+    haptic();
+    if (modal.classList.contains('open')) {
+        const activeId = Object.keys(runningApps).find(id => runningApps[id].active);
+        if (activeId && runningApps[activeId].hasActiveDialog) {
+            toast('App has an active dialog. Close the dialog first.');
+            return;
+        }
+        closeModal();
+    } else goToPage(0);
+};
 
         backBtn.onclick = () => {
     haptic();
     if (!modal.classList.contains('open')) { toast('No app open'); return; }
     const activeId = Object.keys(runningApps).find(id => runningApps[id].active);
     if (!activeId) { closeModal(); return; }
+        if (runningApps[activeId].hasActiveDialog) {
+        toast('App has an active dialog. Close the dialog first.');
+        return;
+    }
     const app = runningApps[activeId];
     if (app.app.type === 'native') {
         closeModal();
@@ -3574,6 +3588,15 @@ function setViewMode(mode) {
                     app.notificationCount = e.data.count || 0;
                     renderGrid();
                 }
+            } else if (e.data && e.data.type === 'startDialog') {
+                if (senderId && runningApps[senderId]) {
+                    runningApps[senderId].hasActiveDialog = true;
+                }
+            } else if (e.data && e.data.type === 'endDialog') {
+                if (senderId && runningApps[senderId]) {
+                    runningApps[senderId].hasActiveDialog = false;
+                }
+            }
             }
         });
 
