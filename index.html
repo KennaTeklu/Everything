@@ -3597,9 +3597,7 @@ homeBtn.onclick = () => {
                     runningApps[senderId].hasActiveDialog = false;
                 }
             }
-            }
         });
-
         function findAppIdByFrame(frameWindow) {
             for (let [id, app] of Object.entries(runningApps)) {
                 const iframe = app.contentNode?.querySelector('iframe') || modalIframe;
