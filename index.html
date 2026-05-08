@@ -1254,11 +1254,14 @@
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
             z-index: 3000;
             display: none;
-            pointer-events: none;
+            pointer-events: auto; /* 👈 Allows the user to move their mouse over the preview */
             width: 280px;
             height: 180px;
             overflow: hidden;
             transition: opacity 0.15s ease;
+        }
+        .taskbar-preview * {
+            pointer-events: none; /* Prevents clicks inside the preview from triggering apps */
         }
         .taskbar-preview.visible {
             display: block;
@@ -2702,12 +2705,19 @@ win.addEventListener('pointerdown', () => {
                 div.innerHTML = `<i class="fas ${app.icon || 'fa-globe'}"></i> ${escapeHtml(app.name)}${badge}`;
                 div.dataset.appId = id;
 
-                // Taskbar hover preview
+                // Taskbar hover preview with debouncing to prevent flicker
+                let previewTimer = null;
                 div.addEventListener('mouseenter', () => {
-                    showTaskbarPreview(id, div);
+                    clearTimeout(previewTimer);
+                    previewTimer = setTimeout(() => {
+                        showTaskbarPreview(id, div);
+                    }, 100);
                 });
                 div.addEventListener('mouseleave', () => {
-                    taskbarPreview.classList.remove('visible');
+                    clearTimeout(previewTimer);
+                    previewTimer = setTimeout(() => {
+                        taskbarPreview.classList.remove('visible');
+                    }, 50);
                 });
 
                 div.onclick = () => {
