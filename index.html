@@ -667,7 +667,11 @@
             opacity: 1;
         }
         #modalContent {
-            display: none;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            width: 100%;
+            height: 100%;
         }
 
         /* ─── TASK SWITCHER ─── */
@@ -990,6 +994,45 @@
         }
 
         /* ─── NATIVE APP HELPERS ─── */
+        /* ===== BROWSER APP UI ===== */
+        .browser-nav {
+            display: flex; align-items: center; gap: 6px; padding: 8px 12px;
+            background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .nav-btn {
+            width: 32px; height: 32px; border-radius: 6px; border: none;
+            background: transparent; color: var(--text-dim);
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: all 0.15s;
+        }
+        .nav-btn:hover:not(:disabled) { background: var(--surface-hover); color: var(--text); }
+        .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .address-bar {
+            flex: 1; display: flex; align-items: center; gap: 10px;
+            background: var(--surface); border-radius: 6px; padding: 0 12px; height: 32px;
+            border: 1px solid transparent; transition: all 0.2s;
+        }
+        .address-bar:focus-within { 
+            border-color: var(--primary); 
+            background: rgba(0,0,0,0.2);
+        }
+        .address-bar input { 
+            flex: 1; background: transparent; border: none; 
+            color: var(--text); font-size: 13px; outline: none;
+        }
+        .browser-content {
+            flex: 1; position: relative; display: flex; flex-direction: column;
+        }
+        .browser-iframe {
+            width: 100%; height: 100%; border: none; background: #fff; flex: 1;
+        }
+        .browser-loading {
+            position: absolute; inset: 0; background: var(--surface-solid);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 5; opacity: 0; pointer-events: none; transition: 0.3s;
+        }
+        .browser-loading.active { opacity: 1; pointer-events: auto; }
         .app-iframe {
             width: 100%;
             height: 100%;
@@ -1579,8 +1622,7 @@
                 isDefault: true, favicon: 'icons/chatbot.png' },
             { id: 'default-scheduler', name: 'Smart Scheduler', type: 'iframe', url: 'scheduler.html',
                 icon: 'fa-calendar-alt', isDefault: true, favicon: '' },
-            { id: 'native-browser', name: 'Browser', type: 'iframe', url: 'https://bing.com', icon: 'fa-globe',
-                isDefault: true, favicon: '' },
+            { id: 'native-browser', name: 'Browser', type: 'native', component: 'browser', icon: 'fa-globe', isDefault: true, favicon: '' },
             { id: 'native-notepad', name: 'Notepad', type: 'native', component: 'notepad', icon: 'fa-file-alt',
                 isDefault: true },
             { id: 'native-calc', name: 'Calculator', type: 'native', component: 'calculator', icon: 'fa-calculator',
@@ -2152,56 +2194,154 @@ if (app.type === 'iframe') {
         };
 
         return wrap;
-    } else if (app.type === 'native') {
-                wrap.className = 'app-native';
-                if (app.component === 'notepad') {
-                    let textarea = document.createElement('textarea');
-                    textarea.className = 'native-notepad';
-                    textarea.placeholder = 'Type here... Unsaved changes are tracked.';
-                    textarea.oninput = () => {
-                        if (runningApps[app.id]) runningApps[app.id].unsavedFlag = true;
-                        hasUnsavedChanges = true;
+        } else if (app.type === 'native') {
+            wrap.className = 'app-native';
+            if (app.component === 'browser') {
+                const startUrl = 'https://www.bing.com';
+                wrap.innerHTML = `
+                    <div class="browser-nav">
+                        <button class="nav-btn" id="nav-back-${app.id}"><i class="fas fa-arrow-left"></i></button>
+                        <button class="nav-btn" id="nav-forward-${app.id}"><i class="fas fa-arrow-right"></i></button>
+                        <button class="nav-btn" id="nav-refresh-${app.id}"><i class="fas fa-redo"></i></button>
+                        <div class="address-bar">
+                            <i class="fas fa-lock" style="font-size: 12px; color: #10b981;"></i>
+                            <input type="text" id="url-input-${app.id}" value="${startUrl}" spellcheck="false">
+                        </div>
+                        <button class="nav-btn" id="nav-go-${app.id}"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                    <div class="browser-content">
+                        <div class="browser-loading" id="loading-${app.id}">
+                            <i class="fas fa-circle-notch fa-spin" style="font-size: 32px; color: var(--primary); margin-bottom: 12px;"></i>
+                        </div>
+                        <iframe id="frame-${app.id}" class="browser-iframe" src="${startUrl}" sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-downloads"></iframe>
+                    </div>
+                `;
+
+                let historyStack = [startUrl];
+                let currentIndex = 0;
+                if (runningApps[app.id] && runningApps[app.id].componentData) {
+                    historyStack = runningApps[app.id].componentData.history;
+                    currentIndex = runningApps[app.id].componentData.index;
+                }
+
+                setTimeout(() => {
+                    const urlInput = wrap.querySelector(`#url-input-${app.id}`);
+                    const frame = wrap.querySelector(`#frame-${app.id}`);
+                    const loading = wrap.querySelector(`#loading-${app.id}`);
+                    const goBtn = wrap.querySelector(`#nav-go-${app.id}`);
+                    const refreshBtn = wrap.querySelector(`#nav-refresh-${app.id}`);
+                    const backBtn = wrap.querySelector(`#nav-back-${app.id}`);
+                    const fwdBtn = wrap.querySelector(`#nav-forward-${app.id}`);
+
+                    const updateUI = () => {
+                        backBtn.disabled = currentIndex === 0;
+                        fwdBtn.disabled = currentIndex === historyStack.length - 1;
+                        urlInput.value = historyStack[currentIndex];
+                        if (runningApps[app.id]) {
+                            runningApps[app.id].componentData = { history: historyStack, index: currentIndex };
+                        }
                     };
-                    wrap.appendChild(textarea);
+
+                    const loadFrame = (url) => {
+                        loading.classList.add('active');
+                        frame.src = url;
+                    };
+
+                    const navigate = () => {
+                        let url = urlInput.value.trim();
+                        if (!url.startsWith('http') && !url.startsWith('blob:') && !url.startsWith('file:')) {
+                            url = 'https://' + url;
+                        }
+                        if (url !== historyStack[currentIndex]) {
+                            historyStack = historyStack.slice(0, currentIndex + 1);
+                            historyStack.push(url);
+                            currentIndex++;
+                        }
+                        updateUI();
+                        loadFrame(url);
+                    };
+
+                    urlInput.onkeydown = e => { if (e.key === 'Enter') navigate(); };
+                    goBtn.onclick = navigate;
+
+                    refreshBtn.onclick = () => {
+                        loading.classList.add('active');
+                        const currentUrl = frame.src;
+                        frame.src = 'about:blank';
+                        setTimeout(() => { frame.src = currentUrl; }, 10);
+                    };
+
+                    frame.onload = () => loading.classList.remove('active');
+
+                    backBtn.onclick = () => {
+                        if (currentIndex > 0) {
+                            currentIndex--;
+                            loadFrame(historyStack[currentIndex]);
+                            updateUI();
+                        }
+                    };
+
+                    fwdBtn.onclick = () => {
+                        if (currentIndex < historyStack.length - 1) {
+                            currentIndex++;
+                            loadFrame(historyStack[currentIndex]);
+                            updateUI();
+                        }
+                    };
+
+                    updateUI();
                     if (runningApps[app.id] && runningApps[app.id].componentData) {
-                        textarea.value = runningApps[app.id].componentData;
+                        loadFrame(historyStack[currentIndex]);
                     }
-                } else if (app.component === 'calculator') {
-                    let disp = document.createElement('div');
-                    disp.className = 'calc-display';
-                    disp.id = `calcDisp-${app.id}`;
-                    disp.innerText = '0';
-                    let calcGrid = document.createElement('div');
-                    calcGrid.className = 'calc-grid';
-                    const btns = ['7', '8', '9', '/', '4', '5', '6', '*', '1', '2', '3', '-', 'C', '0', '=', '+'];
-                    btns.forEach(btn => {
-                        let b = document.createElement('button');
-                        b.className = `calc-btn ${isNaN(btn) && btn!=='.' ? 'op':''}`;
-                        b.innerText = btn;
-                        b.onclick = () => calcPress(btn, app.id);
-                        calcGrid.appendChild(b);
-                    });
-                    wrap.appendChild(disp);
-                    wrap.appendChild(calcGrid);
-                    if (runningApps[app.id] && runningApps[app.id].componentData) {
-                        disp.innerText = runningApps[app.id].componentData;
-                    }
-                } else if (app.component === 'paint') {
-                    let canvas = document.createElement('canvas');
-                    canvas.id = `canvas-${app.id}`;
-                    canvas.style.background = 'white';
-                    canvas.style.borderRadius = '8px';
-                    canvas.style.flex = '1';
-                    canvas.style.touchAction = 'none';
-                    wrap.appendChild(canvas);
-                    setTimeout(() => initPaint(canvas, app.id), 100);
-                    if (runningApps[app.id] && runningApps[app.id].componentData) {
-                        const img = new Image();
-                        img.onload = () => canvas.getContext('2d').drawImage(img, 0, 0);
-                        img.src = runningApps[app.id].componentData;
-                    }
+                }, 50);
+            } else if (app.component === 'notepad') {
+                let textarea = document.createElement('textarea');
+                textarea.className = 'native-notepad';
+                textarea.placeholder = 'Type here... Unsaved changes are tracked.';
+                textarea.oninput = () => {
+                    if (runningApps[app.id]) runningApps[app.id].unsavedFlag = true;
+                    hasUnsavedChanges = true;
+                };
+                wrap.appendChild(textarea);
+                if (runningApps[app.id] && runningApps[app.id].componentData) {
+                    textarea.value = runningApps[app.id].componentData;
+                }
+            } else if (app.component === 'calculator') {
+                let disp = document.createElement('div');
+                disp.className = 'calc-display';
+                disp.id = `calcDisp-${app.id}`;
+                disp.innerText = '0';
+                let calcGrid = document.createElement('div');
+                calcGrid.className = 'calc-grid';
+                const btns = ['7', '8', '9', '/', '4', '5', '6', '*', '1', '2', '3', '-', 'C', '0', '=', '+'];
+                btns.forEach(btn => {
+                    let b = document.createElement('button');
+                    b.className = `calc-btn ${isNaN(btn) && btn!=='.' ? 'op':''}`;
+                    b.innerText = btn;
+                    b.onclick = () => calcPress(btn, app.id);
+                    calcGrid.appendChild(b);
+                });
+                wrap.appendChild(disp);
+                wrap.appendChild(calcGrid);
+                if (runningApps[app.id] && runningApps[app.id].componentData) {
+                    disp.innerText = runningApps[app.id].componentData;
+                }
+            } else if (app.component === 'paint') {
+                let canvas = document.createElement('canvas');
+                canvas.id = `canvas-${app.id}`;
+                canvas.style.background = 'white';
+                canvas.style.borderRadius = '8px';
+                canvas.style.flex = '1';
+                canvas.style.touchAction = 'none';
+                wrap.appendChild(canvas);
+                setTimeout(() => initPaint(canvas, app.id), 100);
+                if (runningApps[app.id] && runningApps[app.id].componentData) {
+                    const img = new Image();
+                    img.onload = () => canvas.getContext('2d').drawImage(img, 0, 0);
+                    img.src = runningApps[app.id].componentData;
                 }
             }
+        }
             return wrap;
         }
 
@@ -2300,13 +2440,15 @@ if (app.type === 'iframe') {
                 modalTitle.innerText = app.name;
                 const content = runningApps[id].contentNode;
                 if (app.type === 'iframe') {
-                    const iframe = content.querySelector('iframe');
-                    if (iframe) {
-                        modalIframe.src = iframe.src;
-                        modalIframe.setAttribute('sandbox', iframe.getAttribute('sandbox') || '');
-                        modalIframe.setAttribute('allow', iframe.getAttribute('allow') || '');
+                    // Move the existing iframe DOM node instead of copying src
+                    const existingIframe = content.querySelector('iframe');
+                    if (existingIframe) {
+                        // Clear modalContent and move the iframe into it
+                        const mc = document.getElementById('modalContent');
+                        mc.innerHTML = '';
+                        mc.appendChild(existingIframe);
                         if (runningApps[id].scrollY) {
-                            modalIframe.onload = () => { modalIframe.contentWindow?.scrollTo(0, runningApps[id]
+                            existingIframe.onload = () => { existingIframe.contentWindow?.scrollTo(0, runningApps[id]
                                     .scrollY); };
                         }
                     }
@@ -2442,6 +2584,13 @@ if (app.type === 'iframe') {
             win.querySelector('.win-content').appendChild(contentNode);
             makeDraggable(win);
             win.onmousedown = () => bringToFront(win);
+        // Fix: ensure clicking inside the iframe also brings window to front
+        const iframe = contentNode.querySelector('iframe');
+        if (iframe) {
+            iframe.addEventListener('pointerdown', (e) => {
+                bringToFront(win);
+            });
+        }
             return win;
         }
 
@@ -2568,25 +2717,28 @@ if (app.type === 'iframe') {
 
             previewLabel.textContent = app.app.name;
 
-            // Capture iframe content to canvas (if iframe)
+             // Capture iframe content to canvas (if iframe)
             if (app.app.type === 'iframe') {
                 const iframe = app.contentNode.querySelector('iframe') || modalIframe;
                 if (iframe && iframe.contentWindow) {
                     try {
+                        // Try to access contentDocument – if CORS blocks, just show app name
                         const doc = iframe.contentDocument || iframe.contentWindow.document;
-                        const body = doc.body;
-                        const ctx = canvas.getContext('2d');
-                        ctx.fillStyle = '#1e293b';
-                        ctx.fillRect(0, 0, canvas.width, canvas.height);
-                        ctx.fillStyle = '#3b82f6';
-                        ctx.font = '32px sans-serif';
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.fillText('📄', canvas.width / 2, canvas.height / 2 - 10);
-                        ctx.fillStyle = '#f0f0f0';
-                        ctx.font = '14px sans-serif';
-                        ctx.fillText(app.app.name, canvas.width / 2, canvas.height / 2 + 40);
+                        if (doc) {
+                            const ctx = canvas.getContext('2d');
+                            ctx.fillStyle = '#1e293b';
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                            ctx.fillStyle = '#3b82f6';
+                            ctx.font = '32px sans-serif';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText('📄', canvas.width / 2, canvas.height / 2 - 10);
+                            ctx.fillStyle = '#f0f0f0';
+                            ctx.font = '14px sans-serif';
+                            ctx.fillText(app.app.name, canvas.width / 2, canvas.height / 2 + 40);
+                        }
                     } catch (e) {
+                        // CORS error - silently ignore and show fallback
                         const ctx = canvas.getContext('2d');
                         ctx.fillStyle = '#1e293b';
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -2754,8 +2906,10 @@ if (app.type === 'iframe') {
             } catch (e) { return false; }
         }
 
-window.addEventListener('keydown', (e) => {
-    if (isIframeActive()) return;
+        window.addEventListener('keydown', (e) => {
+            // Block all keyboard shortcuts when lock screen is locked
+            if (lockScreen.classList.contains('locked')) return;
+            if (isIframeActive()) return;
 
     // Spacebar: add app (only on home screen, not in inputs)
     if (e.key === ' ' && document.activeElement === document.body && !modal.classList.contains('open') && !taskSwitcher.classList.contains('open')) {
@@ -3150,10 +3304,17 @@ function setViewMode(mode) {
         return;
     }
     let responded = false;
+    // Clear any previous backlog timeout (prevents overlapping timeouts when mashing back)
+    if (window._backTimeout) clearTimeout(window._backTimeout);
+
     const handler = (msg) => {
         if (msg.data && msg.data.type === 'canGoBackResponse') {
             responded = true;
             window.removeEventListener('message', handler);
+            if (window._backTimeout) {
+                clearTimeout(window._backTimeout);
+                window._backTimeout = null;
+            }
             if (msg.data.canGoBack) {
                 modalIframe.contentWindow?.postMessage({ type: 'performBack' }, '*');
             } else {
@@ -3163,9 +3324,11 @@ function setViewMode(mode) {
     };
     window.addEventListener('message', handler);
     modalIframe.contentWindow?.postMessage({ type: 'canGoBack' }, '*');
-    setTimeout(() => {
+
+    window._backTimeout = setTimeout(() => {
         window.removeEventListener('message', handler);
         if (!responded) closeModal();
+        window._backTimeout = null;
     }, 300);
 };
 
@@ -3185,31 +3348,32 @@ function setViewMode(mode) {
         //  MESSAGE HANDLING (From iframes)
         // ═══════════════════════════════════════════════════════════════════
         window.addEventListener('message', (e) => {
+            // SECURITY FIX: Only accept messages from our own iframes
+            const senderId = findAppIdByFrame(e.source);
+            if (!senderId) {
+                // Ignore messages from unknown sources
+                return;
+            }
             if (e.data && e.data.type === 'setUnsaved') {
-                const id = findAppIdByFrame(e.source);
-                if (id && runningApps[id]) runningApps[id].unsavedFlag = e.data.unsaved;
-                if (id && document.body.classList.contains('desktop-mode') && runningApps[id]?.winEl) {
-                    const titleEl = runningApps[id].winEl?.querySelector('.win-header div:first-child');
+                if (senderId && runningApps[senderId]) runningApps[senderId].unsavedFlag = e.data.unsaved;
+                if (senderId && document.body.classList.contains('desktop-mode') && runningApps[senderId]?.winEl) {
+                    const titleEl = runningApps[senderId].winEl?.querySelector('.win-header div:first-child');
                     if (titleEl) {
                         titleEl.innerHTML =
-                            `<i class="fas ${runningApps[id].app.icon || 'fa-globe'}" style="margin-right:6px;"></i>${escapeHtml(runningApps[id].app.name)}${e.data.unsaved ? ' ●' : ''}`;
+                            `<i class="fas ${runningApps[senderId].app.icon || 'fa-globe'}" style="margin-right:6px;"></i>${escapeHtml(runningApps[senderId].app.name)}${e.data.unsaved ? ' ●' : ''}`;
                     }
                 }
             } else if (e.data && e.data.type === 'saved') {
-                const id = findAppIdByFrame(e.source);
-                if (id && runningApps[id]) runningApps[id].unsavedFlag = false;
+                if (senderId && runningApps[senderId]) runningApps[senderId].unsavedFlag = false;
             } else if (e.data && e.data.type === 'micActive') {
                 micIndicator.style.display = e.data.active ? 'inline-block' : 'none';
             } else if (e.data && e.data.type === 'camActive') {
                 camIndicator.style.display = e.data.active ? 'inline-block' : 'none';
             } else if (e.data && e.data.type === 'badge') {
-                const id = findAppIdByFrame(e.source);
-                if (id) {
-                    const app = findAppById(id);
-                    if (app) {
-                        app.notificationCount = e.data.count || 0;
-                        renderGrid();
-                    }
+                const app = findAppById(senderId);
+                if (app) {
+                    app.notificationCount = e.data.count || 0;
+                    renderGrid();
                 }
             }
         });
