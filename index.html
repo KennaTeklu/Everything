@@ -1347,6 +1347,31 @@
         ::-webkit-scrollbar-thumb:hover {
             background: var(--text-dim);
         }
+        /* ─── Fullscreen Message Blending ─── */
+        /* This makes the browser's 'Press ESC to exit' message blend into the background */
+        html:fullscreen {
+            background: #000;
+        }
+        body:fullscreen {
+            background: #000;
+        }
+        
+        /* For WebKit browsers (Chrome, Safari) */
+        ::-webkit-full-screen {
+            background: #000;
+        }
+        
+        /* For Firefox */
+        ::-moz-full-screen {
+            background: #000;
+        }
+        
+        /* Ensure the app container is visible */
+        html:fullscreen body {
+            padding: 0;
+            margin: 0;
+            background: #0a0c12;
+        }
     </style>
 </head>
 <body>
