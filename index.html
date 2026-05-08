@@ -2223,9 +2223,32 @@
 
                     iframe.onload = () => {
                         clearTimeout(timeout);
-                        spinner.remove();
-                        iframe.contentWindow?.postMessage({ type: 'iframeResize', width: wrap.clientWidth, height: wrap.clientHeight }, '*');
+                        if (loadFailed) return;
+                        
+                        try {
+                            // Try to access the iframe's contentDocument
+                            const doc = iframe.contentDocument || iframe.contentWindow.document;
+                            
+                            // If we can access the document, check if the body is effectively empty
+                            if (doc && doc.body && doc.body.innerHTML.trim() === '') {
+                                // Site loaded but body is empty – likely blocked (YouTube, etc.)
+                                loadFailed = true;
+                                window.open(app.url, '_blank');
+                                const container = wrap.closest('.app-modal, .window');
+                                if (container) container.style.display = 'none';
+                                toast('Site blocked from embedding, opened in new tab');
+                            } else {
+                                // Site loaded successfully
+                                spinner.remove();
+                                iframe.contentWindow?.postMessage({ type: 'iframeResize', width: wrap.clientWidth, height: wrap.clientHeight }, '*');
+                            }
+                        } catch (e) {
+                            // Cross-origin access error – site loaded successfully, but we cannot access its DOM
+                            spinner.remove();
+                            iframe.contentWindow?.postMessage({ type: 'iframeResize', width: wrap.clientWidth, height: wrap.clientHeight }, '*');
+                        }
                     };
+
                     iframe.onerror = () => {
                         if (!loadFailed) {
                             clearTimeout(timeout);
@@ -2258,7 +2281,7 @@
                 wrap.className = 'app-native';
                 
                 if (app.component === 'browser') {
-                    // ... existing browser UI code ...
+                    // Existing browser UI code
                     const startUrl = app.url || 'https://www.bing.com';
                     wrap.innerHTML = `
                         <div class="browser-nav">
@@ -2314,9 +2337,6 @@
                             if (!url.startsWith('http') && !url.startsWith('blob:') && !url.startsWith('file:')) {
                                 url = 'https://' + url;
                             }
-                            
-                            // Optional: Proxy for CORS issues
-                            // let proxiedUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
                             
                             if (url !== historyStack[currentIndex]) {
                                 historyStack = historyStack.slice(0, currentIndex + 1);
