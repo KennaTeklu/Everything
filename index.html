@@ -613,28 +613,31 @@
             background: rgba(255, 255, 255, 0.15);
         }
 
-        /* ─── APP MODAL ─── */
+        /* ─── APP MODAL (Immersive Mobile Container) ─── */
         .app-modal {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
-            bottom: 70px;
-            background: #000;
-            z-index: 200;
+            bottom: 70px; /* Space for the bottom nav */
+            background: var(--bg);
+            z-index: 40; /* Lower than Status bar (50) so apps slide under the glass */
             display: flex;
             flex-direction: column;
             visibility: hidden;
             opacity: 0;
-            transition: visibility 0.25s, opacity 0.25s, transform 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-            transform: scale(0.95);
-            transform-origin: center center;
+            /* Native scale-up animation */
+            transform: scale(0.95) translateY(20px);
+            transition: visibility 0.3s, opacity 0.3s, transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            transform-origin: bottom center;
         }
         .app-modal.open {
             visibility: visible;
             opacity: 1;
-            transform: scale(1);
+            transform: scale(1) translateY(0);
         }
+        
+        /* The Header is for Desktop/Windows only! Kill it on Mobile. */
         .modal-header {
             background: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(20px);
@@ -645,26 +648,23 @@
             border-bottom: 1px solid var(--border);
             flex-shrink: 0;
         }
-        .modal-title {
-            font-size: 16px;
-            font-weight: 600;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 70%;
+        
+        /* Mobile-Specific Overrides */
+        body:not(.desktop-mode) .modal-header {
+            display: none !important; /* Eradicate the X button header */
         }
-        .close-modal {
-            background: none;
+        
+        body:not(.desktop-mode) .app-modal {
+            /* Push app content slightly down so it isn't completely hidden by the glass status bar */
+            padding-top: calc(36px + var(--safe-top));
+        }
+
+        .modal-iframe {
+            flex: 1;
+            width: 100%;
+            height: 100%;
             border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            padding: 0 8px;
-            opacity: 0.8;
-            transition: opacity 0.2s;
-        }
-        .close-modal:hover {
-            opacity: 1;
+            background: var(--surface-solid);
         }
         #modalContent {
             display: flex;
@@ -2488,37 +2488,42 @@ const navigate = () => {
 
             if (isMobile() && !document.body.classList.contains('desktop-mode')) {
                 modal.classList.remove('open');
-                modalTitle.innerText = app.name;
-                let content = runningApps[id].contentNode;
-                // SAFETY GUARD: If contentNode is null/undefined, regenerate it
-                if (!content || typeof content.querySelector !== 'function') {
-                    console.warn(`⚠️ ContentNode for ${app.name} was null. Regenerating...`);
-                    content = generateAppContent(app);
-                    runningApps[id].contentNode = content;
-                }
-                if (app.type === 'iframe') {
-                    const existingIframe = content.querySelector('iframe');
-                    if (existingIframe) {
+                
+                // Force a micro-delay so the CSS animation restarts smoothly
+                requestAnimationFrame(() => {
+                    modalTitle.innerText = app.name;
+                    let content = runningApps[id].contentNode;
+                    // SAFETY GUARD: If contentNode is null/undefined, regenerate it
+                    if (!content || typeof content.querySelector !== 'function') {
+                        console.warn(`⚠️ ContentNode for ${app.name} was null. Regenerating...`);
+                        content = generateAppContent(app);
+                        runningApps[id].contentNode = content;
+                    }
+                    if (app.type === 'iframe') {
+                        const existingIframe = content.querySelector('iframe');
+                        if (existingIframe) {
+                            const mc = document.getElementById('modalContent');
+                            mc.innerHTML = '';
+                            mc.appendChild(existingIframe);
+                            if (runningApps[id].scrollY) {
+                                existingIframe.onload = () => { existingIframe.contentWindow?.scrollTo(0, runningApps[id]
+                                        .scrollY); };
+                            }
+                        }
+                    } else {
                         const mc = document.getElementById('modalContent');
                         mc.innerHTML = '';
-                        mc.appendChild(existingIframe);
-                        if (runningApps[id].scrollY) {
-                            existingIframe.onload = () => { existingIframe.contentWindow?.scrollTo(0, runningApps[id]
-                                    .scrollY); };
+                        // SAFETY GUARD: Ensure content is a Node before appending
+                        if (content instanceof Node) {
+                            mc.appendChild(content);
+                        } else {
+                            console.error(`❌ content is not a Node for ${app.name}`);
                         }
                     }
-                } else {
-                    const mc = document.getElementById('modalContent');
-                    mc.innerHTML = '';
-                    // SAFETY GUARD: Ensure content is a Node before appending
-                    if (content instanceof Node) {
-                        mc.appendChild(content);
-                    } else {
-                        console.error(`❌ content is not a Node for ${app.name}`);
-                    }
-                }
-                modal.classList.add('open');
-                notifDrawer.classList.add('higher');
+                    
+                    modal.classList.add('open');
+                    notifDrawer.classList.add('higher');
+                });
             } else if (document.body.classList.contains('desktop-mode')) {
                 if (!runningApps[id].winEl) {
                     runningApps[id].winEl = createDesktopWindow(id, app, runningApps[id].contentNode);
@@ -2992,14 +2997,17 @@ win.addEventListener('pointerdown', () => {
         // ────────────────────────────────────────────────────────────────
         //  Virtual keyboard handling
         // ────────────────────────────────────────────────────────────────
+                // ────────────────────────────────────────────────────────────────
+        //  Anti-Squish Virtual Keyboard Handling
+        // ────────────────────────────────────────────────────────────────
         if (window.visualViewport) {
             window.visualViewport.addEventListener('resize', () => {
                 let keyboardHeight = window.innerHeight - window.visualViewport.height;
-                let modalElem = document.querySelector('.app-modal');
-                if (modalElem) {
-                    if (keyboardHeight > 50) modalElem.style.bottom = `calc(70px + ${keyboardHeight}px)`;
-                    else modalElem.style.bottom = '70px';
-                }
+                
+                // Do NOT physically crush the .app-modal container here. 
+                // Let the native browser pan the viewport. 
+                // We just pass the data to the iframe so the app developer can add padding if they want to.
+                
                 Object.values(runningApps).forEach(app => {
                     const iframe = app.contentNode?.querySelector('iframe');
                     if (iframe && iframe.contentWindow) {
