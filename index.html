@@ -2653,7 +2653,31 @@ const navigate = () => {
             <div class="win-content"></div>
           `;
             windowContainer.appendChild(win);
-            win.querySelector('.win-content').appendChild(contentNode);
+            // ✅ SAFETY GUARD: Ensure contentNode is a valid Node before appending
+            if (contentNode instanceof Node) {
+                win.querySelector('.win-content').appendChild(contentNode);
+            } else {
+                console.error(`❌ contentNode is not a Node for app: ${app.name}. Rebuilding...`);
+                // Generate a fresh content node and append it
+                const freshNode = generateAppContent(app);
+                if (freshNode instanceof Node) {
+                    win.querySelector('.win-content').appendChild(freshNode);
+                    // Update the stored app contentNode so it remains valid
+                    if (runningApps[id]) {
+                        runningApps[id].contentNode = freshNode;
+                    }
+                } else {
+                    // If even regeneration fails, show an error placeholder
+                    const errorDiv = document.createElement('div');
+                    errorDiv.style.cssText = `
+                        display: flex; align-items: center; justify-content: center;
+                        background: var(--surface-solid); color: var(--danger);
+                        height: 100%; width: 100%; font-size: 14px; padding: 20px; text-align: center;
+                    `;
+                    errorDiv.textContent = '⚠️ App failed to load. Please restart.';
+                    win.querySelector('.win-content').appendChild(errorDiv);
+                }
+            }
             makeDraggable(win);
             win.onmousedown = () => bringToFront(win);
         // Fix: ensure clicking inside the iframe also brings window to front
@@ -2944,15 +2968,19 @@ win.addEventListener('pointerdown', () => {
                 } else {
                     document.body.classList.add('desktop-mode');
                     modal.classList.remove('open');
-                    Object.keys(runningApps).forEach(id => {
-                        if (!runningApps[id].winEl) {
-                            runningApps[id].winEl = createDesktopWindow(id, runningApps[id].app, runningApps[id]
-                                .contentNode);
-                        } else {
-                            runningApps[id].winEl.style.display = 'flex';
-                        }
-                        runningApps[id].active = false;
-                    });
+        Object.keys(runningApps).forEach(id => {
+            // ✅ SAFETY GUARD: Ensure contentNode is valid before creating window
+            if (!runningApps[id].contentNode || !(runningApps[id].contentNode instanceof Node)) {
+                console.warn(`Rewriting invalid contentNode for app: ${runningApps[id].app.name} during resize`);
+                runningApps[id].contentNode = generateAppContent(runningApps[id].app);
+            }
+            if (!runningApps[id].winEl) {
+                runningApps[id].winEl = createDesktopWindow(id, runningApps[id].app, runningApps[id].contentNode);
+            } else {
+                runningApps[id].winEl.style.display = 'flex';
+            }
+            runningApps[id].active = false;
+        });
                     updateTaskbar();
                 }
                 isResizing = false;
