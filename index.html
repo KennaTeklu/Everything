@@ -2856,19 +2856,33 @@ win.addEventListener('pointerdown', () => {
                 div.innerHTML = `<i class="fas ${app.icon || 'fa-globe'}"></i> ${escapeHtml(app.name)}${badge}`;
                 div.dataset.appId = id;
 
-                // Taskbar hover preview with debouncing to prevent flicker
+                // Taskbar hover preview – immediate hide on leave
                 let previewTimer = null;
+                let isHovering = false;
+
                 div.addEventListener('mouseenter', () => {
-                    clearTimeout(previewTimer);
+                    isHovering = true;
+                    if (previewTimer) {
+                        clearTimeout(previewTimer);
+                        previewTimer = null;
+                    }
                     previewTimer = setTimeout(() => {
-                        showTaskbarPreview(id, div);
+                        if (isHovering) {
+                            showTaskbarPreview(id, div);
+                        }
                     }, 100);
                 });
+
                 div.addEventListener('mouseleave', () => {
-                    clearTimeout(previewTimer);
-                    previewTimer = setTimeout(() => {
-                        taskbarPreview.classList.remove('visible');
-                    }, 50);
+                    isHovering = false;
+                    if (previewTimer) {
+                        clearTimeout(previewTimer);
+                        previewTimer = null;
+                    }
+                    const preview = document.getElementById('taskbarPreview');
+                    if (preview) {
+                        preview.classList.remove('visible');
+                    }
                 });
 
                 div.onclick = () => {
@@ -2896,6 +2910,22 @@ win.addEventListener('pointerdown', () => {
                 };
                 taskbarApps.appendChild(div);
             });
+
+            // Also handle mouse events on the preview window to keep it open when hovering over it
+            const preview = document.getElementById('taskbarPreview');
+            if (preview) {
+                preview.addEventListener('mouseenter', () => {
+                    preview.classList.add('visible');
+                    // Cancel any pending hide timer
+                    if (preview._hideTimer) {
+                        clearTimeout(preview._hideTimer);
+                        preview._hideTimer = null;
+                    }
+                });
+                preview.addEventListener('mouseleave', () => {
+                    preview.classList.remove('visible');
+                });
+            }
         }
 
         // ─── TASKBAR HOVER PREVIEW ───
@@ -3601,6 +3631,7 @@ homeBtn.onclick = () => {
         function findAppIdByFrame(frameWindow) {
             for (let [id, app] of Object.entries(runningApps)) {
                 const iframe = app.contentNode?.querySelector('iframe') || modalIframe;
+
                 if (iframe && iframe.contentWindow === frameWindow) return id;
             }
             return null;
