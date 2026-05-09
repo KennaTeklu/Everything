@@ -3348,6 +3348,20 @@
             background: var(--border);
             margin: 4px 12px;
         }
+                /* ─── EDGE SWIPE ZONE (MOBILE BACK GESTURE) ─── */
+        .edge-swipe-zone {
+            position: fixed;
+            top: 0; 
+            left: 0; 
+            bottom: 0;
+            width: 15px; /* Thin invisible strip on the left edge */
+            z-index: 9999;
+            display: none;
+            touch-action: none;
+        }
+        body:not(.desktop-mode) .edge-swipe-zone {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -4002,17 +4016,10 @@
         function forceIframeFocus(iframe) {
             if (!iframe) return;
             iframe.focus();
-            // Dispatch a dummy touch event to wake up the iframe's touch handlers
-            try {
-                const dummyTouch = new TouchEvent('touchstart', {
-                    touches: [new Touch({ clientX: 0, clientY: 0, identifier: 0 })]
-                });
-                iframe.dispatchEvent(dummyTouch);
-            } catch (e) {
-                // Safari/older browsers may not support TouchEvent constructor
-                // Fallback: just focus again after a delay
-                setTimeout(() => iframe.focus(), 50);
-            }
+            // Fallback for strict mobile browsers that ignore the first focus request
+            setTimeout(() => {
+                if (document.activeElement !== iframe) iframe.focus();
+            }, 50);
         }
 
         function uid() { return Date.now() + '-' + Math.random().toString(36).substr(2, 8); }
@@ -5164,57 +5171,41 @@
             lastActiveAppId = id;
 
             // === Mobile launch (Step 3: requestAnimationFrame polish + iframe state preservation) ===
-            if (isMobile() && !document.body.classList.contains('desktop-mode')) {
+                        if (isMobile() && !document.body.classList.contains('desktop-mode')) {
                 modal.classList.remove('open');
                 
-                // Force a micro-delay so the CSS animation restarts smoothly
                 requestAnimationFrame(() => {
                     modalTitle.innerText = app.name;
                     let content = runningApps[id].contentNode;
 
                     if (!content || typeof content.querySelector !== 'function') {
-                        console.warn(`⚠️ ContentNode for ${app.name} was null. Regenerating...`);
                         content = generateAppContent(app);
                         runningApps[id].contentNode = content;
                     }
 
                     const mc = document.getElementById('modalContent');
 
-                    // --- iframe state preservation (Step 2) ---
-                    if (app.type === 'iframe') {
-                        // Before attaching the new iframe, detach (but don't delete) the previous iframe
-                        const previousIframe = mc.querySelector('iframe');
-                        if (previousIframe) {
-                            // Save previous iframe to its app's stored node so it can be re-used later
-                            const prevAppId = lastActiveAppId;
-                            if (prevAppId && runningApps[prevAppId]) {
-                                runningApps[prevAppId].detachedIframe = previousIframe;
-                            }
-                            mc.innerHTML = ''; // Clear the container (iframe already detached)
-                        } else {
-                            mc.innerHTML = '';
-                        }
+                    // Hide all previously active apps SAFELY without destroying their DOM/Iframes
+                    Array.from(mc.children).forEach(child => child.style.display = 'none');
 
-                        const existingIframe = content.querySelector('iframe');
-                        if (existingIframe) {
-                            mc.appendChild(existingIframe);
-                            if (runningApps[id].scrollY) {
-                                existingIframe.onload = () => { existingIframe.contentWindow?.scrollTo(0, runningApps[id]
-                                        .scrollY); };
-                            }
-                        }
-                    } else {
-                        // Native app launch
-                        mc.innerHTML = '';
-                        if (content instanceof Node) {
-                            mc.appendChild(content);
-                        } else {
-                            console.error(`❌ content is not a Node for ${app.name}`);
+                    // Only append if it's not already in the modal
+                    if (content.parentElement !== mc) {
+                        mc.appendChild(content);
+                    }
+                    
+                    // Make the current app visible
+                    content.style.display = 'flex';
+
+                    // Restore scroll state if applicable
+                    if (app.type === 'iframe' && runningApps[id].scrollY) {
+                        const iframe = content.querySelector('iframe');
+                        if (iframe && iframe.contentWindow) {
+                            iframe.contentWindow.scrollTo(0, runningApps[id].scrollY);
                         }
                     }
 
                     modal.classList.add('open');
-                    forceIframeFocus(modalIframe);
+                    forceIframeFocus(content.querySelector('iframe'));
                     notifDrawer.classList.add('higher');
                 });
             } else if (document.body.classList.contains('desktop-mode')) {
@@ -6161,64 +6152,33 @@ win.addEventListener('pointerdown', () => {
         }, { passive: true });
 
         // ═══════════════════════════════════════════════════════════════════
-        //  EDGE SWIPE GESTURES (Back)
+        //  EDGE SWIPE GESTURES (Back) - Physical Zone Interception
         // ═══════════════════════════════════════════════════════════════════
-        let swipeStartXEdge = 0;
-        let swipeStartYEdge = 0;
-        let isSwiping = false;
-        let swipeTimeout = null;
+        const edgeZone = document.getElementById('edgeSwipeZone');
+        let isEdgeSwiping = false;
+        let edgeStartX = 0;
 
-        document.addEventListener('touchstart', (e) => {
-            // 👇 ADDED: Ignore if the touch is inside an iframe
-            const target = e.target;
-            if (target.closest('iframe') || target.closest('.app-iframe')) {
-                return;
-            }
-            const t = e.touches[0];
-            swipeStartXEdge = t.clientX;
-            swipeStartYEdge = t.clientY;
-            isSwiping = true;
+        edgeZone.addEventListener('touchstart', (e) => {
+            edgeStartX = e.touches[0].clientX;
+            isEdgeSwiping = true;
         }, { passive: true });
 
-        document.addEventListener('touchmove', (e) => {
-            const target = e.target;
-            if (target.closest('iframe') || target.closest('.app-iframe')) {
-                return; // Let the iframe handle it
-            }
-            if (!isSwiping) return;
-            const t = e.touches[0];
-            const dx = t.clientX - swipeStartXEdge;
-            const dy = t.clientY - swipeStartYEdge;
-            if (Math.abs(dx) > Math.abs(dy) && dx > 40 && swipeStartXEdge < 20) {
-                e.preventDefault();
-                isSwiping = false;
+        edgeZone.addEventListener('touchmove', (e) => {
+            if (!isEdgeSwiping) return;
+            const dx = e.touches[0].clientX - edgeStartX;
+            
+            if (dx > 40) {
+                isEdgeSwiping = false;
                 haptic();
                 if (modal.classList.contains('open')) {
-                    let responded = false;
-                    const handler = (msg) => {
-                        if (msg.data && msg.data.type === 'canGoBackResponse') {
-                            responded = true;
-                            window.removeEventListener('message', handler);
-                            if (msg.data.canGoBack) {
-                                modalIframe.contentWindow?.postMessage({ type: 'performBack' }, '*');
-                            } else {
-                                closeModal();
-                            }
-                        }
-                    };
-                    window.addEventListener('message', handler);
-                    modalIframe.contentWindow?.postMessage({ type: 'canGoBack' }, '*');
-                    swipeTimeout = setTimeout(() => {
-                        window.removeEventListener('message', handler);
-                        if (!responded) closeModal();
-                    }, 300);
+                    backBtn.click(); // Trigger the exact same logic as the physical back button
                 } else {
                     goToPage(currentPage - 1);
                 }
             }
         }, { passive: false });
 
-        document.addEventListener('touchend', () => { isSwiping = false; }, { passive: true });
+        edgeZone.addEventListener('touchend', () => { isEdgeSwiping = false; }, { passive: true });
 
         // ═══════════════════════════════════════════════════════════════════
         //  NOTIFICATION DRAWER (Swipe down)
