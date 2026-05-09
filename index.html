@@ -4693,7 +4693,21 @@
                                     if (siteName === 'Youtube') siteName = 'YouTube';
                                     if (siteName === 'Github') siteName = 'GitHub';
                                 } catch (e) {}
-                                const faviconUrl = `https://www.google.com/s2/favicons?sz=64&domain=${new URL(url).hostname}`;
+                                let faviconUrl = '';
+                                let siteName = "Website";
+                                try {
+                                    const urlObj = new URL(url);
+                                    const domain = urlObj.hostname;
+                                    faviconUrl = `https://www.google.com/s2/favicons?sz=64&domain=${domain}`;
+                                    const parts = domain.replace(/^www\./, '').split('.');
+                                    siteName = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+                                    if (siteName === 'Youtube') siteName = 'YouTube';
+                                    if (siteName === 'Github') siteName = 'GitHub';
+                                } catch (e) {
+                                    // Use fallback values if URL is invalid
+                                    faviconUrl = '';
+                                    siteName = "Website";
+                                }
                                 return `
                                     <div style="text-align:center;gap:12px;display:flex;flex-direction:column;align-items:center;">
                                         <img src="${faviconUrl}" style="width:48px;height:48px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.3);" />
