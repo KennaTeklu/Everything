@@ -630,6 +630,7 @@
             transform: scale(0.95) translateY(20px);
             transition: visibility 0.3s, opacity 0.3s, transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
             transform-origin: bottom center;
+            pointer-events: auto;
         }
         .app-modal.open {
             visibility: visible;
@@ -3998,6 +3999,22 @@
             return s.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' } [m]));
         }
 
+        function forceIframeFocus(iframe) {
+            if (!iframe) return;
+            iframe.focus();
+            // Dispatch a dummy touch event to wake up the iframe's touch handlers
+            try {
+                const dummyTouch = new TouchEvent('touchstart', {
+                    touches: [new Touch({ clientX: 0, clientY: 0, identifier: 0 })]
+                });
+                iframe.dispatchEvent(dummyTouch);
+            } catch (e) {
+                // Safari/older browsers may not support TouchEvent constructor
+                // Fallback: just focus again after a delay
+                setTimeout(() => iframe.focus(), 50);
+            }
+        }
+
         function uid() { return Date.now() + '-' + Math.random().toString(36).substr(2, 8); }
 
         // ────────────────────────────────────────────────────────────────
@@ -4485,6 +4502,11 @@
                     }
                 }, { passive: true });
                 tile.addEventListener('touchmove', (e) => {
+                    // 👇 ADDED: Ignore if the touch is inside an iframe
+                    const target = e.target;
+                    if (target.closest('iframe') || target.closest('.app-iframe')) {
+                        return;
+                    }
                     if (e.touches.length === 1) {
                         const dx = e.touches[0].clientX - touchStartX;
                         const dy = e.touches[0].clientY - touchStartY;
@@ -5192,6 +5214,7 @@
                     }
 
                     modal.classList.add('open');
+                    forceIframeFocus(modalIframe);
                     notifDrawer.classList.add('higher');
                 });
             } else if (document.body.classList.contains('desktop-mode')) {
@@ -6146,6 +6169,11 @@ win.addEventListener('pointerdown', () => {
         let swipeTimeout = null;
 
         document.addEventListener('touchstart', (e) => {
+            // 👇 ADDED: Ignore if the touch is inside an iframe
+            const target = e.target;
+            if (target.closest('iframe') || target.closest('.app-iframe')) {
+                return;
+            }
             const t = e.touches[0];
             swipeStartXEdge = t.clientX;
             swipeStartYEdge = t.clientY;
@@ -6153,6 +6181,10 @@ win.addEventListener('pointerdown', () => {
         }, { passive: true });
 
         document.addEventListener('touchmove', (e) => {
+            const target = e.target;
+            if (target.closest('iframe') || target.closest('.app-iframe')) {
+                return; // Let the iframe handle it
+            }
             if (!isSwiping) return;
             const t = e.touches[0];
             const dx = t.clientX - swipeStartXEdge;
@@ -6195,11 +6227,21 @@ win.addEventListener('pointerdown', () => {
         let isDraggingNotif = false;
 
         pageViewport.addEventListener('touchstart', (e) => {
+            // 👇 ADDED: Ignore if the touch is inside an iframe
+            const target = e.target;
+            if (target.closest('iframe') || target.closest('.app-iframe')) {
+                return;
+            }
             if (e.touches[0].clientY < 40) { touchStartYNotif = e.touches[0].clientY;
                 isDraggingNotif = true; }
         }, { passive: true });
 
-        pageViewport.addEventListener('touchmove', (e) => {
+          pageViewport.addEventListener('touchmove', (e) => {
+            // 👇 ADDED: Ignore if the touch is inside an iframe
+            const target = e.target;
+            if (target.closest('iframe') || target.closest('.app-iframe')) {
+                return;
+            }
             if (!isDraggingNotif) return;
             let delta = e.touches[0].clientY - touchStartYNotif;
             if (delta > 30) {
