@@ -1759,6 +1759,1552 @@
         .widget-close-btn:hover {
             background: rgba(255,50,50,0.8);
         }
+                /* ─── TASK MANAGER ─── */
+        .task-manager-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(16px);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+        .task-manager-overlay.open {
+            display: flex;
+            opacity: 1;
+        }
+        .task-manager-window {
+            background: var(--surface-solid);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 80vh;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+            transform: translateY(20px) scale(0.97);
+            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .task-manager-overlay.open .task-manager-window {
+            transform: translateY(0) scale(1);
+        }
+        .task-manager-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .task-manager-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .task-manager-header .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0 4px;
+            transition: color 0.15s;
+        }
+        .task-manager-header .close-btn:hover {
+            color: var(--text);
+        }
+        .task-manager-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .task-manager-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            border-radius: 8px;
+            transition: background 0.15s;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .task-manager-item:last-child {
+            border-bottom: none;
+        }
+        .task-manager-item:hover {
+            background: var(--surface-hover);
+        }
+        .task-manager-item .tm-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+        }
+        .task-manager-item .tm-icon i {
+            font-size: 16px;
+            color: var(--primary);
+        }
+        .task-manager-item .tm-name {
+            flex: 1;
+            font-weight: 500;
+        }
+        .task-manager-item .tm-stats {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-right: 12px;
+        }
+        .task-manager-item .tm-stats span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .task-manager-item .tm-end-btn {
+            padding: 4px 12px;
+            border-radius: 6px;
+            border: none;
+            background: var(--surface-hover);
+            color: var(--text);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .task-manager-item .tm-end-btn:hover {
+            background: var(--danger);
+            color: white;
+        }
+        .task-manager-footer {
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+                /* ─── SETTINGS APP ─── */
+        .settings-app {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            background: var(--surface-solid);
+            color: var(--text);
+            padding: 0;
+        }
+        .settings-header {
+            padding: 24px 32px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .settings-header h2 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .settings-header .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0 4px;
+            transition: color 0.15s;
+        }
+        .settings-header .close-btn:hover {
+            color: var(--text);
+        }
+        .settings-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 32px;
+        }
+        .settings-section {
+            margin-bottom: 32px;
+        }
+        .settings-section-title {
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-dim);
+            margin-bottom: 16px;
+        }
+        .settings-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .settings-row:last-child {
+            border-bottom: none;
+        }
+        .settings-row .label {
+            font-weight: 500;
+        }
+        .settings-row .label .sub {
+            font-size: 12px;
+            font-weight: 400;
+            color: var(--text-dim);
+            display: block;
+            margin-top: 2px;
+        }
+        .settings-row .value {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .settings-toggle {
+            width: 44px;
+            height: 24px;
+            background: var(--surface);
+            border-radius: 12px;
+            cursor: pointer;
+            position: relative;
+            transition: background 0.2s;
+        }
+        .settings-toggle.active {
+            background: var(--primary);
+        }
+        .settings-toggle .knob {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+        .settings-toggle.active .knob {
+            transform: translateX(20px);
+        }
+        .settings-select {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 6px 12px;
+            border-radius: 8px;
+            outline: none;
+            font-size: 14px;
+        }
+        .settings-select:focus {
+            border-color: var(--primary);
+        }
+        .settings-btn {
+            padding: 6px 16px;
+            border-radius: 8px;
+            border: none;
+            background: var(--surface-hover);
+            color: var(--text);
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.15s;
+        }
+        .settings-btn:hover {
+            background: var(--surface);
+        }
+        .settings-btn.primary {
+            background: var(--primary);
+            color: white;
+        }
+        .settings-btn.primary:hover {
+            background: var(--primary-dark);
+        }
+                /* ─── FILE EXPLORER ─── */
+        .file-explorer {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            background: var(--surface-solid);
+            color: var(--text);
+        }
+        .explorer-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .explorer-toolbar .nav-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            border: none;
+            background: transparent;
+            color: var(--text-dim);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+        }
+        .explorer-toolbar .nav-btn:hover {
+            background: var(--surface-hover);
+            color: var(--text);
+        }
+        .explorer-toolbar .nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        .explorer-toolbar .path-bar {
+            flex: 1;
+            background: var(--surface);
+            border-radius: 6px;
+            padding: 4px 12px;
+            font-size: 13px;
+            color: var(--text-dim);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .explorer-toolbar .path-bar .path-text {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .explorer-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        .explorer-sidebar {
+            width: 180px;
+            padding: 8px;
+            border-right: 1px solid var(--border);
+            flex-shrink: 0;
+            overflow-y: auto;
+        }
+        .explorer-sidebar .sidebar-item {
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.15s;
+        }
+        .explorer-sidebar .sidebar-item:hover {
+            background: var(--surface-hover);
+        }
+        .explorer-sidebar .sidebar-item.active {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--primary);
+        }
+        .explorer-grid {
+            flex: 1;
+            padding: 12px;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 100px));
+            gap: 12px;
+            align-content: start;
+        }
+        .explorer-grid .file-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.15s;
+            text-align: center;
+        }
+        .explorer-grid .file-item:hover {
+            background: var(--surface-hover);
+        }
+        .explorer-grid .file-item .file-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            background: var(--surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 4px;
+        }
+        .explorer-grid .file-item .file-icon i {
+            font-size: 24px;
+        }
+        .explorer-grid .file-item .file-name {
+            font-size: 11px;
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            width: 100%;
+        }
+        .explorer-grid .file-item .file-size {
+            font-size: 10px;
+            color: var(--text-dim);
+        }
+                /* ─── TERMINAL ─── */
+        .terminal-app {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            background: #0a0c12;
+            color: #00ff41;
+            font-family: 'Courier New', monospace;
+            padding: 8px 12px;
+            overflow: hidden;
+        }
+        .terminal-output {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 4px 0;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .terminal-output .line {
+            line-height: 1.5;
+        }
+        .terminal-output .line .prompt {
+            color: #00ff41;
+            font-weight: 600;
+        }
+        .terminal-output .line .command {
+            color: #ffffff;
+        }
+        .terminal-output .line .output {
+            color: #a0a0a0;
+        }
+        .terminal-output .line .error {
+            color: #ff4444;
+        }
+        .terminal-input-line {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 0 0 0;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            margin-top: 4px;
+        }
+        .terminal-input-line .prompt {
+            color: #00ff41;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .terminal-input-line input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #ffffff;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            outline: none;
+        }
+        .terminal-input-line input::placeholder {
+            color: #555;
+        }
+                /* ─── NOTIFICATION CENTER ─── */
+        .notification-center {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 360px;
+            height: 100vh;
+            background: rgba(10, 12, 18, 0.95);
+            backdrop-filter: blur(20px);
+            border-left: 1px solid var(--border);
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            box-shadow: -10px 0 40px rgba(0, 0, 0, 0.5);
+            transform: translateX(100%);
+            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .notification-center.open {
+            transform: translateX(0);
+            display: flex;
+        }
+        .notification-center-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .notification-center-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .notification-center-header .nc-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .notification-center-header .nc-actions button {
+            background: var(--surface);
+            border: none;
+            color: var(--text-dim);
+            padding: 4px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.15s;
+        }
+        .notification-center-header .nc-actions button:hover {
+            background: var(--surface-hover);
+            color: var(--text);
+        }
+        .notification-center-header .nc-close {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0 4px;
+        }
+        .notification-center-header .nc-close:hover {
+            color: var(--text);
+        }
+        .notification-center-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .notification-center-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            background: var(--surface);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            transition: background 0.15s;
+            animation: notifSlideIn 0.3s ease;
+        }
+        .notification-center-item:hover {
+            background: var(--surface-hover);
+        }
+        .notification-center-item .nc-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: rgba(59, 130, 246, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .notification-center-item .nc-icon i {
+            font-size: 16px;
+            color: var(--primary);
+        }
+        .notification-center-item .nc-content {
+            flex: 1;
+        }
+        .notification-center-item .nc-content .nc-title {
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .notification-center-item .nc-content .nc-desc {
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-top: 2px;
+        }
+        .notification-center-item .nc-content .nc-time {
+            font-size: 10px;
+            color: var(--text-dim);
+            margin-top: 2px;
+        }
+        .notification-center-item .nc-dismiss {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-size: 14px;
+            cursor: pointer;
+            padding: 0 4px;
+            transition: color 0.15s;
+        }
+        .notification-center-item .nc-dismiss:hover {
+            color: var(--danger);
+        }
+        @keyframes notifSlideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .notification-center-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-dim);
+            font-size: 14px;
+        }
+        .notification-center-empty i {
+            font-size: 48px;
+            margin-bottom: 12px;
+            opacity: 0.3;
+        }
+                /* ─── CLIPBOARD HISTORY ─── */
+        .clipboard-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            z-index: 9998;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        .clipboard-overlay.open {
+            display: flex;
+            opacity: 1;
+        }
+        .clipboard-window {
+            background: var(--surface-solid);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 70vh;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            transform: translateY(20px) scale(0.97);
+            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .clipboard-overlay.open .clipboard-window {
+            transform: translateY(0) scale(1);
+        }
+        .clipboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+        .clipboard-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .clipboard-header .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0 4px;
+            transition: color 0.15s;
+        }
+        .clipboard-header .close-btn:hover {
+            color: var(--text);
+        }
+        .clipboard-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .clipboard-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: var(--surface);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.15s;
+            font-size: 13px;
+        }
+        .clipboard-item:hover {
+            background: var(--surface-hover);
+        }
+        .clipboard-item .clip-text {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .clipboard-item .clip-time {
+            font-size: 10px;
+            color: var(--text-dim);
+            margin-right: 8px;
+        }
+        .clipboard-item .clip-delete {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-size: 12px;
+            cursor: pointer;
+            padding: 0 4px;
+            transition: color 0.15s;
+        }
+        .clipboard-item .clip-delete:hover {
+            color: var(--danger);
+        }
+        .clipboard-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-dim);
+            font-size: 14px;
+            padding: 40px 0;
+        }
+        .clipboard-empty i {
+            font-size: 36px;
+            margin-bottom: 8px;
+            opacity: 0.3;
+        }
+                /* ─── SCREENSHOT TOOL ─── */
+        .screenshot-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .screenshot-overlay.active {
+            display: flex;
+        }
+        .screenshot-toolbar {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--surface-solid);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 12px 20px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+        }
+        .screenshot-toolbar button {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            background: var(--surface);
+            color: var(--text);
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.15s;
+        }
+        .screenshot-toolbar button:hover {
+            background: var(--surface-hover);
+        }
+        .screenshot-toolbar button.primary {
+            background: var(--primary);
+            color: white;
+        }
+        .screenshot-toolbar button.primary:hover {
+            background: var(--primary-dark);
+        }
+                /* ─── POWER MANAGEMENT ─── */
+        .power-menu-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(12px);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+        .power-menu-overlay.open {
+            display: flex;
+            opacity: 1;
+        }
+        .power-menu-window {
+            background: var(--surface-solid);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 24px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+            transform: translateY(20px) scale(0.97);
+            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .power-menu-overlay.open .power-menu-window {
+            transform: translateY(0) scale(1);
+        }
+        .power-menu-title {
+            font-size: 20px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .power-menu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        .power-menu-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 20px 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .power-menu-item:hover {
+            background: var(--surface-hover);
+            transform: translateY(-2px);
+        }
+        .power-menu-item i {
+            font-size: 24px;
+        }
+        .power-menu-item span {
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .power-menu-item.lock i { color: var(--primary); }
+        .power-menu-item.restart i { color: var(--warning); }
+        .power-menu-item.shutdown i { color: var(--danger); }
+        .power-menu-item.sleep i { color: var(--text-dim); }
+        .power-menu-item.hibernate i { color: var(--text-dim); }
+        .power-menu-close {
+            margin-top: 16px;
+            padding: 8px;
+            border-radius: 8px;
+            border: none;
+            background: var(--surface);
+            color: var(--text-dim);
+            cursor: pointer;
+            width: 100%;
+            font-size: 13px;
+            transition: all 0.15s;
+        }
+        .power-menu-close:hover {
+            background: var(--surface-hover);
+            color: var(--text);
+        }
+        .power-menu-confirm {
+            margin-top: 12px;
+            display: none;
+            padding: 12px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+        .power-menu-confirm .confirm-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 8px;
+        }
+        .power-menu-confirm .confirm-actions button {
+            padding: 4px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.15s;
+        }
+        .power-menu-confirm .confirm-actions .confirm-yes {
+            background: var(--danger);
+            color: white;
+        }
+        .power-menu-confirm .confirm-actions .confirm-yes:hover {
+            background: #dc2626;
+        }
+        .power-menu-confirm .confirm-actions .confirm-no {
+            background: var(--surface);
+            color: var(--text);
+        }
+        .power-menu-confirm .confirm-actions .confirm-no:hover {
+            background: var(--surface-hover);
+        }
+                /* ─── FILE ARCHIVER ─── */
+        .archiver-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        .archiver-overlay.open {
+            display: flex;
+            opacity: 1;
+        }
+        .archiver-window {
+            background: var(--surface-solid);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            transform: translateY(20px) scale(0.97);
+            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .archiver-overlay.open .archiver-window {
+            transform: translateY(0) scale(1);
+        }
+        .archiver-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+        .archiver-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .archiver-header .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0 4px;
+            transition: color 0.15s;
+        }
+        .archiver-header .close-btn:hover {
+            color: var(--text);
+        }
+        .archiver-body {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .archiver-body .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .archiver-body .form-group label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-dim);
+        }
+        .archiver-body .form-group input,
+        .archiver-body .form-group select {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .archiver-body .form-group input:focus,
+        .archiver-body .form-group select:focus {
+            border-color: var(--primary);
+        }
+        .archiver-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 8px;
+        }
+        .archiver-actions button {
+            padding: 8px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.15s;
+        }
+        .archiver-actions button.primary {
+            background: var(--primary);
+            color: white;
+        }
+        .archiver-actions button.primary:hover {
+            background: var(--primary-dark);
+        }
+        .archiver-actions button.secondary {
+            background: var(--surface);
+            color: var(--text);
+        }
+        .archiver-actions button.secondary:hover {
+            background: var(--surface-hover);
+        }
+                /* ─── MEDIA PLAYER ─── */
+        .media-player {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            background: var(--surface-solid);
+            color: var(--text);
+            padding: 16px;
+            gap: 12px;
+        }
+        .media-player .media-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+        .media-player .media-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .media-player .media-header .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .media-player .media-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            min-height: 200px;
+        }
+        .media-player .media-area video {
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+            object-fit: contain;
+            background: #000;
+        }
+        .media-player .media-area audio {
+            width: 90%;
+        }
+        .media-player .media-info {
+            text-align: center;
+        }
+        .media-player .media-info .title {
+            font-size: 16px;
+            font-weight: 500;
+        }
+        .media-player .media-info .subtitle {
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+        .media-player .media-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding: 8px 0;
+        }
+        .media-player .media-controls button {
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.15s;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+        .media-player .media-controls button:hover {
+            background: var(--surface-hover);
+        }
+        .media-player .media-controls button.play-btn {
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        .media-player .media-controls button.play-btn:hover {
+            background: var(--primary-dark);
+        }
+        .media-player .media-progress {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 0;
+        }
+        .media-player .media-progress input[type="range"] {
+            flex: 1;
+            -webkit-appearance: none;
+            background: var(--surface);
+            height: 4px;
+            border-radius: 4px;
+            outline: none;
+        }
+        .media-player .media-progress input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            background: var(--primary);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .media-player .media-progress .time {
+            font-size: 12px;
+            color: var(--text-dim);
+            min-width: 40px;
+        }
+                /* ─── SYSTEM HEALTH MONITOR ─── */
+        .health-monitor {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            background: var(--surface-solid);
+            color: var(--text);
+            padding: 20px;
+            gap: 16px;
+        }
+        .health-monitor .health-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .health-monitor .health-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .health-monitor .health-header .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .health-monitor .health-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            flex: 1;
+        }
+        .health-monitor .health-item {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: 1px solid var(--border);
+        }
+        .health-monitor .health-item .stat-value {
+            font-size: 28px;
+            font-weight: 300;
+        }
+        .health-monitor .health-item .stat-label {
+            font-size: 12px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .health-monitor .health-item .stat-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--surface-hover);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+        .health-monitor .health-item .stat-bar .fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        .health-monitor .health-item .stat-bar .fill.green { background: #10b981; }
+        .health-monitor .health-item .stat-bar .fill.yellow { background: #f59e0b; }
+        .health-monitor .health-item .stat-bar .fill.red { background: #ef4444; }
+        .health-monitor .health-item .stat-icon {
+            font-size: 24px;
+            opacity: 0.5;
+        }
+        .health-monitor .health-footer {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+                /* ─── TEXT EDITOR ─── */
+        .text-editor {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            background: var(--surface-solid);
+            color: var(--text);
+        }
+        .text-editor .editor-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .text-editor .editor-toolbar .tab-bar {
+            display: flex;
+            gap: 2px;
+            flex: 1;
+            overflow-x: auto;
+        }
+        .text-editor .editor-toolbar .tab {
+            padding: 4px 12px;
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            font-size: 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-bottom: none;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        .text-editor .editor-toolbar .tab.active {
+            background: var(--surface-solid);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .text-editor .editor-toolbar .tab .close-tab {
+            font-size: 10px;
+            color: var(--text-dim);
+            cursor: pointer;
+            padding: 0 2px;
+        }
+        .text-editor .editor-toolbar .tab .close-tab:hover {
+            color: var(--danger);
+        }
+        .text-editor .editor-toolbar .new-tab-btn {
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: none;
+            background: var(--surface);
+            color: var(--text-dim);
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.15s;
+        }
+        .text-editor .editor-toolbar .new-tab-btn:hover {
+            background: var(--surface-hover);
+            color: var(--text);
+        }
+        .text-editor .editor-body {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        .text-editor .editor-body .line-numbers {
+            padding: 8px 6px;
+            background: rgba(0,0,0,0.2);
+            color: var(--text-dim);
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            text-align: right;
+            user-select: none;
+            min-width: 30px;
+            overflow-y: hidden;
+            border-right: 1px solid var(--border);
+        }
+        .text-editor .editor-body .editor-area {
+            flex: 1;
+            padding: 8px 12px;
+            background: transparent;
+            color: var(--text);
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            border: none;
+            outline: none;
+            resize: none;
+            line-height: 1.6;
+        }
+        .text-editor .editor-body .editor-area:focus {
+            outline: none;
+        }
+        .text-editor .editor-footer {
+            padding: 4px 12px;
+            border-top: 1px solid var(--border);
+            font-size: 11px;
+            color: var(--text-dim);
+            display: flex;
+            justify-content: space-between;
+        }
+                /* ─── PACKAGE MANAGER ─── */
+        .package-manager {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            background: var(--surface-solid);
+            color: var(--text);
+            padding: 16px 20px;
+            gap: 12px;
+        }
+        .package-manager .pm-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .package-manager .pm-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .package-manager .pm-header .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .package-manager .pm-search {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            padding: 8px 12px;
+            background: var(--surface);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+        .package-manager .pm-search input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-size: 14px;
+            outline: none;
+        }
+        .package-manager .pm-search i {
+            color: var(--text-dim);
+        }
+        .package-manager .pm-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .package-manager .pm-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: var(--surface);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            transition: all 0.15s;
+        }
+        .package-manager .pm-item:hover {
+            background: var(--surface-hover);
+        }
+        .package-manager .pm-item .pm-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .package-manager .pm-item .pm-info .pm-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: rgba(59, 130, 246, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .package-manager .pm-item .pm-info .pm-icon i {
+            font-size: 16px;
+            color: var(--primary);
+        }
+        .package-manager .pm-item .pm-info .pm-name {
+            font-weight: 500;
+        }
+        .package-manager .pm-item .pm-info .pm-desc {
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+        .package-manager .pm-item .pm-status {
+            font-size: 12px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: var(--surface);
+            color: var(--text-dim);
+        }
+        .package-manager .pm-item .pm-status.installed {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+        }
+        .package-manager .pm-item .pm-action {
+            padding: 4px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.15s;
+        }
+        .package-manager .pm-item .pm-action.install {
+            background: var(--primary);
+            color: white;
+        }
+        .package-manager .pm-item .pm-action.install:hover {
+            background: var(--primary-dark);
+        }
+        .package-manager .pm-item .pm-action.uninstall {
+            background: var(--danger);
+            color: white;
+        }
+        .package-manager .pm-item .pm-action.uninstall:hover {
+            background: #dc2626;
+        }
+                /* ─── SYSTEM INFORMATION ─── */
+        .sysinfo-panel {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            background: var(--surface-solid);
+            color: var(--text);
+            padding: 20px 24px;
+            gap: 8px;
+        }
+        .sysinfo-panel .si-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .sysinfo-panel .si-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .sysinfo-panel .si-header .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .sysinfo-panel .si-section {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .sysinfo-panel .si-section:last-child {
+            border-bottom: none;
+        }
+        .sysinfo-panel .si-section .si-title {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-dim);
+            margin-bottom: 4px;
+        }
+        .sysinfo-panel .si-section .si-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 2px 0;
+            font-size: 13px;
+        }
+        .sysinfo-panel .si-section .si-row .si-label {
+            color: var(--text-dim);
+        }
+        .sysinfo-panel .si-section .si-row .si-value {
+            font-weight: 500;
+        }
+                /* ─── DESKTOP CONTEXT MENU ─── */
+        .desktop-context-menu {
+            position: fixed;
+            background: var(--surface-solid);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 6px 0;
+            min-width: 200px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(20px);
+            z-index: 9999;
+            display: none;
+            opacity: 0;
+            transform: scale(0.95);
+            transition: opacity 0.15s ease, transform 0.15s ease;
+        }
+        .desktop-context-menu.open {
+            display: block;
+            opacity: 1;
+            transform: scale(1);
+        }
+        .desktop-context-menu .ctx-item {
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.1s;
+            color: var(--text);
+        }
+        .desktop-context-menu .ctx-item:hover {
+            background: var(--surface-hover);
+        }
+        .desktop-context-menu .ctx-item i {
+            width: 20px;
+            text-align: center;
+            color: var(--text-dim);
+        }
+        .desktop-context-menu .ctx-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 4px 12px;
+        }
     </style>
 </head>
 <body>
@@ -1957,6 +3503,390 @@
                 <div class="stat"><span class="label">Apps</span><span class="value" id="widgetApps">0</span></div>
             </div>
         </div>
+    </div>
+
+    <!-- ─── TASK MANAGER ─── -->
+    <div class="task-manager-overlay" id="taskManagerOverlay">
+        <div class="task-manager-window">
+            <div class="task-manager-header">
+                <h2><i class="fas fa-tasks" style="margin-right:8px;color:var(--primary);"></i>Task Manager</h2>
+                <button class="close-btn" id="taskManagerClose">&times;</button>
+            </div>
+            <div class="task-manager-list" id="taskManagerList"></div>
+            <div class="task-manager-footer">
+                <span id="tmRunningCount">0 processes running</span>
+                <span id="tmMemoryUsage">Memory: 0 MB</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── SETTINGS APP ─── -->
+    <div id="settingsApp" style="display:none;">
+        <div class="settings-app">
+            <div class="settings-header">
+                <h2><i class="fas fa-cog" style="margin-right:8px;color:var(--primary);"></i>Settings</h2>
+                <button class="close-btn" id="settingsClose">&times;</button>
+            </div>
+            <div class="settings-body">
+                <!-- Appearance -->
+                <div class="settings-section">
+                    <div class="settings-section-title">Appearance</div>
+                    <div class="settings-row">
+                        <div class="label">Dark Mode</div>
+                        <div class="value">
+                            <div class="settings-toggle active" id="settingsDarkModeToggle">
+                                <div class="knob"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="label">Desktop Wallpaper</div>
+                        <div class="value">
+                            <input type="file" id="settingsWallpaperInput" accept="image/*" style="display:none;">
+                            <button class="settings-btn" id="settingsWallpaperBtn">Change</button>
+                            <button class="settings-btn" id="settingsWallpaperReset">Reset</button>
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="label">View Mode</div>
+                        <div class="value">
+                            <select class="settings-select" id="settingsViewMode">
+                                <option value="large">Large</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="small">Small</option>
+                                <option value="list">List</option>
+                                <option value="detail">Detail</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <!-- System -->
+                <div class="settings-section">
+                    <div class="settings-section-title">System</div>
+                    <div class="settings-row">
+                        <div class="label">System Theme</div>
+                        <div class="value">
+                            <span style="font-size:14px;color:var(--text-dim);">Dark</span>
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="label">Running Apps</div>
+                        <div class="value">
+                            <button class="settings-btn" id="settingsOpenTaskManager">Open Task Manager</button>
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="label">Version</div>
+                        <div class="value">
+                            <span style="font-size:14px;color:var(--text-dim);">Unified OS v6.0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── FILE EXPLORER ─── -->
+    <div id="fileExplorerApp" style="display:none;">
+        <div class="file-explorer">
+            <div class="explorer-toolbar">
+                <button class="nav-btn" id="explorerBackBtn"><i class="fas fa-arrow-left"></i></button>
+                <button class="nav-btn" id="explorerForwardBtn"><i class="fas fa-arrow-right"></i></button>
+                <button class="nav-btn" id="explorerUpBtn"><i class="fas fa-level-up-alt"></i></button>
+                <div class="path-bar">
+                    <span class="path-text" id="explorerPath">Home</span>
+                </div>
+                <button class="nav-btn" id="explorerRefreshBtn"><i class="fas fa-sync-alt"></i></button>
+            </div>
+            <div class="explorer-content">
+                <div class="explorer-sidebar" id="explorerSidebar">
+                    <div class="sidebar-item active" data-folder="home"><i class="fas fa-home"></i> Home</div>
+                    <div class="sidebar-item" data-folder="documents"><i class="fas fa-file-alt"></i> Documents</div>
+                    <div class="sidebar-item" data-folder="downloads"><i class="fas fa-download"></i> Downloads</div>
+                    <div class="sidebar-item" data-folder="pictures"><i class="fas fa-image"></i> Pictures</div>
+                    <div class="sidebar-item" data-folder="music"><i class="fas fa-music"></i> Music</div>
+                    <div class="sidebar-item" data-folder="videos"><i class="fas fa-video"></i> Videos</div>
+                </div>
+                <div class="explorer-grid" id="explorerGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── TERMINAL ─── -->
+    <div id="terminalApp" style="display:none;">
+        <div class="terminal-app">
+            <div class="terminal-output" id="terminalOutput"></div>
+            <div class="terminal-input-line">
+                <span class="prompt">$</span>
+                <input type="text" id="terminalInput" placeholder="Type a command..." autofocus>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── NOTIFICATION CENTER ─── -->
+    <div class="notification-center" id="notificationCenter">
+        <div class="notification-center-header">
+            <h2><i class="fas fa-bell" style="margin-right:8px;color:var(--primary);"></i>Notifications</h2>
+            <div class="nc-actions">
+                <button id="ncClearAllBtn">Clear All</button>
+                <button class="nc-close" id="ncCloseBtn">&times;</button>
+            </div>
+        </div>
+        <div class="notification-center-list" id="ncList"></div>
+    </div>
+
+        <!-- ─── CLIPBOARD HISTORY ─── -->
+    <div class="clipboard-overlay" id="clipboardOverlay">
+        <div class="clipboard-window">
+            <div class="clipboard-header">
+                <h3><i class="fas fa-clipboard-list" style="margin-right:8px;color:var(--primary);"></i>Clipboard History</h3>
+                <button class="close-btn" id="clipboardClose">&times;</button>
+            </div>
+            <div class="clipboard-list" id="clipboardList">
+                <div class="clipboard-empty">
+                    <i class="fas fa-clipboard"></i>
+                    <span>No items copied yet</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── SCREENSHOT TOOL ─── -->
+    <div class="screenshot-overlay" id="screenshotOverlay">
+        <div class="screenshot-toolbar">
+            <button id="screenshotFull"><i class="fas fa-desktop"></i> Full Screen</button>
+            <button id="screenshotWindow"><i class="fas fa-window-maximize"></i> Window</button>
+            <button id="screenshotArea"><i class="fas fa-crop-alt"></i> Area</button>
+            <button id="screenshotCancel" style="background:var(--danger);color:white;">Cancel</button>
+        </div>
+    </div>
+
+    <!-- ─── POWER MANAGEMENT ─── -->
+    <div class="power-menu-overlay" id="powerMenuOverlay">
+        <div class="power-menu-window">
+            <div class="power-menu-title">Power</div>
+            <div class="power-menu-grid">
+                <div class="power-menu-item lock" data-action="lock">
+                    <i class="fas fa-lock"></i>
+                    <span>Lock</span>
+                </div>
+                <div class="power-menu-item restart" data-action="restart">
+                    <i class="fas fa-sync-alt"></i>
+                    <span>Restart</span>
+                </div>
+                <div class="power-menu-item shutdown" data-action="shutdown">
+                    <i class="fas fa-power-off"></i>
+                    <span>Shut Down</span>
+                </div>
+                <div class="power-menu-item sleep" data-action="sleep">
+                    <i class="fas fa-moon"></i>
+                    <span>Sleep</span>
+                </div>
+                <div class="power-menu-item hibernate" data-action="hibernate">
+                    <i class="fas fa-snowflake"></i>
+                    <span>Hibernate</span>
+                </div>
+            </div>
+            <div class="power-menu-confirm" id="powerMenuConfirm">
+                <div id="powerConfirmText">Are you sure?</div>
+                <div class="confirm-actions">
+                    <button class="confirm-yes" id="powerConfirmYes">Yes</button>
+                    <button class="confirm-no" id="powerConfirmNo">Cancel</button>
+                </div>
+            </div>
+            <button class="power-menu-close" id="powerMenuClose">Cancel</button>
+        </div>
+    </div>
+
+        <!-- ─── FILE ARCHIVER ─── -->
+    <div class="archiver-overlay" id="archiverOverlay">
+        <div class="archiver-window">
+            <div class="archiver-header">
+                <h3><i class="fas fa-file-archive" style="margin-right:8px;color:var(--primary);"></i>File Archiver</h3>
+                <button class="close-btn" id="archiverClose">&times;</button>
+            </div>
+            <div class="archiver-body">
+                <div class="form-group">
+                    <label for="archiverMode">Mode</label>
+                    <select id="archiverMode">
+                        <option value="zip">Create Zip</option>
+                        <option value="unzip">Extract Zip</option>
+                    </select>
+                </div>
+                <div class="form-group" id="archiverSourceGroup">
+                    <label for="archiverSource">Source</label>
+                    <input type="text" id="archiverSource" placeholder="Folder name or file name" value="Documents">
+                </div>
+                <div class="form-group" id="archiverDestGroup">
+                    <label for="archiverDest">Destination</label>
+                    <input type="text" id="archiverDest" placeholder="Output name (optional)" value="">
+                </div>
+                <div class="archiver-actions">
+                    <button class="secondary" id="archiverCancel">Cancel</button>
+                    <button class="primary" id="archiverGo">Process</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── MEDIA PLAYER ─── -->
+    <div id="mediaPlayerApp" style="display:none;">
+        <div class="media-player">
+            <div class="media-header">
+                <h3><i class="fas fa-music" style="margin-right:8px;color:var(--primary);"></i>Media Player</h3>
+                <button class="close-btn" id="mediaPlayerClose">&times;</button>
+            </div>
+            <div class="media-area" id="mediaArea">
+                <div style="text-align:center;color:var(--text-dim);padding:40px;">
+                    <i class="fas fa-play-circle" style="font-size:48px;display:block;margin-bottom:12px;"></i>
+                    <span>No media loaded</span>
+                </div>
+            </div>
+            <div class="media-info">
+                <div class="title" id="mediaTitle">Unknown Title</div>
+                <div class="subtitle" id="mediaSubtitle">No file loaded</div>
+            </div>
+            <div class="media-progress">
+                <span class="time" id="mediaCurrentTime">0:00</span>
+                <input type="range" id="mediaProgress" min="0" max="100" value="0">
+                <span class="time" id="mediaDuration">0:00</span>
+            </div>
+            <div class="media-controls">
+                <button id="mediaShuffle"><i class="fas fa-random"></i></button>
+                <button id="mediaPrev"><i class="fas fa-step-backward"></i></button>
+                <button class="play-btn" id="mediaPlayBtn"><i class="fas fa-play"></i></button>
+                <button id="mediaNext"><i class="fas fa-step-forward"></i></button>
+                <button id="mediaRepeat"><i class="fas fa-repeat"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── SYSTEM HEALTH MONITOR ─── -->
+    <div id="healthMonitorApp" style="display:none;">
+        <div class="health-monitor">
+            <div class="health-header">
+                <h3><i class="fas fa-heartbeat" style="margin-right:8px;color:var(--success);"></i>System Health</h3>
+                <button class="close-btn" id="healthMonitorClose">&times;</button>
+            </div>
+            <div class="health-grid">
+                <div class="health-item">
+                    <div class="stat-icon"><i class="fas fa-microchip"></i></div>
+                    <div class="stat-value" id="healthCpu">0%</div>
+                    <div class="stat-label">CPU</div>
+                    <div class="stat-bar"><div class="fill green" id="healthCpuBar" style="width:0%"></div></div>
+                </div>
+                <div class="health-item">
+                    <div class="stat-icon"><i class="fas fa-memory"></i></div>
+                    <div class="stat-value" id="healthMem">0%</div>
+                    <div class="stat-label">Memory</div>
+                    <div class="stat-bar"><div class="fill green" id="healthMemBar" style="width:0%"></div></div>
+                </div>
+                <div class="health-item">
+                    <div class="stat-icon"><i class="fas fa-battery-three-quarters"></i></div>
+                    <div class="stat-value" id="healthBattery">87%</div>
+                    <div class="stat-label">Battery</div>
+                    <div class="stat-bar"><div class="fill green" id="healthBatteryBar" style="width:87%"></div></div>
+                </div>
+                <div class="health-item">
+                    <div class="stat-icon"><i class="fas fa-hdd"></i></div>
+                    <div class="stat-value" id="healthStorage">0 GB</div>
+                    <div class="stat-label">Storage</div>
+                    <div class="stat-bar"><div class="fill green" id="healthStorageBar" style="width:0%"></div></div>
+                </div>
+            </div>
+            <div class="health-footer">
+                <span id="healthUptime">Uptime: 0h</span>
+                <span id="healthApps">Apps: 0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── TEXT EDITOR ─── -->
+    <div id="textEditorApp" style="display:none;">
+        <div class="text-editor">
+            <div class="editor-toolbar">
+                <div class="tab-bar" id="editorTabs">
+                    <div class="tab active" data-tab="0">
+                        <span>untitled.txt</span>
+                        <span class="close-tab" data-tab="0">&times;</span>
+                    </div>
+                </div>
+                <button class="new-tab-btn" id="editorNewTab">+</button>
+            </div>
+            <div class="editor-body">
+                <div class="line-numbers" id="editorLineNumbers">1</div>
+                <textarea class="editor-area" id="editorArea" spellcheck="false">Welcome to the Text Editor!</textarea>
+            </div>
+            <div class="editor-footer">
+                <span id="editorStatus">Ready</span>
+                <span id="editorInfo">Line 1, Col 1</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── PACKAGE MANAGER ─── -->
+    <div id="packageManagerApp" style="display:none;">
+        <div class="package-manager">
+            <div class="pm-header">
+                <h3><i class="fas fa-box-open" style="margin-right:8px;color:var(--primary);"></i>Package Manager</h3>
+                <button class="close-btn" id="pmClose">&times;</button>
+            </div>
+            <div class="pm-search">
+                <i class="fas fa-search"></i>
+                <input type="text" id="pmSearchInput" placeholder="Search apps...">
+            </div>
+            <div class="pm-list" id="pmList"></div>
+        </div>
+    </div>
+
+    <!-- ─── SYSTEM INFORMATION ─── -->
+    <div id="sysInfoApp" style="display:none;">
+        <div class="sysinfo-panel">
+            <div class="si-header">
+                <h3><i class="fas fa-info-circle" style="margin-right:8px;color:var(--primary);"></i>System Information</h3>
+                <button class="close-btn" id="sysInfoClose">&times;</button>
+            </div>
+            <div class="si-section">
+                <div class="si-title">Operating System</div>
+                <div class="si-row"><span class="si-label">OS</span><span class="si-value">Unified OS</span></div>
+                <div class="si-row"><span class="si-label">Version</span><span class="si-value">v6.0</span></div>
+                <div class="si-row"><span class="si-label">Kernel</span><span class="si-value">JavaScript ES2024</span></div>
+                <div class="si-row"><span class="si-label">Architecture</span><span class="si-value">Web Assembly</span></div>
+            </div>
+            <div class="si-section">
+                <div class="si-title">Hardware</div>
+                <div class="si-row"><span class="si-label">CPU</span><span class="si-value">4 Cores (Simulated)</span></div>
+                <div class="si-row"><span class="si-label">Memory</span><span class="si-value">${Math.floor((Math.random() * 4) + 4)} GB</span></div>
+                <div class="si-row"><span class="si-label">Storage</span><span class="si-value">${Math.floor((Math.random() * 40) + 60)} GB</span></div>
+                <div class="si-row"><span class="si-label">Display</span><span class="si-value">${window.innerWidth}×${window.innerHeight}</span></div>
+            </div>
+            <div class="si-section">
+                <div class="si-title">Software</div>
+                <div class="si-row"><span class="si-label">Installed Apps</span><span class="si-value">${getAllApps().length}</span></div>
+                <div class="si-row"><span class="si-label">Running Apps</span><span class="si-value">${Object.keys(runningApps).length}</span></div>
+                <div class="si-row"><span class="si-label">Custom Apps</span><span class="si-value">${customApps.length}</span></div>
+                <div class="si-row"><span class="si-label">Hidden Apps</span><span class="si-value">${JSON.parse(localStorage.getItem('hiddenApps') || '[]').length}</span></div>
+            </div>
+            <div class="si-section">
+                <div class="si-title">Network</div>
+                <div class="si-row"><span class="si-label">Status</span><span class="si-value">${navigator.onLine ? 'Online' : 'Offline'}</span></div>
+                <div class="si-row"><span class="si-label">User Agent</span><span class="si-value" style="font-size:10px;word-break:break-all;">${navigator.userAgent}</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── DESKTOP CONTEXT MENU ─── -->
+    <div class="desktop-context-menu" id="desktopContextMenu">
+        <div class="ctx-item" data-action="refresh"><i class="fas fa-sync-alt"></i> Refresh</div>
+        <div class="ctx-item" data-action="new-folder"><i class="fas fa-folder-plus"></i> New Folder</div>
+        <div class="ctx-item" data-action="new-file"><i class="fas fa-file-plus"></i> New File</div>
+        <div class="ctx-divider"></div>
+        <div class="ctx-item" data-action="wallpaper"><i class="fas fa-image"></i> Change Wallpaper</div>
+        <div class="ctx-item" data-action="terminal"><i class="fas fa-terminal"></i> Open Terminal</div>
+        <div class="ctx-item" data-action="settings"><i class="fas fa-cog"></i> Settings</div>
+        <div class="ctx-divider"></div>
+        <div class="ctx-item" data-action="sort-by"><i class="fas fa-sort-amount-down"></i> Sort By</div>
+        <div class="ctx-item" data-action="paste"><i class="fas fa-paste"></i> Paste</div>
     </div>
 
     <!-- ─── TASKBAR HOVER PREVIEW ─── -->
@@ -4967,6 +6897,2016 @@ homeBtn.onclick = () => {
             toast(isHidden ? 'Widgets shown' : 'Widgets hidden');
         });
         document.querySelector('.system-tray-quick-toggles')?.appendChild(widgetToggle);
+
+        // ─── TASK MANAGER ───
+        const taskManagerOverlay = document.getElementById('taskManagerOverlay');
+        const taskManagerList = document.getElementById('taskManagerList');
+        const taskManagerClose = document.getElementById('taskManagerClose');
+        const tmRunningCount = document.getElementById('tmRunningCount');
+        const tmMemoryUsage = document.getElementById('tmMemoryUsage');
+
+        function openTaskManager() {
+            renderTaskManager();
+            taskManagerOverlay.classList.add('open');
+        }
+
+        function closeTaskManager() {
+            taskManagerOverlay.classList.remove('open');
+        }
+
+        function renderTaskManager() {
+            const apps = Object.values(runningApps);
+            if (apps.length === 0) {
+                taskManagerList.innerHTML = `
+                    <div style="padding:40px;text-align:center;color:var(--text-dim);font-size:14px;">
+                        <i class="fas fa-check-circle" style="font-size:32px;display:block;margin-bottom:12px;color:var(--success);"></i>
+                        No apps are currently running.
+                    </div>
+                `;
+                tmRunningCount.textContent = '0 processes running';
+                tmMemoryUsage.textContent = 'Memory: 0 MB';
+                return;
+            }
+
+            const totalMem = apps.reduce((sum, app) => {
+                // Simulate memory usage (random between 20-200 MB)
+                const mem = Math.floor(Math.random() * 180) + 20;
+                return sum + mem;
+            }, 0);
+
+            taskManagerList.innerHTML = apps.map(app => {
+                const mem = Math.floor(Math.random() * 180) + 20;
+                const cpu = Math.floor(Math.random() * 30) + 5;
+                const icon = app.app.icon || 'fa-globe';
+                const name = app.app.name;
+                return `
+                    <div class="task-manager-item" data-app-id="${app.app.id}">
+                        <div class="tm-icon"><i class="fas ${icon}"></i></div>
+                        <span class="tm-name">${escapeHtml(name)}</span>
+                        <div class="tm-stats">
+                            <span><i class="fas fa-microchip"></i> ${cpu}%</span>
+                            <span><i class="fas fa-memory"></i> ${mem} MB</span>
+                        </div>
+                        <button class="tm-end-btn" data-app-id="${app.app.id}">End Task</button>
+                    </div>
+                `;
+            }).join('');
+
+            tmRunningCount.textContent = `${apps.length} processes running`;
+            tmMemoryUsage.textContent = `Memory: ${totalMem} MB`;
+
+            // Add end task handlers
+            taskManagerList.querySelectorAll('.tm-end-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = btn.dataset.appId;
+                    if (runningApps[id]) {
+                        closeApp(id, true);
+                        renderTaskManager();
+                        toast('Task ended');
+                    }
+                });
+            });
+        }
+
+        taskManagerClose.addEventListener('click', closeTaskManager);
+        taskManagerOverlay.addEventListener('click', (e) => {
+            if (e.target === taskManagerOverlay) closeTaskManager();
+        });
+
+        // Keyboard shortcut: Ctrl+Shift+Esc
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.shiftKey && e.key === 'Escape') {
+                e.preventDefault();
+                if (taskManagerOverlay.classList.contains('open')) {
+                    closeTaskManager();
+                } else {
+                    openTaskManager();
+                }
+            }
+        });
+
+        // Add Task Manager shortcut to system tray (optional)
+        const tmToggle = document.createElement('div');
+        tmToggle.className = 'system-tray-toggle';
+        tmToggle.dataset.toggle = 'taskmanager';
+        tmToggle.innerHTML = '<i class="fas fa-tasks"></i><span>Task Mgr</span>';
+        tmToggle.addEventListener('click', () => {
+            if (taskManagerOverlay.classList.contains('open')) {
+                closeTaskManager();
+            } else {
+                openTaskManager();
+            }
+        });
+        document.querySelector('.system-tray-quick-toggles')?.appendChild(tmToggle);
+
+        // ─── SETTINGS APP ───
+        const settingsApp = document.getElementById('settingsApp');
+        const settingsClose = document.getElementById('settingsClose');
+        const settingsDarkModeToggle = document.getElementById('settingsDarkModeToggle');
+        const settingsWallpaperBtn = document.getElementById('settingsWallpaperBtn');
+        const settingsWallpaperInput = document.getElementById('settingsWallpaperInput');
+        const settingsWallpaperReset = document.getElementById('settingsWallpaperReset');
+        const settingsViewMode = document.getElementById('settingsViewMode');
+        const settingsOpenTaskManager = document.getElementById('settingsOpenTaskManager');
+
+        function openSettings() {
+            // Sync current state
+            settingsDarkModeToggle.classList.toggle('active', darkMode);
+            settingsViewMode.value = viewMode;
+            settingsApp.style.display = 'block';
+            // Launch as a desktop window or modal
+            if (document.body.classList.contains('desktop-mode')) {
+                // Open as a desktop window
+                const app = { id: 'settings-app', name: 'Settings', type: 'native', component: 'settings' };
+                if (!runningApps['settings-app']) {
+                    runningApps['settings-app'] = {
+                        app: app,
+                        contentNode: settingsApp,
+                        winEl: null,
+                        unsavedFlag: false,
+                        componentData: null,
+                        scrollY: 0,
+                        lastActive: Date.now(),
+                        focusedSelector: null
+                    };
+                }
+                launchApp('settings-app');
+            } else {
+                // Open as a modal
+                modalTitle.innerText = 'Settings';
+                const mc = document.getElementById('modalContent');
+                mc.innerHTML = '';
+                mc.appendChild(settingsApp);
+                modal.classList.add('open');
+            }
+        }
+
+        settingsClose.addEventListener('click', () => {
+            if (document.body.classList.contains('desktop-mode')) {
+                closeApp('settings-app', true);
+            } else {
+                modal.classList.remove('open');
+            }
+        });
+
+        // Dark mode toggle
+        settingsDarkModeToggle.addEventListener('click', () => {
+            toggleTheme();
+            settingsDarkModeToggle.classList.toggle('active', darkMode);
+        });
+
+        // Wallpaper change
+        settingsWallpaperBtn.addEventListener('click', () => {
+            settingsWallpaperInput.click();
+        });
+        settingsWallpaperInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    const dataUrl = ev.target.result;
+                    document.getElementById('desktop-bg').style.backgroundImage = `url('${dataUrl}')`;
+                    localStorage.setItem('wallpaper', dataUrl);
+                    toast('Wallpaper updated');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        settingsWallpaperReset.addEventListener('click', () => {
+            document.getElementById('desktop-bg').style.backgroundImage = 'var(--bg-desktop)';
+            localStorage.removeItem('wallpaper');
+            toast('Wallpaper reset');
+        });
+
+        // View mode
+        settingsViewMode.addEventListener('change', () => {
+            setViewMode(settingsViewMode.value);
+        });
+
+        // Open Task Manager
+        settingsOpenTaskManager.addEventListener('click', () => {
+            if (document.body.classList.contains('desktop-mode')) {
+                closeApp('settings-app', true);
+            } else {
+                modal.classList.remove('open');
+            }
+            openTaskManager();
+        });
+
+        // Add Settings shortcut to system tray
+        const settingsToggle = document.createElement('div');
+        settingsToggle.className = 'system-tray-toggle';
+        settingsToggle.dataset.toggle = 'settings';
+        settingsToggle.innerHTML = '<i class="fas fa-cog"></i><span>Settings</span>';
+        settingsToggle.addEventListener('click', openSettings);
+        document.querySelector('.system-tray-quick-toggles')?.appendChild(settingsToggle);
+
+        // ─── FILE EXPLORER ───
+        const fileExplorerApp = document.getElementById('fileExplorerApp');
+        const explorerGrid = document.getElementById('explorerGrid');
+        const explorerPath = document.getElementById('explorerPath');
+        const explorerBackBtn = document.getElementById('explorerBackBtn');
+        const explorerForwardBtn = document.getElementById('explorerForwardBtn');
+        const explorerUpBtn = document.getElementById('explorerUpBtn');
+        const explorerRefreshBtn = document.getElementById('explorerRefreshBtn');
+        const explorerSidebar = document.getElementById('explorerSidebar');
+
+        let currentFolder = 'home';
+        let historyStack = ['home'];
+        let historyIndex = 0;
+
+        // Virtual file system data
+        const fileSystem = {
+            'home': [
+                { name: 'Documents', type: 'folder', icon: 'fa-folder' },
+                { name: 'Downloads', type: 'folder', icon: 'fa-folder' },
+                { name: 'Pictures', type: 'folder', icon: 'fa-folder' },
+                { name: 'Music', type: 'folder', icon: 'fa-folder' },
+                { name: 'Videos', type: 'folder', icon: 'fa-folder' },
+                { name: 'Notes.txt', type: 'file', icon: 'fa-file-alt', size: '2 KB' },
+                { name: 'Welcome.md', type: 'file', icon: 'fa-file-code', size: '1 KB' }
+            ],
+            'documents': [
+                { name: 'Resume.pdf', type: 'file', icon: 'fa-file-pdf', size: '45 KB' },
+                { name: 'Project Plan.txt', type: 'file', icon: 'fa-file-alt', size: '8 KB' },
+                { name: 'Meeting Notes.md', type: 'file', icon: 'fa-file-code', size: '12 KB' },
+                { name: 'Budget.xlsx', type: 'file', icon: 'fa-file-excel', size: '34 KB' }
+            ],
+            'downloads': [
+                { name: 'update-1.0.zip', type: 'file', icon: 'fa-file-archive', size: '2.4 MB' },
+                { name: 'wallpaper.jpg', type: 'file', icon: 'fa-file-image', size: '1.8 MB' }
+            ],
+            'pictures': [
+                { name: 'Vacation', type: 'folder', icon: 'fa-folder' },
+                { name: 'Screenshots', type: 'folder', icon: 'fa-folder' },
+                { name: 'Profile.jpg', type: 'file', icon: 'fa-file-image', size: '250 KB' },
+                { name: 'Banner.png', type: 'file', icon: 'fa-file-image', size: '512 KB' }
+            ],
+            'music': [
+                { name: 'Playlist.m3u', type: 'file', icon: 'fa-file-music', size: '4 KB' },
+                { name: 'Song.mp3', type: 'file', icon: 'fa-file-music', size: '3.2 MB' }
+            ],
+            'videos': [
+                { name: 'Tutorial.mp4', type: 'file', icon: 'fa-file-video', size: '14 MB' },
+                { name: 'Recording.mov', type: 'file', icon: 'fa-file-video', size: '28 MB' }
+            ]
+        };
+
+        function renderFolder(folder) {
+            const items = fileSystem[folder] || [];
+            explorerGrid.innerHTML = items.map(item => `
+                <div class="file-item" data-name="${item.name}" data-type="${item.type}">
+                    <div class="file-icon"><i class="fas ${item.icon}"></i></div>
+                    <div class="file-name">${escapeHtml(item.name)}</div>
+                    ${item.size ? `<div class="file-size">${item.size}</div>` : ''}
+                </div>
+            `).join('');
+
+            // Navigate into folders
+            explorerGrid.querySelectorAll('.file-item[data-type="folder"]').forEach(el => {
+                el.addEventListener('dblclick', () => {
+                    const name = el.dataset.name;
+                    const folderKey = name.toLowerCase();
+                    if (fileSystem[folderKey]) {
+                        // Save to history
+                        if (historyIndex < historyStack.length - 1) {
+                            historyStack = historyStack.slice(0, historyIndex + 1);
+                        }
+                        historyStack.push(folderKey);
+                        historyIndex++;
+                        currentFolder = folderKey;
+                        renderFolder(folderKey);
+                        updateUI();
+                    }
+                });
+            });
+
+            // Item click (for files)
+            explorerGrid.querySelectorAll('.file-item[data-type="file"]').forEach(el => {
+                el.addEventListener('click', () => {
+                    const name = el.dataset.name;
+                    toast(`Opening: ${name}`);
+                    // Simulate file open action
+                });
+            });
+        }
+
+        function updateUI() {
+            explorerPath.textContent = 'Home > ' + currentFolder.charAt(0).toUpperCase() + currentFolder.slice(1);
+            explorerBackBtn.disabled = historyIndex === 0;
+            explorerForwardBtn.disabled = historyIndex === historyStack.length - 1;
+        }
+
+        // Navigation handlers
+        explorerBackBtn.addEventListener('click', () => {
+            if (historyIndex > 0) {
+                historyIndex--;
+                currentFolder = historyStack[historyIndex];
+                renderFolder(currentFolder);
+                updateUI();
+            }
+        });
+
+        explorerForwardBtn.addEventListener('click', () => {
+            if (historyIndex < historyStack.length - 1) {
+                historyIndex++;
+                currentFolder = historyStack[historyIndex];
+                renderFolder(currentFolder);
+                updateUI();
+            }
+        });
+
+        explorerUpBtn.addEventListener('click', () => {
+            if (currentFolder !== 'home') {
+                const parts = historyStack.slice(0, historyIndex);
+                const parent = parts.length > 1 ? parts[parts.length - 1] : 'home';
+                if (parent !== currentFolder) {
+                    // Go to parent
+                    historyStack = historyStack.slice(0, historyIndex + 1);
+                    historyStack.push('home');
+                    historyIndex++;
+                    currentFolder = 'home';
+                    renderFolder('home');
+                    updateUI();
+                }
+            }
+        });
+
+        explorerRefreshBtn.addEventListener('click', () => {
+            renderFolder(currentFolder);
+            toast('Refreshed');
+        });
+
+        // Sidebar navigation
+        explorerSidebar.querySelectorAll('.sidebar-item').forEach(el => {
+            el.addEventListener('click', () => {
+                const folder = el.dataset.folder;
+                if (folder !== currentFolder) {
+                    // Add to history
+                    if (historyIndex < historyStack.length - 1) {
+                        historyStack = historyStack.slice(0, historyIndex + 1);
+                    }
+                    historyStack.push(folder);
+                    historyIndex++;
+                    currentFolder = folder;
+                    renderFolder(folder);
+                    updateUI();
+                    explorerSidebar.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+                    el.classList.add('active');
+                }
+            });
+        });
+
+        function openFileExplorer() {
+            // Reset to home
+            historyStack = ['home'];
+            historyIndex = 0;
+            currentFolder = 'home';
+            renderFolder('home');
+            updateUI();
+            fileExplorerApp.style.display = 'block';
+            // Launch as a desktop window or modal
+            if (document.body.classList.contains('desktop-mode')) {
+                const app = { id: 'file-explorer', name: 'File Explorer', type: 'native', component: 'file-explorer' };
+                if (!runningApps['file-explorer']) {
+                    runningApps['file-explorer'] = {
+                        app: app,
+                        contentNode: fileExplorerApp,
+                        winEl: null,
+                        unsavedFlag: false,
+                        componentData: null,
+                        scrollY: 0,
+                        lastActive: Date.now(),
+                        focusedSelector: null
+                    };
+                }
+                launchApp('file-explorer');
+            } else {
+                modalTitle.innerText = 'File Explorer';
+                const mc = document.getElementById('modalContent');
+                mc.innerHTML = '';
+                mc.appendChild(fileExplorerApp);
+                modal.classList.add('open');
+            }
+        }
+
+        // Add File Explorer shortcut to system tray
+        const feToggle = document.createElement('div');
+        feToggle.className = 'system-tray-toggle';
+        feToggle.dataset.toggle = 'fileexplorer';
+        feToggle.innerHTML = '<i class="fas fa-folder-open"></i><span>Explorer</span>';
+        feToggle.addEventListener('click', openFileExplorer);
+        document.querySelector('.system-tray-quick-toggles')?.appendChild(feToggle);
+
+        // ─── TERMINAL ───
+        (function() {
+            const terminalApp = document.getElementById('terminalApp');
+            const terminalOutput = document.getElementById('terminalOutput');
+            const terminalInput = document.getElementById('terminalInput');
+
+            let terminalPath = 'home';
+            let terminalHistory = [];
+            let historyIdx = -1;  // Renamed from historyIndex to avoid conflict
+
+            const terminalCommands = {
+                'help': () => {
+                    return [
+                        'Available commands:',
+                        '  help        - Show this help message',
+                        '  ls          - List directory contents',
+                        '  cd <dir>    - Change directory',
+                        '  pwd         - Print working directory',
+                        '  echo <text> - Print text',
+                        '  clear       - Clear terminal',
+                        '  date        - Show current date and time',
+                        '  whoami      - Show current user',
+                        '  uptime      - Show system uptime',
+                        '  version     - Show OS version'
+                    ].join('\n');
+                },
+                'ls': () => {
+                    const files = fileSystem[terminalPath] || [];
+                    if (files.length === 0) return 'No files found.';
+                    return files.map(f => {
+                        const icon = f.type === 'folder' ? '📁' : '📄';
+                        const size = f.size ? ` (${f.size})` : '';
+                        return `${icon} ${f.name}${size}`;
+                    }).join('\n');
+                },
+                'cd': (args) => {
+                    if (!args || args.length === 0) {
+                        terminalPath = 'home';
+                        return 'Moved to home';
+                    }
+                    const target = args[0];
+                    if (target === '..') {
+                        if (terminalPath !== 'home') {
+                            terminalPath = 'home';
+                            return 'Moved to home';
+                        }
+                        return 'Already at home';
+                    }
+                    if (fileSystem[target]) {
+                        terminalPath = target;
+                        return `Moved to ${target}`;
+                    }
+                    return `Directory not found: ${target}`;
+                },
+                'pwd': () => {
+                    return `/${terminalPath}`;
+                },
+                'echo': (args) => {
+                    return args ? args.join(' ') : '';
+                },
+                'clear': () => {
+                    terminalOutput.innerHTML = '';
+                    return null;
+                },
+                'date': () => {
+                    return new Date().toString();
+                },
+                'whoami': () => {
+                    return 'user';
+                },
+                'uptime': () => {
+                    const uptime = Math.floor((Date.now() - performance.now()) / 1000);
+                    const hours = Math.floor(uptime / 3600);
+                    const minutes = Math.floor((uptime % 3600) / 60);
+                    return `${hours}h ${minutes}m`;
+                },
+                'version': () => {
+                    return 'Unified OS v6.0';
+                }
+            };
+
+            function printLine(text, className = 'output') {
+                const line = document.createElement('div');
+                line.className = 'line';
+                line.innerHTML = `<span class="${className}">${text}</span>`;
+                terminalOutput.appendChild(line);
+                terminalOutput.scrollTop = terminalOutput.scrollHeight;
+            }
+
+            function printPrompt() {
+                const line = document.createElement('div');
+                line.className = 'line';
+                line.innerHTML = `<span class="prompt">user@os:${terminalPath}$</span>`;
+                terminalOutput.appendChild(line);
+                terminalOutput.scrollTop = terminalOutput.scrollHeight;
+            }
+
+            function executeCommand(input) {
+                const trimmed = input.trim();
+                if (!trimmed) return;
+                terminalHistory.push(trimmed);
+                historyIdx = terminalHistory.length;
+
+                const parts = trimmed.split(' ');
+                const cmd = parts[0].toLowerCase();
+                const args = parts.slice(1);
+
+                printPrompt();
+                const line = document.createElement('div');
+                line.className = 'line';
+                line.innerHTML = `<span class="command">${escapeHtml(trimmed)}</span>`;
+                terminalOutput.appendChild(line);
+
+                if (terminalCommands[cmd]) {
+                    const result = terminalCommands[cmd](args);
+                    if (result !== null) {
+                        const outputLines = result.split('\n');
+                        outputLines.forEach(outputLine => {
+                            printLine(outputLine);
+                        });
+                    }
+                } else {
+                    printLine(`Command not found: ${cmd}`, 'error');
+                }
+                terminalOutput.scrollTop = terminalOutput.scrollHeight;
+            }
+
+            terminalInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    executeCommand(terminalInput.value);
+                    terminalInput.value = '';
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (historyIdx > 0) {
+                        historyIdx--;
+                        terminalInput.value = terminalHistory[historyIdx] || '';
+                    }
+                } else if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (historyIdx < terminalHistory.length - 1) {
+                        historyIdx++;
+                        terminalInput.value = terminalHistory[historyIdx] || '';
+                    } else {
+                        historyIdx = terminalHistory.length;
+                        terminalInput.value = '';
+                    }
+                }
+            });
+
+            function openTerminal() {
+                terminalOutput.innerHTML = '';
+                printLine('Unified OS Terminal v1.0', 'output');
+                printLine('Type "help" for available commands.', 'output');
+                printLine('', 'output');
+                terminalApp.style.display = 'block';
+                if (document.body.classList.contains('desktop-mode')) {
+                    const app = { id: 'terminal-app', name: 'Terminal', type: 'native', component: 'terminal' };
+                    if (!runningApps['terminal-app']) {
+                        runningApps['terminal-app'] = {
+                            app: app,
+                            contentNode: terminalApp,
+                            winEl: null,
+                            unsavedFlag: false,
+                            componentData: null,
+                            scrollY: 0,
+                            lastActive: Date.now(),
+                            focusedSelector: null
+                        };
+                    }
+                    launchApp('terminal-app');
+                } else {
+                    modalTitle.innerText = 'Terminal';
+                    const mc = document.getElementById('modalContent');
+                    mc.innerHTML = '';
+                    mc.appendChild(terminalApp);
+                    modal.classList.add('open');
+                }
+                setTimeout(() => terminalInput.focus(), 100);
+            }
+
+            // Add Terminal shortcut to system tray
+            const termToggle = document.createElement('div');
+            termToggle.className = 'system-tray-toggle';
+            termToggle.dataset.toggle = 'terminal';
+            termToggle.innerHTML = '<i class="fas fa-terminal"></i><span>Terminal</span>';
+            termToggle.addEventListener('click', openTerminal);
+            document.querySelector('.system-tray-quick-toggles')?.appendChild(termToggle);
+        })();
+
+        // ─── NOTIFICATION CENTER ───
+        const notificationCenter = document.getElementById('notificationCenter');
+        const ncList = document.getElementById('ncList');
+        const ncCloseBtn = document.getElementById('ncCloseBtn');
+        const ncClearAllBtn = document.getElementById('ncClearAllBtn');
+
+        function openNotificationCenter() {
+            renderNotificationsCenter();
+            notificationCenter.classList.add('open');
+        }
+
+        function closeNotificationCenter() {
+            notificationCenter.classList.remove('open');
+        }
+
+        function renderNotificationsCenter() {
+            if (notifications.length === 0) {
+                ncList.innerHTML = `
+                    <div class="notification-center-empty">
+                        <i class="fas fa-check-circle"></i>
+                        <span>No notifications</span>
+                    </div>
+                `;
+                return;
+            }
+            ncList.innerHTML = notifications.map((n, index) => `
+                <div class="notification-center-item" data-index="${index}">
+                    <div class="nc-icon"><i class="fas fa-${n.icon}"></i></div>
+                    <div class="nc-content">
+                        <div class="nc-title">${escapeHtml(n.msg)}</div>
+                        <div class="nc-time">${n.time}</div>
+                    </div>
+                    <button class="nc-dismiss" data-index="${index}"><i class="fas fa-times"></i></button>
+                </div>
+            `).join('');
+
+            // Add dismiss handlers
+            ncList.querySelectorAll('.nc-dismiss').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const index = parseInt(btn.dataset.index);
+                    notifications.splice(index, 1);
+                    renderNotificationsCenter();
+                    renderNotifications(); // Also update the notification drawer
+                });
+            });
+        }
+
+        ncCloseBtn.addEventListener('click', closeNotificationCenter);
+        ncClearAllBtn.addEventListener('click', () => {
+            notifications = [];
+            renderNotificationsCenter();
+            renderNotifications();
+            toast('All notifications cleared');
+        });
+
+        // Close notification center when clicking outside
+        document.addEventListener('click', (e) => {
+            if (notificationCenter.classList.contains('open') && 
+                !notificationCenter.contains(e.target) && 
+                !e.target.closest('.settings-dots') &&
+                !e.target.closest('#notifDrawer')) {
+                closeNotificationCenter();
+            }
+        });
+
+        // Keyboard shortcut: Ctrl+Shift+N
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.shiftKey && e.key === 'N') {
+                e.preventDefault();
+                if (notificationCenter.classList.contains('open')) {
+                    closeNotificationCenter();
+                } else {
+                    openNotificationCenter();
+                }
+            }
+        });
+
+        // Add Notification Center shortcut to system tray
+        const ncToggle = document.createElement('div');
+        ncToggle.className = 'system-tray-toggle';
+        ncToggle.dataset.toggle = 'notifications';
+        ncToggle.innerHTML = '<i class="fas fa-bell"></i><span>Notif Center</span>';
+        ncToggle.addEventListener('click', openNotificationCenter);
+        document.querySelector('.system-tray-quick-toggles')?.appendChild(ncToggle);
+        
+        // ─── CLIPBOARD HISTORY ───
+        const clipboardOverlay = document.getElementById('clipboardOverlay');
+        const clipboardList = document.getElementById('clipboardList');
+        const clipboardClose = document.getElementById('clipboardClose');
+
+        let clipboardHistory = JSON.parse(localStorage.getItem('clipboardHistory') || '[]');
+
+        function saveClipboardHistory() {
+            localStorage.setItem('clipboardHistory', JSON.stringify(clipboardHistory));
+        }
+
+        function renderClipboardHistory() {
+            if (clipboardHistory.length === 0) {
+                clipboardList.innerHTML = `
+                    <div class="clipboard-empty">
+                        <i class="fas fa-clipboard"></i>
+                        <span>No items copied yet</span>
+                    </div>
+                `;
+                return;
+            }
+            clipboardList.innerHTML = clipboardHistory.map((item, index) => `
+                <div class="clipboard-item" data-index="${index}">
+                    <span class="clip-text">${escapeHtml(item.text)}</span>
+                    <span class="clip-time">${item.time}</span>
+                    <button class="clip-delete" data-index="${index}"><i class="fas fa-times"></i></button>
+                </div>
+            `).join('');
+
+            // Click to paste
+            clipboardList.querySelectorAll('.clipboard-item').forEach(el => {
+                el.addEventListener('click', () => {
+                    const index = parseInt(el.dataset.index);
+                    const item = clipboardHistory[index];
+                    if (item) {
+                        navigator.clipboard.writeText(item.text).then(() => {
+                            toast('Pasted: ' + item.text.substring(0, 30) + '...');
+                            closeClipboardHistory();
+                        }).catch(() => {
+                            // Fallback for browsers without clipboard API
+                            const textarea = document.createElement('textarea');
+                            textarea.value = item.text;
+                            document.body.appendChild(textarea);
+                            textarea.select();
+                            document.execCommand('copy');
+                            document.body.removeChild(textarea);
+                            toast('Pasted: ' + item.text.substring(0, 30) + '...');
+                            closeClipboardHistory();
+                        });
+                    }
+                });
+            });
+
+            // Delete individual items
+            clipboardList.querySelectorAll('.clip-delete').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const index = parseInt(btn.dataset.index);
+                    clipboardHistory.splice(index, 1);
+                    saveClipboardHistory();
+                    renderClipboardHistory();
+                });
+            });
+        }
+
+        function openClipboardHistory() {
+            renderClipboardHistory();
+            clipboardOverlay.classList.add('open');
+        }
+
+        function closeClipboardHistory() {
+            clipboardOverlay.classList.remove('open');
+        }
+
+        clipboardClose.addEventListener('click', closeClipboardHistory);
+        clipboardOverlay.addEventListener('click', (e) => {
+            if (e.target === clipboardOverlay) closeClipboardHistory();
+        });
+
+        // Keyboard shortcut: Ctrl+Shift+V
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.shiftKey && e.key === 'V') {
+                e.preventDefault();
+                if (clipboardOverlay.classList.contains('open')) {
+                    closeClipboardHistory();
+                } else {
+                    openClipboardHistory();
+                }
+            }
+        });
+
+        // Intercept copy events to save to clipboard history
+        document.addEventListener('copy', (e) => {
+            const text = window.getSelection().toString().trim();
+            if (text) {
+                clipboardHistory.unshift({
+                    text: text,
+                    time: new Date().toLocaleTimeString()
+                });
+                if (clipboardHistory.length > 20) clipboardHistory.pop();
+                saveClipboardHistory();
+            }
+        });
+
+        // Also intercept cut events
+        document.addEventListener('cut', (e) => {
+            const text = window.getSelection().toString().trim();
+            if (text) {
+                clipboardHistory.unshift({
+                    text: text,
+                    time: new Date().toLocaleTimeString()
+                });
+                if (clipboardHistory.length > 20) clipboardHistory.pop();
+                saveClipboardHistory();
+            }
+        });
+
+        // Add Clipboard History shortcut to system tray
+        const clipToggle = document.createElement('div');
+        clipToggle.className = 'system-tray-toggle';
+        clipToggle.dataset.toggle = 'clipboard';
+        clipToggle.innerHTML = '<i class="fas fa-clipboard-list"></i><span>Clipboard</span>';
+        clipToggle.addEventListener('click', openClipboardHistory);
+        document.querySelector('.system-tray-quick-toggles')?.appendChild(clipToggle);
+        
+        // ─── SCREENSHOT TOOL ───
+        const screenshotOverlay = document.getElementById('screenshotOverlay');
+        const screenshotFull = document.getElementById('screenshotFull');
+        const screenshotWindow = document.getElementById('screenshotWindow');
+        const screenshotArea = document.getElementById('screenshotArea');
+        const screenshotCancel = document.getElementById('screenshotCancel');
+
+        let screenshotMode = null;
+        let selectionStart = null;
+        let selectionRect = null;
+
+        function openScreenshotTool() {
+            screenshotOverlay.classList.add('active');
+            screenshotMode = null;
+        }
+
+        function closeScreenshotTool() {
+            screenshotOverlay.classList.remove('active');
+            screenshotMode = null;
+            if (selectionRect) {
+                selectionRect.remove();
+                selectionRect = null;
+            }
+        }
+
+        function captureScreenshot(mode) {
+            screenshotMode = mode;
+            closeScreenshotTool();
+            
+            if (mode === 'full') {
+                // Capture full screen
+                captureFullScreen();
+            } else if (mode === 'window') {
+                // Capture active window
+                captureActiveWindow();
+            } else if (mode === 'area') {
+                // Enter area selection mode
+                startAreaSelection();
+            }
+        }
+
+        function captureFullScreen() {
+            // Use html2canvas to capture the entire document
+            if (typeof html2canvas !== 'undefined') {
+                html2canvas(document.body, {
+                    scale: 1,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: '#0a0c12'
+                }).then(canvas => {
+                    handleCapturedCanvas(canvas);
+                });
+            } else {
+                // Fallback: load html2canvas dynamically
+                const script = document.createElement('script');
+                script.src = 'https://html2canvas.hertzen.com/dist/html2canvas.min.js';
+                script.onload = captureFullScreen;
+                document.head.appendChild(script);
+            }
+        }
+
+        function captureActiveWindow() {
+            const activeWin = document.querySelector('.window[style*="display: flex"]');
+            if (!activeWin) {
+                toast('No active window found');
+                return;
+            }
+            if (typeof html2canvas !== 'undefined') {
+                html2canvas(activeWin, {
+                    scale: 1,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: '#1e293b'
+                }).then(canvas => {
+                    handleCapturedCanvas(canvas);
+                });
+            } else {
+                // Fallback: load html2canvas dynamically
+                const script = document.createElement('script');
+                script.src = 'https://html2canvas.hertzen.com/dist/html2canvas.min.js';
+                script.onload = captureActiveWindow;
+                document.head.appendChild(script);
+            }
+        }
+
+        function startAreaSelection() {
+            // Create a selection overlay
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed;
+                inset: 0;
+                z-index: 99999;
+                cursor: crosshair;
+                background: rgba(0,0,0,0.3);
+            `;
+            document.body.appendChild(overlay);
+
+            let startX, startY, selectionBox;
+
+            overlay.addEventListener('mousedown', (e) => {
+                startX = e.clientX;
+                startY = e.clientY;
+                selectionBox = document.createElement('div');
+                selectionBox.style.cssText = `
+                    position: fixed;
+                    border: 2px solid var(--primary);
+                    background: rgba(59, 130, 246, 0.1);
+                    pointer-events: none;
+                    z-index: 99999;
+                `;
+                document.body.appendChild(selectionBox);
+
+                const onMouseMove = (me) => {
+                    const x = Math.min(startX, me.clientX);
+                    const y = Math.min(startY, me.clientY);
+                    const w = Math.abs(me.clientX - startX);
+                    const h = Math.abs(me.clientY - startY);
+                    selectionBox.style.left = x + 'px';
+                    selectionBox.style.top = y + 'px';
+                    selectionBox.style.width = w + 'px';
+                    selectionBox.style.height = h + 'px';
+                };
+
+                const onMouseUp = () => {
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+                    
+                    const rect = selectionBox.getBoundingClientRect();
+                    if (rect.width > 10 && rect.height > 10) {
+                        captureArea(rect);
+                    } else {
+                        toast('Selection too small');
+                    }
+                    selectionBox.remove();
+                    overlay.remove();
+                };
+
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            });
+        }
+
+        function captureArea(rect) {
+            if (typeof html2canvas !== 'undefined') {
+                html2canvas(document.body, {
+                    scale: 1,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: '#0a0c12',
+                    x: rect.left,
+                    y: rect.top,
+                    width: rect.width,
+                    height: rect.height
+                }).then(canvas => {
+                    handleCapturedCanvas(canvas);
+                });
+            } else {
+                // Fallback: load html2canvas dynamically
+                const script = document.createElement('script');
+                script.src = 'https://html2canvas.hertzen.com/dist/html2canvas.min.js';
+                script.onload = () => captureArea(rect);
+                document.head.appendChild(script);
+            }
+        }
+
+        function handleCapturedCanvas(canvas) {
+            // Create a download link
+            const link = document.createElement('a');
+            link.download = `screenshot-${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            toast('Screenshot saved');
+        }
+
+        // Open screenshot tool with keyboard shortcut: Ctrl+Shift+S
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.shiftKey && e.key === 'S') {
+                e.preventDefault();
+                openScreenshotTool();
+            }
+        });
+
+        screenshotFull.addEventListener('click', () => captureScreenshot('full'));
+        screenshotWindow.addEventListener('click', () => captureScreenshot('window'));
+        screenshotArea.addEventListener('click', () => captureScreenshot('area'));
+        screenshotCancel.addEventListener('click', closeScreenshotTool);
+
+        // Add Screenshot shortcut to system tray
+        const ssToggle = document.createElement('div');
+        ssToggle.className = 'system-tray-toggle';
+        ssToggle.dataset.toggle = 'screenshot';
+        ssToggle.innerHTML = '<i class="fas fa-camera"></i><span>Screenshot</span>';
+        ssToggle.addEventListener('click', openScreenshotTool);
+        document.querySelector('.system-tray-quick-toggles')?.appendChild(ssToggle);
+
+        // ─── POWER MANAGEMENT ───
+        const powerMenuOverlay = document.getElementById('powerMenuOverlay');
+        const powerMenuConfirm = document.getElementById('powerMenuConfirm');
+        const powerConfirmText = document.getElementById('powerConfirmText');
+        const powerConfirmYes = document.getElementById('powerConfirmYes');
+        const powerConfirmNo = document.getElementById('powerConfirmNo');
+        const powerMenuClose = document.getElementById('powerMenuClose');
+
+        let pendingAction = null;
+
+        function openPowerMenu() {
+            powerMenuOverlay.classList.add('open');
+            powerMenuConfirm.style.display = 'none';
+            pendingAction = null;
+        }
+
+        function closePowerMenu() {
+            powerMenuOverlay.classList.remove('open');
+            pendingAction = null;
+        }
+
+        function executePowerAction(action) {
+            switch (action) {
+                case 'lock':
+                    // Lock the screen
+                    lockScreen.classList.remove('unlocked');
+                    lockScreen.classList.add('locked');
+                    isLocked = true;
+                    if (!document.body.classList.contains('desktop-mode')) closeModal();
+                    else { Object.keys(runningApps).forEach(id => closeApp(id, true)); }
+                    closePowerMenu();
+                    toast('Locked');
+                    break;
+                case 'restart':
+                    // Restart the OS (reload page)
+                    closePowerMenu();
+                    toast('Restarting...');
+                    setTimeout(() => location.reload(), 500);
+                    break;
+                case 'shutdown':
+                    // Shut down the OS (reload with state cleared)
+                    closePowerMenu();
+                    toast('Shutting down...');
+                    localStorage.removeItem('runningAppsState');
+                    setTimeout(() => location.reload(), 500);
+                    break;
+                case 'sleep':
+                    // Simulate sleep (dim screen)
+                    closePowerMenu();
+                    const overlay = document.createElement('div');
+                    overlay.style.cssText = `
+                        position: fixed;
+                        inset: 0;
+                        background: rgba(0,0,0,0.9);
+                        z-index: 99999;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 24px;
+                        color: var(--text-dim);
+                        backdrop-filter: blur(30px);
+                        cursor: pointer;
+                    `;
+                    overlay.innerHTML = '💤 Click to wake';
+                    overlay.addEventListener('click', () => overlay.remove());
+                    document.body.appendChild(overlay);
+                    toast('Sleeping...');
+                    break;
+                case 'hibernate':
+                    // Simulate hibernate (save state and reload)
+                    closePowerMenu();
+                    saveStateToLocalStorage();
+                    toast('Hibernating...');
+                    setTimeout(() => location.reload(), 500);
+                    break;
+                default:
+                    toast('Unknown action');
+            }
+        }
+
+        document.querySelectorAll('.power-menu-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const action = item.dataset.action;
+                if (action === 'lock') {
+                    // No confirmation needed for lock
+                    executePowerAction(action);
+                } else {
+                    // Show confirmation for destructive actions
+                    const names = {
+                        'restart': 'restart',
+                        'shutdown': 'shut down',
+                        'sleep': 'sleep',
+                        'hibernate': 'hibernate'
+                    };
+                    powerConfirmText.textContent = `Are you sure you want to ${names[action]}?`;
+                    powerMenuConfirm.style.display = 'block';
+                    pendingAction = action;
+                }
+            });
+        });
+
+        powerConfirmYes.addEventListener('click', () => {
+            if (pendingAction) {
+                executePowerAction(pendingAction);
+                pendingAction = null;
+            }
+        });
+
+        powerConfirmNo.addEventListener('click', () => {
+            powerMenuConfirm.style.display = 'none';
+            pendingAction = null;
+        });
+
+        powerMenuClose.addEventListener('click', closePowerMenu);
+        powerMenuOverlay.addEventListener('click', (e) => {
+            if (e.target === powerMenuOverlay) closePowerMenu();
+        });
+
+        // Add Power Management shortcut to system tray
+        const powerToggle = document.createElement('div');
+        powerToggle.className = 'system-tray-toggle';
+        powerToggle.dataset.toggle = 'power';
+        powerToggle.innerHTML = '<i class="fas fa-power-off" style="color:var(--danger);"></i><span>Power</span>';
+        powerToggle.addEventListener('click', openPowerMenu);
+        document.querySelector('.system-tray-quick-toggles')?.appendChild(powerToggle);
+
+        // Keyboard shortcut: Ctrl+Shift+P
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.shiftKey && e.key === 'P') {
+                e.preventDefault();
+                if (powerMenuOverlay.classList.contains('open')) {
+                    closePowerMenu();
+                } else {
+                    openPowerMenu();
+                }
+            }
+        });
+
+        // ─── FILE ARCHIVER ───
+        const archiverOverlay = document.getElementById('archiverOverlay');
+        const archiverClose = document.getElementById('archiverClose');
+        const archiverMode = document.getElementById('archiverMode');
+        const archiverSource = document.getElementById('archiverSource');
+        const archiverDest = document.getElementById('archiverDest');
+        const archiverGo = document.getElementById('archiverGo');
+        const archiverCancel = document.getElementById('archiverCancel');
+
+        function openArchiver() {
+            archiverOverlay.classList.add('open');
+            // Auto-detect current folder from File Explorer
+            const explorerPath = document.getElementById('explorerPath');
+            if (explorerPath) {
+                const pathText = explorerPath.textContent.trim();
+                const folder = pathText.split('>').pop().trim().toLowerCase();
+                if (folder && fileSystem[folder]) {
+                    archiverSource.value = folder;
+                }
+            }
+            archiverDest.value = '';
+        }
+
+        function closeArchiver() {
+            archiverOverlay.classList.remove('open');
+        }
+
+        // Close handlers
+        archiverClose.addEventListener('click', closeArchiver);
+        archiverCancel.addEventListener('click', closeArchiver);
+        archiverOverlay.addEventListener('click', (e) => {
+            if (e.target === archiverOverlay) closeArchiver();
+        });
+
+        // Mode switch: show/hide destination input
+        archiverMode.addEventListener('change', () => {
+            const isZip = archiverMode.value === 'zip';
+            document.getElementById('archiverDestGroup').style.display = isZip ? 'flex' : 'none';
+            if (!isZip) {
+                archiverDest.value = '';
+            }
+        });
+
+        // Process action
+        archiverGo.addEventListener('click', () => {
+            const mode = archiverMode.value;
+            const source = archiverSource.value.trim().toLowerCase();
+            const dest = archiverDest.value.trim() || source + '.zip';
+
+            if (!source) {
+                toast('Please enter a source name');
+                return;
+            }
+
+            // Check if source exists in virtual file system
+            if (!fileSystem[source] && source !== 'home') {
+                toast(`Folder "${source}" not found`);
+                return;
+            }
+
+            if (mode === 'zip') {
+                // Create a ZIP archive (simulated)
+                const items = fileSystem[source] || fileSystem['home'] || [];
+                const archiveName = dest.endsWith('.zip') ? dest : dest + '.zip';
+                toast(`Creating ${archiveName} with ${items.length} items...`);
+                // Simulate progress
+                setTimeout(() => {
+                    toast(`✅ Created "${archiveName}" successfully`);
+                    // Add the archive to the file system
+                    const folderName = source === 'home' ? 'home' : source;
+                    if (fileSystem[folderName]) {
+                        fileSystem[folderName].push({
+                            name: archiveName,
+                            type: 'file',
+                            icon: 'fa-file-archive',
+                            size: `${Math.floor(items.length * 2 + 10)} KB`
+                        });
+                    }
+                    renderFolder(currentFolder || 'home');
+                }, 800);
+            } else if (mode === 'unzip') {
+                // Extract a ZIP archive (simulated)
+                const archiveName = source.endsWith('.zip') ? source : source + '.zip';
+                // Find the archive in the current folder
+                const currentFiles = fileSystem[currentFolder || 'home'] || [];
+                const archive = currentFiles.find(f => f.name === archiveName);
+                if (!archive) {
+                    toast(`Archive "${archiveName}" not found`);
+                    return;
+                }
+                toast(`Extracting ${archiveName}...`);
+                setTimeout(() => {
+                    // Add extracted files to the current folder
+                    const extractedItems = [
+                        { name: 'Extracted_File_1.txt', type: 'file', icon: 'fa-file-alt', size: '2 KB' },
+                        { name: 'Extracted_File_2.md', type: 'file', icon: 'fa-file-code', size: '4 KB' },
+                        { name: 'Extracted_Folder', type: 'folder', icon: 'fa-folder' }
+                    ];
+                    extractedItems.forEach(item => {
+                        if (!fileSystem[currentFolder || 'home']) {
+                            fileSystem[currentFolder || 'home'] = [];
+                        }
+                        fileSystem[currentFolder || 'home'].push(item);
+                    });
+                    toast(`✅ Extracted "${archiveName}" successfully`);
+                    renderFolder(currentFolder || 'home');
+                }, 800);
+            }
+
+            closeArchiver();
+        });
+
+        // Keyboard shortcut: Ctrl+Shift+Z
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.shiftKey && e.key === 'Z') {
+                e.preventDefault();
+                if (archiverOverlay.classList.contains('open')) {
+                    closeArchiver();
+                } else {
+                    openArchiver();
+                }
+            }
+        });
+
+        // Add File Archiver shortcut to system tray
+        const archiverToggle = document.createElement('div');
+        archiverToggle.className = 'system-tray-toggle';
+        archiverToggle.dataset.toggle = 'archiver';
+        archiverToggle.innerHTML = '<i class="fas fa-file-archive"></i><span>Archiver</span>';
+        archiverToggle.addEventListener('click', openArchiver);
+        document.querySelector('.system-tray-quick-toggles')?.appendChild(archiverToggle);
+
+        // ─── MEDIA PLAYER ───
+        const mediaPlayerApp = document.getElementById('mediaPlayerApp');
+        const mediaArea = document.getElementById('mediaArea');
+        const mediaTitle = document.getElementById('mediaTitle');
+        const mediaSubtitle = document.getElementById('mediaSubtitle');
+        const mediaPlayBtn = document.getElementById('mediaPlayBtn');
+        const mediaPrev = document.getElementById('mediaPrev');
+        const mediaNext = document.getElementById('mediaNext');
+        const mediaShuffle = document.getElementById('mediaShuffle');
+        const mediaRepeat = document.getElementById('mediaRepeat');
+        const mediaProgress = document.getElementById('mediaProgress');
+        const mediaCurrentTime = document.getElementById('mediaCurrentTime');
+        const mediaDuration = document.getElementById('mediaDuration');
+        const mediaPlayerClose = document.getElementById('mediaPlayerClose');
+
+        let mediaElement = null;
+        let isPlaying = false;
+        let isShuffled = false;
+        let isRepeated = false;
+        let currentMediaIndex = 0;
+        let mediaQueue = [];
+
+        function openMediaPlayer(file) {
+            mediaPlayerApp.style.display = 'block';
+            if (document.body.classList.contains('desktop-mode')) {
+                const app = { id: 'media-player', name: 'Media Player', type: 'native', component: 'media-player' };
+                if (!runningApps['media-player']) {
+                    runningApps['media-player'] = {
+                        app: app,
+                        contentNode: mediaPlayerApp,
+                        winEl: null,
+                        unsavedFlag: false,
+                        componentData: null,
+                        scrollY: 0,
+                        lastActive: Date.now(),
+                        focusedSelector: null
+                    };
+                }
+                launchApp('media-player');
+            } else {
+                modalTitle.innerText = 'Media Player';
+                const mc = document.getElementById('modalContent');
+                mc.innerHTML = '';
+                mc.appendChild(mediaPlayerApp);
+                modal.classList.add('open');
+            }
+            // Load default media queue
+            if (mediaQueue.length === 0) {
+                // Simulated media files
+                mediaQueue = [
+                    { name: 'Ambient Music', src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3', type: 'audio' },
+                    { name: 'Relaxing Piano', src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3', type: 'audio' },
+                    { name: 'Nature Sounds', src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3', type: 'audio' }
+                ];
+            }
+            loadMedia(0);
+        }
+
+        function loadMedia(index) {
+            if (index < 0 || index >= mediaQueue.length) return;
+            currentMediaIndex = index;
+            const item = mediaQueue[index];
+            mediaTitle.textContent = item.name;
+            mediaSubtitle.textContent = `Track ${index + 1} of ${mediaQueue.length}`;
+            mediaArea.innerHTML = '';
+            if (item.type === 'audio') {
+                const audio = document.createElement('audio');
+                audio.src = item.src;
+                audio.controls = false;
+                audio.autoplay = true;
+                audio.addEventListener('timeupdate', () => {
+                    const current = Math.floor(audio.currentTime);
+                    const total = Math.floor(audio.duration) || 0;
+                    mediaProgress.value = total > 0 ? (current / total) * 100 : 0;
+                    mediaCurrentTime.textContent = formatTime(current);
+                    mediaDuration.textContent = formatTime(total);
+                });
+                audio.addEventListener('ended', () => {
+                    if (isRepeated) {
+                        audio.currentTime = 0;
+                        audio.play();
+                    } else {
+                        playNext();
+                    }
+                });
+                mediaElement = audio;
+                mediaArea.appendChild(audio);
+                setTimeout(() => {
+                    audio.play().catch(() => {});
+                }, 100);
+                isPlaying = true;
+                mediaPlayBtn.innerHTML = '<i class="fas fa-pause"></i>';
+            }
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function playPause() {
+            if (!mediaElement) return;
+            if (isPlaying) {
+                mediaElement.pause();
+                isPlaying = false;
+                mediaPlayBtn.innerHTML = '<i class="fas fa-play"></i>';
+            } else {
+                mediaElement.play();
+                isPlaying = true;
+                mediaPlayBtn.innerHTML = '<i class="fas fa-pause"></i>';
+            }
+        }
+
+        function playNext() {
+            let nextIndex = currentMediaIndex + 1;
+            if (nextIndex >= mediaQueue.length) {
+                if (isRepeated) {
+                    nextIndex = 0;
+                } else {
+                    return;
+                }
+            }
+            loadMedia(nextIndex);
+        }
+
+        function playPrev() {
+            let prevIndex = currentMediaIndex - 1;
+            if (prevIndex < 0) {
+                prevIndex = mediaQueue.length - 1;
+            }
+            loadMedia(prevIndex);
+        }
+
+        // Control handlers
+        mediaPlayBtn.addEventListener('click', playPause);
+        mediaNext.addEventListener('click', playNext);
+        mediaPrev.addEventListener('click', playPrev);
+
+        mediaShuffle.addEventListener('click', () => {
+            isShuffled = !isShuffled;
+            mediaShuffle.style.color = isShuffled ? 'var(--primary)' : 'var(--text)';
+            if (isShuffled) {
+                // Shuffle the queue
+                for (let i = mediaQueue.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [mediaQueue[i], mediaQueue[j]] = [mediaQueue[j], mediaQueue[i]];
+                }
+                toast('Shuffle on');
+            } else {
+                toast('Shuffle off');
+            }
+        });
+
+        mediaRepeat.addEventListener('click', () => {
+            isRepeated = !isRepeated;
+            mediaRepeat.style.color = isRepeated ? 'var(--primary)' : 'var(--text)';
+            toast(isRepeated ? 'Repeat on' : 'Repeat off');
+        });
+
+        mediaProgress.addEventListener('input', () => {
+            if (mediaElement) {
+                const total = mediaElement.duration || 0;
+                const val = parseFloat(mediaProgress.value);
+                mediaElement.currentTime = (val / 100) * total;
+            }
+        });
+
+        mediaPlayerClose.addEventListener('click', () => {
+            if (document.body.classList.contains('desktop-mode')) {
+                closeApp('media-player');
+            } else {
+                modal.classList.remove('open');
+            }
+        });
+
+        // Keyboard shortcuts: Space for play/pause
+        document.addEventListener('keydown', (e) => {
+            if (e.key === ' ' && document.activeElement?.tagName !== 'INPUT') {
+                const player = document.querySelector('.media-player');
+                if (player) {
+                    e.preventDefault();
+                    playPause();
+                }
+            }
+        });
+
+        // Add Media Player shortcut to system tray
+        const mediaToggle = document.createElement('div');
+        mediaToggle.className = 'system-tray-toggle';
+        mediaToggle.dataset.toggle = 'mediaplayer';
+        mediaToggle.innerHTML = '<i class="fas fa-music"></i><span>Media Player</span>';
+        mediaToggle.addEventListener('click', openMediaPlayer);
+        document.querySelector('.system-tray-quick-toggles')?.appendChild(mediaToggle);
+
+        // ─── SYSTEM HEALTH MONITOR ───
+        const healthMonitorApp = document.getElementById('healthMonitorApp');
+        const healthMonitorClose = document.getElementById('healthMonitorClose');
+        const healthCpu = document.getElementById('healthCpu');
+        const healthCpuBar = document.getElementById('healthCpuBar');
+        const healthMem = document.getElementById('healthMem');
+        const healthMemBar = document.getElementById('healthMemBar');
+        const healthBattery = document.getElementById('healthBattery');
+        const healthBatteryBar = document.getElementById('healthBatteryBar');
+        const healthStorage = document.getElementById('healthStorage');
+        const healthStorageBar = document.getElementById('healthStorageBar');
+        const healthUptime = document.getElementById('healthUptime');
+        const healthApps = document.getElementById('healthApps');
+
+        let healthInterval = null;
+
+        function openHealthMonitor() {
+            healthMonitorApp.style.display = 'block';
+            if (document.body.classList.contains('desktop-mode')) {
+                const app = { id: 'health-monitor', name: 'System Health', type: 'native', component: 'health-monitor' };
+                if (!runningApps['health-monitor']) {
+                    runningApps['health-monitor'] = {
+                        app: app,
+                        contentNode: healthMonitorApp,
+                        winEl: null,
+                        unsavedFlag: false,
+                        componentData: null,
+                        scrollY: 0,
+                        lastActive: Date.now(),
+                        focusedSelector: null
+                    };
+                }
+                launchApp('health-monitor');
+            } else {
+                modalTitle.innerText = 'System Health';
+                const mc = document.getElementById('modalContent');
+                mc.innerHTML = '';
+                mc.appendChild(healthMonitorApp);
+                modal.classList.add('open');
+            }
+            updateHealthStats();
+            if (healthInterval) clearInterval(healthInterval);
+            healthInterval = setInterval(updateHealthStats, 2000);
+        }
+
+        function closeHealthMonitor() {
+            if (healthInterval) {
+                clearInterval(healthInterval);
+                healthInterval = null;
+            }
+            if (document.body.classList.contains('desktop-mode')) {
+                closeApp('health-monitor');
+            } else {
+                modal.classList.remove('open');
+            }
+        }
+
+        function updateHealthStats() {
+            // Simulate CPU usage
+            const cpu = Math.floor(Math.random() * 40) + 10;
+            healthCpu.textContent = cpu + '%';
+            healthCpuBar.style.width = cpu + '%';
+            healthCpuBar.className = 'fill ' + getColorClass(cpu);
+
+            // Simulate memory usage
+            const mem = Math.floor(Math.random() * 35) + 30;
+            healthMem.textContent = mem + '%';
+            healthMemBar.style.width = mem + '%';
+            healthMemBar.className = 'fill ' + getColorClass(mem);
+
+            // Battery
+            const batteryLevel = parseInt(batteryFill.style.width) || 87;
+            healthBattery.textContent = batteryLevel + '%';
+            healthBatteryBar.style.width = batteryLevel + '%';
+            healthBatteryBar.className = 'fill ' + getColorClass(batteryLevel);
+
+            // Storage (simulated)
+            const storageUsed = Math.floor(Math.random() * 20) + 5;
+            const storageTotal = 64;
+            const storagePercent = Math.floor((storageUsed / storageTotal) * 100);
+            healthStorage.textContent = storageUsed + ' GB / ' + storageTotal + ' GB';
+            healthStorageBar.style.width = storagePercent + '%';
+            healthStorageBar.className = 'fill ' + getColorClass(storagePercent);
+
+            // Uptime
+            const uptimeSeconds = Math.floor((Date.now() - performance.now()) / 1000);
+            const hours = Math.floor(uptimeSeconds / 3600);
+            const minutes = Math.floor((uptimeSeconds % 3600) / 60);
+            healthUptime.textContent = `Uptime: ${hours}h ${minutes}m`;
+
+            // App count
+            healthApps.textContent = `Apps: ${Object.keys(runningApps).length}`;
+        }
+
+        function getColorClass(value) {
+            if (value < 60) return 'green';
+            if (value < 80) return 'yellow';
+            return 'red';
+        }
+
+        healthMonitorClose.addEventListener('click', closeHealthMonitor);
+
+        // Add System Health shortcut to system tray
+        const healthToggle = document.createElement('div');
+        healthToggle.className = 'system-tray-toggle';
+        healthToggle.dataset.toggle = 'health';
+        healthToggle.innerHTML = '<i class="fas fa-heartbeat" style="color:var(--success);"></i><span>Health</span>';
+        healthToggle.addEventListener('click', openHealthMonitor);
+        document.querySelector('.system-tray-quick-toggles')?.appendChild(healthToggle);
+
+        // ─── TEXT EDITOR ───
+        const textEditorApp = document.getElementById('textEditorApp');
+        const editorTabs = document.getElementById('editorTabs');
+        const editorNewTab = document.getElementById('editorNewTab');
+        const editorArea = document.getElementById('editorArea');
+        const editorLineNumbers = document.getElementById('editorLineNumbers');
+        const editorStatus = document.getElementById('editorStatus');
+        const editorInfo = document.getElementById('editorInfo');
+
+        let editorTabsData = [
+            { name: 'untitled.txt', content: 'Welcome to the Text Editor!', active: true }
+        ];
+        let activeTabIndex = 0;
+
+        function openTextEditor() {
+            textEditorApp.style.display = 'block';
+            if (document.body.classList.contains('desktop-mode')) {
+                const app = { id: 'text-editor', name: 'Text Editor', type: 'native', component: 'text-editor' };
+                if (!runningApps['text-editor']) {
+                    runningApps['text-editor'] = {
+                        app: app,
+                        contentNode: textEditorApp,
+                        winEl: null,
+                        unsavedFlag: false,
+                        componentData: null,
+                        scrollY: 0,
+                        lastActive: Date.now(),
+                        focusedSelector: null
+                    };
+                }
+                launchApp('text-editor');
+            } else {
+                modalTitle.innerText = 'Text Editor';
+                const mc = document.getElementById('modalContent');
+                mc.innerHTML = '';
+                mc.appendChild(textEditorApp);
+                modal.classList.add('open');
+            }
+            renderEditorTabs();
+            loadEditorTab(0);
+        }
+
+        function renderEditorTabs() {
+            editorTabs.innerHTML = '';
+            editorTabsData.forEach((tab, index) => {
+                const tabEl = document.createElement('div');
+                tabEl.className = 'tab' + (tab.active ? ' active' : '');
+                tabEl.dataset.tab = index;
+                tabEl.innerHTML = `
+                    <span>${escapeHtml(tab.name)}</span>
+                    <span class="close-tab" data-tab="${index}">&times;</span>
+                `;
+                tabEl.addEventListener('click', (e) => {
+                    if (!e.target.classList.contains('close-tab')) {
+                        loadEditorTab(parseInt(tabEl.dataset.tab));
+                    }
+                });
+                tabEl.querySelector('.close-tab').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    closeEditorTab(parseInt(e.target.dataset.tab));
+                });
+                editorTabs.appendChild(tabEl);
+            });
+            // Add new tab button
+            const newBtn = document.createElement('button');
+            newBtn.className = 'new-tab-btn';
+            newBtn.textContent = '+';
+            newBtn.addEventListener('click', () => {
+                const newTab = {
+                    name: `untitled${editorTabsData.length + 1}.txt`,
+                    content: '',
+                    active: false
+                };
+                editorTabsData.push(newTab);
+                loadEditorTab(editorTabsData.length - 1);
+                renderEditorTabs();
+            });
+            editorTabs.appendChild(newBtn);
+        }
+
+        function loadEditorTab(index) {
+            if (index < 0 || index >= editorTabsData.length) return;
+            // Save current content
+            if (activeTabIndex >= 0 && activeTabIndex < editorTabsData.length) {
+                editorTabsData[activeTabIndex].content = editorArea.value;
+            }
+            // Load new tab
+            activeTabIndex = index;
+            editorTabsData.forEach((t, i) => t.active = (i === index));
+            editorArea.value = editorTabsData[index].content || '';
+            updateEditorInfo();
+            renderEditorTabs();
+            updateLineNumbers();
+            editorStatus.textContent = 'Ready';
+        }
+
+        function closeEditorTab(index) {
+            if (editorTabsData.length <= 1) {
+                toast('Cannot close the last tab');
+                return;
+            }
+            editorTabsData.splice(index, 1);
+            if (activeTabIndex === index) {
+                const newIndex = Math.min(index, editorTabsData.length - 1);
+                loadEditorTab(newIndex);
+            } else if (activeTabIndex > index) {
+                activeTabIndex--;
+            }
+            renderEditorTabs();
+        }
+
+        function updateEditorInfo() {
+            const lines = editorArea.value.split('\n');
+            const lineCount = lines.length;
+            const cursorPos = editorArea.selectionStart || 0;
+            const line = editorArea.value.substring(0, cursorPos).split('\n').length;
+            const col = cursorPos - editorArea.value.substring(0, cursorPos).lastIndexOf('\n');
+            editorInfo.textContent = `Line ${line}, Col ${col}`;
+            updateLineNumbers();
+        }
+
+        function updateLineNumbers() {
+            const lines = editorArea.value.split('\n');
+            const nums = lines.map((_, i) => i + 1).join('\n');
+            editorLineNumbers.textContent = nums;
+        }
+
+        editorArea.addEventListener('input', () => {
+            updateEditorInfo();
+            editorStatus.textContent = 'Unsaved changes';
+            if (activeTabIndex >= 0 && activeTabIndex < editorTabsData.length) {
+                editorTabsData[activeTabIndex].content = editorArea.value;
+            }
+        });
+
+        editorArea.addEventListener('click', updateEditorInfo);
+        editorArea.addEventListener('keyup', updateEditorInfo);
+
+        // Keyboard shortcuts: Ctrl+S (save), Ctrl+N (new tab), Ctrl+W (close tab)
+        editorArea.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                editorStatus.textContent = 'Saved';
+                toast('File saved');
+            }
+            if (e.ctrlKey && e.key === 'n') {
+                e.preventDefault();
+                editorNewTab.click();
+            }
+            if (e.ctrlKey && e.key === 'w') {
+                e.preventDefault();
+                closeEditorTab(activeTabIndex);
+            }
+        });
+
+        // Add Text Editor shortcut to system tray
+        const teToggle = document.createElement('div');
+        teToggle.className = 'system-tray-toggle';
+        teToggle.dataset.toggle = 'texteditor';
+        teToggle.innerHTML = '<i class="fas fa-file-code"></i><span>Text Editor</span>';
+        teToggle.addEventListener('click', openTextEditor);
+        document.querySelector('.system-tray-quick-toggles')?.appendChild(teToggle);
+
+        // ─── PACKAGE MANAGER ───
+        const packageManagerApp = document.getElementById('packageManagerApp');
+        const pmList = document.getElementById('pmList');
+        const pmSearchInput = document.getElementById('pmSearchInput');
+        const pmClose = document.getElementById('pmClose');
+
+        // Curated list of apps available for installation
+        const availableApps = [
+            { id: 'app-calculator', name: 'Calculator', icon: 'fa-calculator', desc: 'A simple calculator app' },
+            { id: 'app-notes', name: 'Notes', icon: 'fa-sticky-note', desc: 'A simple note-taking app' },
+            { id: 'app-weather', name: 'Weather', icon: 'fa-cloud-sun', desc: 'Weather forecast app' },
+            { id: 'app-music', name: 'Music Player', icon: 'fa-music', desc: 'A simple music player' },
+            { id: 'app-gallery', name: 'Gallery', icon: 'fa-images', desc: 'Image viewer and gallery' },
+            { id: 'app-terminal', name: 'Terminal', icon: 'fa-terminal', desc: 'Command-line terminal' }
+        ];
+
+        function openPackageManager() {
+            packageManagerApp.style.display = 'block';
+            if (document.body.classList.contains('desktop-mode')) {
+                const app = { id: 'package-manager', name: 'Package Manager', type: 'native', component: 'package-manager' };
+                if (!runningApps['package-manager']) {
+                    runningApps['package-manager'] = {
+                        app: app,
+                        contentNode: packageManagerApp,
+                        winEl: null,
+                        unsavedFlag: false,
+                        componentData: null,
+                        scrollY: 0,
+                        lastActive: Date.now(),
+                        focusedSelector: null
+                    };
+                }
+                launchApp('package-manager');
+            } else {
+                modalTitle.innerText = 'Package Manager';
+                const mc = document.getElementById('modalContent');
+                mc.innerHTML = '';
+                mc.appendChild(packageManagerApp);
+                modal.classList.add('open');
+            }
+            renderPackageList();
+        }
+
+        function renderPackageList(query) {
+            const filter = (query || '').toLowerCase();
+            const list = availableApps.filter(app => 
+                app.name.toLowerCase().includes(filter) || 
+                app.desc.toLowerCase().includes(filter)
+            );
+            if (list.length === 0) {
+                pmList.innerHTML = `
+                    <div style="padding:40px;text-align:center;color:var(--text-dim);">
+                        <i class="fas fa-box-open" style="font-size:32px;display:block;margin-bottom:12px;opacity:0.3;"></i>
+                        <span>No apps found</span>
+                    </div>
+                `;
+                return;
+            }
+            pmList.innerHTML = list.map(app => {
+                const isInstalled = customApps.some(c => c.id === app.id) || 
+                                    DEFAULT_APPS.some(d => d.id === app.id);
+                return `
+                    <div class="pm-item">
+                        <div class="pm-info">
+                            <div class="pm-icon"><i class="fas ${app.icon}"></i></div>
+                            <div>
+                                <div class="pm-name">${escapeHtml(app.name)}</div>
+                                <div class="pm-desc">${escapeHtml(app.desc)}</div>
+                            </div>
+                        </div>
+                        <div>
+                            ${isInstalled ? 
+                                `<span class="pm-status installed">Installed</span>` :
+                                `<button class="pm-action install" data-app-id="${app.id}" data-app-name="${escapeHtml(app.name)}">Install</button>`
+                            }
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Install handlers
+            pmList.querySelectorAll('.pm-action.install').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = btn.dataset.appId;
+                    const name = btn.dataset.appName;
+                    // Simulate installation
+                    if (!customApps.some(c => c.id === id)) {
+                        customApps.push({
+                            id: id,
+                            name: name,
+                            type: 'native',
+                            component: id.replace('app-', ''),
+                            icon: availableApps.find(a => a.id === id)?.icon || 'fa-globe',
+                            isDefault: false
+                        });
+                        saveCustomApps();
+                        renderPackageList(pmSearchInput.value);
+                        toast(`Installed ${name}`);
+                    }
+                });
+            });
+        }
+
+        pmSearchInput.addEventListener('input', () => {
+            renderPackageList(pmSearchInput.value);
+        });
+
+        pmClose.addEventListener('click', () => {
+            if (document.body.classList.contains('desktop-mode')) {
+                closeApp('package-manager');
+            } else {
+                modal.classList.remove('open');
+            }
+        });
+
+        // Add Package Manager shortcut to system tray
+        const pmToggle = document.createElement('div');
+        pmToggle.className = 'system-tray-toggle';
+        pmToggle.dataset.toggle = 'packagemanager';
+        pmToggle.innerHTML = '<i class="fas fa-box-open"></i><span>Package Mgr</span>';
+        pmToggle.addEventListener('click', openPackageManager);
+        document.querySelector('.system-tray-quick-toggles')?.appendChild(pmToggle);
+
+        // ─── SYSTEM INFORMATION ───
+        const sysInfoApp = document.getElementById('sysInfoApp');
+        const sysInfoClose = document.getElementById('sysInfoClose');
+
+        function openSysInfo() {
+            sysInfoApp.style.display = 'block';
+            if (document.body.classList.contains('desktop-mode')) {
+                const app = { id: 'sys-info', name: 'System Info', type: 'native', component: 'sys-info' };
+                if (!runningApps['sys-info']) {
+                    runningApps['sys-info'] = {
+                        app: app,
+                        contentNode: sysInfoApp,
+                        winEl: null,
+                        unsavedFlag: false,
+                        componentData: null,
+                        scrollY: 0,
+                        lastActive: Date.now(),
+                        focusedSelector: null
+                    };
+                }
+                launchApp('sys-info');
+            } else {
+                modalTitle.innerText = 'System Info';
+                const mc = document.getElementById('modalContent');
+                mc.innerHTML = '';
+                mc.appendChild(sysInfoApp);
+                modal.classList.add('open');
+            }
+        }
+
+        sysInfoClose.addEventListener('click', () => {
+            if (document.body.classList.contains('desktop-mode')) {
+                closeApp('sys-info');
+            } else {
+                modal.classList.remove('open');
+            }
+        });
+
+        // Add System Info shortcut to system tray
+        const siToggle = document.createElement('div');
+        siToggle.className = 'system-tray-toggle';
+        siToggle.dataset.toggle = 'sysinfo';
+        siToggle.innerHTML = '<i class="fas fa-info-circle"></i><span>System Info</span>';
+        siToggle.addEventListener('click', openSysInfo);
+        document.querySelector('.system-tray-quick-toggles')?.appendChild(siToggle);
+        
+        // ─── DESKTOP CONTEXT MENU ───
+        const desktopContextMenu = document.getElementById('desktopContextMenu');
+
+        function openDesktopContextMenu(x, y) {
+            closeDesktopContextMenu();
+            desktopContextMenu.style.left = x + 'px';
+            desktopContextMenu.style.top = y + 'px';
+            requestAnimationFrame(() => {
+                desktopContextMenu.classList.add('open');
+            });
+            // Keep within viewport
+            const rect = desktopContextMenu.getBoundingClientRect();
+            if (rect.right > window.innerWidth) {
+                desktopContextMenu.style.left = (window.innerWidth - rect.width - 10) + 'px';
+            }
+            if (rect.bottom > window.innerHeight) {
+                desktopContextMenu.style.top = (window.innerHeight - rect.height - 10) + 'px';
+            }
+        }
+
+        function closeDesktopContextMenu() {
+            desktopContextMenu.classList.remove('open');
+        }
+
+        document.addEventListener('contextmenu', (e) => {
+            // Open on desktop background (not on apps, tiles, or taskbar)
+            if (e.target.closest('.app-tile') || 
+                e.target.closest('.window') || 
+                e.target.closest('#taskbar') ||
+                e.target.closest('.start-menu') ||
+                e.target.closest('#taskbarPreview') ||
+                e.target.closest('#notifDrawer') ||
+                e.target.closest('#systemTray')) {
+                return;
+            }
+            e.preventDefault();
+            openDesktopContextMenu(e.clientX, e.clientY);
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!desktopContextMenu.contains(e.target)) {
+                closeDesktopContextMenu();
+            }
+        });
+
+        // Context menu action handlers
+        desktopContextMenu.querySelectorAll('.ctx-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const action = item.dataset.action;
+                closeDesktopContextMenu();
+                switch (action) {
+                    case 'refresh':
+                        renderGrid();
+                        toast('Desktop refreshed');
+                        break;
+                    case 'new-folder':
+                        const folderName = prompt('Enter folder name:');
+                        if (folderName && folderName.trim()) {
+                            const currentFolder = currentFolder || 'home';
+                            if (!fileSystem[currentFolder]) fileSystem[currentFolder] = [];
+                            fileSystem[currentFolder].push({
+                                name: folderName.trim(),
+                                type: 'folder',
+                                icon: 'fa-folder'
+                            });
+                            toast('Folder created');
+                            renderGrid();
+                        }
+                        break;
+                    case 'new-file':
+                        const fileName = prompt('Enter file name:');
+                        if (fileName && fileName.trim()) {
+                            const currentFolder = currentFolder || 'home';
+                            if (!fileSystem[currentFolder]) fileSystem[currentFolder] = [];
+                            fileSystem[currentFolder].push({
+                                name: fileName.trim(),
+                                type: 'file',
+                                icon: 'fa-file-alt',
+                                size: '0 KB'
+                            });
+                            toast('File created');
+                            renderGrid();
+                        }
+                        break;
+                    case 'wallpaper':
+                        document.getElementById('settingsWallpaperInput').click();
+                        break;
+                    case 'terminal':
+                        openTerminal();
+                        break;
+                    case 'settings':
+                        openSettings();
+                        break;
+                    case 'sort-by':
+                        toast('Sort by: Name (A-Z)');
+                        break;
+                    case 'paste':
+                        navigation.clipboard.readText().then(text => {
+                            if (text) {
+                                toast('Pasted: ' + text.substring(0, 30) + '...');
+                            }
+                        }).catch(() => {
+                            toast('Clipboard is empty or inaccessible');
+                        });
+                        break;
+                }
+            });
+        });
 
         init();
 
