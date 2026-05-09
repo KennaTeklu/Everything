@@ -1264,7 +1264,7 @@
         }
 
         /* ─── TASKBAR HOVER PREVIEW ─── */
-        .taskbar-preview {
+                .taskbar-preview {
             position: fixed;
             bottom: 60px;
             left: 0;
@@ -1274,19 +1274,24 @@
             padding: 8px;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
             z-index: 3000;
-            display: none;
-            pointer-events: auto; /* 👈 Allows the user to move their mouse over the preview */
+            pointer-events: auto;
             width: 280px;
             height: 180px;
             overflow: hidden;
-            transition: opacity 0.15s ease;
+            
+            /* Fade in/out animation */
+            opacity: 0;
+            transform: translateY(8px) scale(0.97);
+            transition: opacity 0.15s cubic-bezier(0.2, 0.8, 0.2, 1), 
+                        transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1);
+            will-change: opacity, transform;
         }
         .taskbar-preview * {
             pointer-events: none; /* Prevents clicks inside the preview from triggering apps */
         }
         .taskbar-preview.visible {
-            display: block;
             opacity: 1;
+            transform: translateY(0) scale(1);
         }
         .taskbar-preview canvas {
             width: 100%;
@@ -1371,6 +1376,161 @@
             padding: 0;
             margin: 0;
             background: #0a0c12;
+        }
+                /* ─── VIRTUAL DESKTOPS ─── */
+        .virtual-desktop-bar {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(10, 12, 18, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 4px 8px;
+            z-index: 2000;
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        .virtual-desktop-bar.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .virtual-desktop-bar:hover {
+            opacity: 1;
+        }
+        .vdesk-item {
+            padding: 4px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            color: var(--text-dim);
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        .vdesk-item:hover {
+            background: var(--surface-hover);
+        }
+        .vdesk-item.active {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--text);
+            border-color: var(--primary);
+        }
+        .vdesk-add-btn {
+            padding: 2px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-dim);
+            transition: all 0.2s;
+            background: transparent;
+            border: none;
+        }
+        .vdesk-add-btn:hover {
+            background: var(--surface-hover);
+            color: var(--text);
+        }
+        .vdesk-close-btn {
+            padding: 2px 6px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 10px;
+            color: var(--text-dim);
+            transition: all 0.2s;
+            background: transparent;
+            border: none;
+            margin-left: 2px;
+            opacity: 0.5;
+        }
+        .vdesk-close-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+            opacity: 1;
+        }
+                /* ─── GLOBAL SEARCH ─── */
+        .global-search-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(20px);
+            z-index: 9998;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .global-search-overlay.open {
+            display: flex;
+            opacity: 1;
+        }
+        .global-search-box {
+            background: var(--surface-solid);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+            transform: translateY(20px) scale(0.97);
+            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .global-search-overlay.open .global-search-box {
+            transform: translateY(0) scale(1);
+        }
+        .global-search-input {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            font-size: 18px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .global-search-input:focus {
+            border-color: var(--primary);
+        }
+        .global-search-results {
+            margin-top: 16px;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+        }
+        .global-search-results.has-results {
+            display: block;
+        }
+        .global-search-result-item {
+            padding: 10px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: background 0.15s;
+        }
+        .global-search-result-item:hover {
+            background: var(--surface-hover);
+        }
+        .global-search-result-item i {
+            width: 24px;
+            text-align: center;
+            color: var(--primary);
+        }
+        .global-search-result-item .result-name {
+            flex: 1;
+            font-weight: 500;
+        }
+        .global-search-result-item .result-type {
+            font-size: 10px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
     </style>
 </head>
@@ -1484,10 +1644,27 @@
         </div>
     </div>
 
+        <!-- ─── GLOBAL SEARCH ─── -->
+    <div class="global-search-overlay" id="globalSearchOverlay">
+        <div class="global-search-box">
+            <input type="text" class="global-search-input" id="globalSearchInput" placeholder="Search apps, files, settings..." autofocus>
+            <div class="global-search-results" id="globalSearchResults"></div>
+            <div style="margin-top:12px;font-size:11px;color:var(--text-dim);text-align:center;border-top:1px solid var(--border);padding-top:12px;">
+                Press <kbd style="background:var(--surface);padding:2px 8px;border-radius:4px;border:1px solid var(--border);">Ctrl+Shift+F</kbd> to open search · <kbd style="background:var(--surface);padding:2px 8px;border-radius:4px;border:1px solid var(--border);">Esc</kbd> to close
+            </div>
+        </div>
+    </div>
+
     <!-- ─── TASKBAR HOVER PREVIEW ─── -->
     <div class="taskbar-preview" id="taskbarPreview">
         <canvas id="previewCanvas"></canvas>
         <div class="preview-label" id="previewLabel">App</div>
+    </div>
+
+        <!-- ─── VIRTUAL DESKTOP BAR ─── -->
+    <div class="virtual-desktop-bar" id="vdeskBar">
+        <div class="vdesk-item active" data-vdesk="0">Desktop 1</div>
+        <button class="vdesk-add-btn" id="vdeskAddBtn" title="New Desktop">+</button>
     </div>
 
     <!-- ─── WINDOW CONTAINER ─── -->
@@ -2546,9 +2723,9 @@
             const app = findAppById(id);
             if (!app) { toast('App not found'); return; }
 
-            // === 3‑App Limit (Step 1) ===
+            // === 3‑App Limit (Step 11 – refined with mobile support) ===
             const runningIds = Object.keys(runningApps);
-            if (runningIds.length >= 3 && !runningApps[id]) {
+            if (isMobile() && runningIds.length >= 3 && !runningApps[id]) {
                 let oldestId = runningIds.reduce((a, b) => {
                     return (runningApps[a].lastActive || 0) < (runningApps[b].lastActive || 0) ? a : b;
                 });
@@ -2806,8 +2983,21 @@ function closeModal() {
                 win.style.width = savedState.width + 'px';
                 win.style.height = savedState.height + 'px';
             } else {
-                win.style.top = `${50 + offset}px`;
-                win.style.left = `${50 + offset}px`;
+                // Smart placement: stack windows, but keep them within the visible viewport
+                const taskbarHeight = 50;
+                const headerHeight = 40;
+                const maxTop = window.innerHeight - taskbarHeight - 200;
+                const maxLeft = window.innerWidth - 300;
+                
+                let newTop = 50 + offset;
+                let newLeft = 50 + offset;
+                
+                // Ensure the window is fully visible on screen
+                if (newTop > maxTop) newTop = 20;
+                if (newLeft > maxLeft) newLeft = 20;
+                
+                win.style.top = `${newTop}px`;
+                win.style.left = `${newLeft}px`;
                 win.style.width = '600px';
                 win.style.height = '450px';
             }
@@ -2924,8 +3114,58 @@ win.addEventListener('pointerdown', () => {
             };
             handle.onpointermove = e => {
                 if (!isDragging) return;
-                win.style.left = startLeft + (e.clientX - startX) + 'px';
-                win.style.top = Math.max(0, Math.min(window.innerHeight - 60, startTop + (e.clientY - startY))) + 'px';
+                
+                // Calculate new position
+                let newLeft = startLeft + (e.clientX - startX);
+                let newTop = startTop + (e.clientY - startY);
+                
+                // Constrain to viewport (avoid going off screen)
+                newTop = Math.max(0, Math.min(window.innerHeight - 60, newTop));
+                newLeft = Math.max(0, Math.min(window.innerWidth - 300, newLeft));
+                
+                // Check for snapping to screen edges (Aero Snap)
+                const snapThreshold = 30;
+                const isSnapLeft = newLeft < snapThreshold;
+                const isSnapRight = newLeft + win.offsetWidth > window.innerWidth - snapThreshold;
+                const isSnapTop = newTop < snapThreshold;
+                const isSnapBottom = newTop + win.offsetHeight > window.innerHeight - 60 - snapThreshold;
+                
+                // Only snap if window is large enough (avoid snapping tiny windows)
+                if (win.offsetWidth > 400 && win.offsetHeight > 300) {
+                    if (isSnapLeft && !isSnapRight) {
+                        // Snap to left half
+                        newLeft = 0;
+                        win.style.width = (window.innerWidth / 2) + 'px';
+                        win.style.height = 'calc(100vh - 50px)';
+                        newTop = 0;
+                    } else if (isSnapRight && !isSnapLeft) {
+                        // Snap to right half
+                        newLeft = (window.innerWidth / 2) + 'px';
+                        win.style.width = (window.innerWidth / 2) + 'px';
+                        win.style.height = 'calc(100vh - 50px)';
+                        newTop = 0;
+                    } else if (isSnapTop && !isSnapBottom) {
+                        // Maximize
+                        win.style.width = 'calc(100vw - 4px)';
+                        win.style.height = 'calc(100vh - 50px)';
+                        newLeft = 2;
+                        newTop = 0;
+                    } else {
+                        // Restore fixed width/height if not snapped
+                        if (!win.dataset.snapRestored) {
+                            win.dataset.snapRestored = 'true';
+                            // Only restore dimensions if they were changed by snap
+                            if (win.style.width !== '600px') {
+                                win.style.width = '600px';
+                                win.style.height = '450px';
+                            }
+                        }
+                    }
+                }
+                
+                // Apply final position
+                win.style.left = newLeft + 'px';
+                win.style.top = newTop + 'px';
             };
             handle.onpointerup = () => isDragging = false;
             handle.onpointercancel = () => isDragging = false;
@@ -3079,33 +3319,42 @@ win.addEventListener('pointerdown', () => {
                 });
 
                 div.onclick = () => {
-                    // ... your existing onclick logic ...
+                    // Desktop mode handling
                     if (document.body.classList.contains('desktop-mode')) {
-                        if (!runningApps[id].winEl) launchApp(id);
-                        else if (runningApps[id].winEl) {
-                            if (runningApps[id].winEl.style.display === 'none') {
-                                runningApps[id].winEl.style.display = 'flex';
-                                bringToFront(runningApps[id].winEl);
-                                runningApps[id].active = true;
-                                updateTaskbar();
-                            } else if (runningApps[id].active) {
-                                minimizeWindow(id);
-                                runningApps[id].active = false;
-                                updateTaskbar();
-                            } else {
-                                bringToFront(runningApps[id].winEl);
-                                runningApps[id].active = true;
-                                updateTaskbar();
-                            }
+                        // If the app window doesn't exist yet, launch it.
+                        if (!runningApps[id].winEl) {
+                            launchApp(id);
+                            return;
                         }
+                        const win = runningApps[id].winEl;
+                        // If the window is currently minimized (display: none), restore it.
+                        if (win.style.display === 'none') {
+                            win.style.display = 'flex';
+                            bringToFront(win);
+                            runningApps[id].active = true;
+                            updateTaskbar();
+                            return;
+                        }
+                        // If the window is already active, minimize it.
+                        if (runningApps[id].active) {
+                            minimizeWindow(id);
+                            runningApps[id].active = false;
+                            updateTaskbar();
+                            return;
+                        }
+                        // Otherwise, it's a background window that is visible but not active.
+                        bringToFront(win);
+                        runningApps[id].active = true;
+                        updateTaskbar();
                     } else {
+                        // Phone mode: simply launch the app.
                         launchApp(id);
                     }
                 };
                 taskbarApps.appendChild(div);
             });
 
-            // Global mouse tracker: force hide preview when mouse is not over taskbar or preview
+            // Simplified global mouse tracker: force hide preview when cursor leaves the taskbar and preview area
             const preview = document.getElementById('taskbarPreview');
             const taskbar = document.getElementById('taskbar');
             
@@ -3114,17 +3363,19 @@ win.addEventListener('pointerdown', () => {
                     const isOverTaskbar = taskbar.contains(e.target);
                     const isOverPreview = preview.contains(e.target);
                     
-                    if (!isOverTaskbar && !isOverPreview) {
+                    if (!isOverTaskbar && !isOverPreview && preview.classList.contains('visible')) {
                         preview.classList.remove('visible');
                     }
                 });
 
-                preview.addEventListener('mouseenter', () => {
-                    preview.classList.add('visible');
-                });
-
+                // Ensure the preview hides when the cursor leaves the preview box
                 preview.addEventListener('mouseleave', () => {
-                    preview.classList.remove('visible');
+                    // Small delay to prevent flickering when moving back to taskbar
+                    setTimeout(() => {
+                        if (!preview.matches(':hover')) {
+                            preview.classList.remove('visible');
+                        }
+                    }, 30);
                 });
             }
         }
@@ -3141,17 +3392,19 @@ win.addEventListener('pointerdown', () => {
 
             // Position preview above the taskbar item
             const previewWidth = 280;
-            const previewHeight = 180;
-            preview.style.width = previewWidth + 'px';
-            preview.style.height = previewHeight + 'px';
-            // Position the preview directly above the taskbar item
-            preview.style.left = (rect.left + rect.width / 2 - previewWidth / 2) + 'px';
+            let leftPos = rect.left + rect.width / 2 - previewWidth / 2;
+            // Edge detection: ensure preview stays within screen bounds
+            if (leftPos < 10) leftPos = 10;
+            if (leftPos + previewWidth > window.innerWidth - 10) {
+                leftPos = window.innerWidth - previewWidth - 10;
+            }
+            preview.style.left = leftPos + 'px';
             preview.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
             preview.style.display = 'block';
             preview.style.opacity = '1';
             previewLabel.textContent = app.app.name;
 
-                        // Add a small close button to the preview
+            // Add a small close button to the preview
             let closeBtn = preview.querySelector('.preview-close-btn');
             if (!closeBtn) {
                 closeBtn = document.createElement('button');
@@ -3183,7 +3436,6 @@ win.addEventListener('pointerdown', () => {
                 });
                 closeBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    const preview = document.getElementById('taskbarPreview');
                     if (preview) preview.classList.remove('visible');
                 });
                 preview.appendChild(closeBtn);
@@ -3211,34 +3463,26 @@ win.addEventListener('pointerdown', () => {
                 ctx.fillStyle = '#f0f0f0';
                 ctx.font = '14px sans-serif';
                 ctx.fillText(app.app.name, canvas.width / 2, canvas.height / 2 + 40);
-                preview.classList.add('visible');
-                return;
-            }
-
+            } 
             // Native apps: clone the DOM structure and scale it into a miniature
-            if (app.app.type === 'native') {
+            else if (app.app.type === 'native') {
                 canvas.style.display = 'none';
                 const source = app.contentNode;
                 if (!source) return;
 
-                // Clone the entire app structure
                 const clone = source.cloneNode(true);
-                // Strip scripts and IDs to prevent conflicts
                 clone.querySelectorAll('script').forEach(s => s.remove());
                 clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
-                // Make it a non-interactive visual shell
                 clone.style.pointerEvents = 'none';
                 clone.style.userSelect = 'none';
                 clone.style.position = 'relative';
                 clone.style.margin = '0';
 
-                // Calculate scaling to fit the preview box (280px wide)
                 const sourceWidth = source.offsetWidth || 800;
                 const sourceHeight = source.offsetHeight || 600;
                 const scale = previewWidth / sourceWidth;
                 const scaledHeight = sourceHeight * scale;
 
-                // Create a viewport container to hold the scaled clone
                 const viewport = document.createElement('div');
                 viewport.style.cssText = `
                     width: ${previewWidth}px;
@@ -3251,21 +3495,23 @@ win.addEventListener('pointerdown', () => {
                     left: 0;
                 `;
 
-                // Scale the clone to fit within the viewport
                 clone.style.transform = `scale(${scale})`;
                 clone.style.transformOrigin = 'top left';
                 clone.style.width = sourceWidth + 'px';
                 clone.style.height = sourceHeight + 'px';
 
                 viewport.appendChild(clone);
-                // Insert the viewport at the beginning of the preview box
                 preview.insertBefore(viewport, canvas);
-                preview.style.height = (scaledHeight + 40) + 'px'; // Add space for label
+                
+                const labelHeight = 20;
+                const totalHeight = scaledHeight + labelHeight + 20;
+                const maxPreviewHeight = window.innerHeight - 100;
+                preview.style.height = Math.min(totalHeight, maxPreviewHeight) + 'px';
             }
 
+            // Single call to make the preview visible
             preview.classList.add('visible');
         }
-
         // ═══════════════════════════════════════════════════════════════════
         //  RECENTS DRAWER
         // ═══════════════════════════════════════════════════════════════════
@@ -3619,6 +3865,70 @@ pageViewport.addEventListener('scroll', () => {
                     startMenu.classList.remove('open');
                 }
             }
+        });
+        // ─── DESKTOP RIGHT-CLICK CONTEXT MENU ───
+        document.addEventListener('contextmenu', (e) => {
+            // Only handle right-click on the desktop background (not on apps or taskbar)
+            if (e.target.closest('.app-tile') || e.target.closest('.window') || e.target.closest('#taskbar')) {
+                return;
+            }
+            e.preventDefault();
+            
+            // Create context menu
+            const menu = document.createElement('div');
+            menu.style.cssText = `
+                position: fixed;
+                left: ${e.clientX}px;
+                top: ${e.clientY}px;
+                background: var(--surface-solid);
+                border: 1px solid var(--border);
+                border-radius: 12px;
+                padding: 6px 0;
+                z-index: 10000;
+                min-width: 180px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+                backdrop-filter: blur(20px);
+            `;
+            
+            const closeAllItem = document.createElement('div');
+            closeAllItem.style.cssText = `
+                padding: 10px 20px;
+                cursor: pointer;
+                font-size: 14px;
+                color: var(--text);
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                transition: background 0.15s;
+            `;
+            closeAllItem.innerHTML = '<i class="fas fa-times" style="color:var(--danger);"></i> Close All Windows';
+            closeAllItem.addEventListener('mouseenter', () => {
+                closeAllItem.style.background = 'var(--surface-hover)';
+            });
+            closeAllItem.addEventListener('mouseleave', () => {
+                closeAllItem.style.background = 'transparent';
+            });
+            closeAllItem.addEventListener('click', () => {
+                // Close all running apps
+                Object.keys(runningApps).forEach(id => {
+                    closeApp(id, true);
+                });
+                menu.remove();
+                toast('All windows closed');
+            });
+            
+            menu.appendChild(closeAllItem);
+            document.body.appendChild(menu);
+            
+            // Close menu on click outside
+            setTimeout(() => {
+                document.addEventListener('click', function closeMenu(e) {
+                    if (!menu.contains(e.target)) {
+                        menu.remove();
+                        document.removeEventListener('click', closeMenu);
+                    }
+                });
+            }, 10);
         });
 
         // ═══════════════════════════════════════════════════════════════════
@@ -3982,6 +4292,224 @@ homeBtn.onclick = () => {
                 }, 500);
             }
         }
+        // ─── VIRTUAL DESKTOP SYSTEM ───
+        let virtualDesktops = { '0': [] }; // { id: [windowIds] }
+        let currentDesktop = 0;
+        let desktopCounter = 1;
+        const vdeskBar = document.getElementById('vdeskBar');
+        const vdeskAddBtn = document.getElementById('vdeskAddBtn');
+
+        // Show/hide virtual desktop bar on mouse hover at top of screen
+        document.addEventListener('mousemove', (e) => {
+            if (e.clientY < 10) {
+                vdeskBar.classList.add('visible');
+            } else if (e.clientY > 60) {
+                vdeskBar.classList.remove('visible');
+            }
+        });
+
+        function switchDesktop(id) {
+            if (id === currentDesktop) return;
+            // Hide all windows of current desktop
+            if (virtualDesktops[currentDesktop]) {
+                virtualDesktops[currentDesktop].forEach(winId => {
+                    const win = document.getElementById(`win-${winId}`);
+                    if (win) win.style.display = 'none';
+                });
+            }
+            // Show windows of target desktop
+            if (virtualDesktops[id]) {
+                virtualDesktops[id].forEach(winId => {
+                    const win = document.getElementById(`win-${winId}`);
+                    if (win) win.style.display = 'flex';
+                });
+            }
+            currentDesktop = id;
+            updateVDeskUI();
+            updateTaskbar(); // Refresh taskbar to show only active desktop apps
+        }
+
+        function addVirtualDesktop() {
+            const id = desktopCounter++;
+            virtualDesktops[id] = [];
+            const item = document.createElement('div');
+            item.className = 'vdesk-item';
+            item.dataset.vdesk = id;
+            item.textContent = `Desktop ${id}`;
+            // Insert before the add button
+            vdeskBar.insertBefore(item, vdeskAddBtn);
+            switchDesktop(id);
+        }
+
+        function removeVirtualDesktop(id) {
+            if (Object.keys(virtualDesktops).length <= 1) {
+                toast('Cannot remove the last desktop');
+                return;
+            }
+            // Close all windows on this desktop
+            if (virtualDesktops[id]) {
+                virtualDesktops[id].forEach(winId => {
+                    const app = runningApps[winId];
+                    if (app) closeApp(winId, true);
+                });
+            }
+            delete virtualDesktops[id];
+            const items = vdeskBar.querySelectorAll('.vdesk-item');
+            items.forEach(el => {
+                if (parseInt(el.dataset.vdesk) === id) el.remove();
+            });
+            // Switch to first desktop if current is removed
+            if (currentDesktop === id) {
+                const firstKey = Object.keys(virtualDesktops)[0];
+                switchDesktop(parseInt(firstKey));
+            }
+            updateVDeskUI();
+        }
+
+        function updateVDeskUI() {
+            const items = vdeskBar.querySelectorAll('.vdesk-item');
+            items.forEach(el => {
+                el.classList.toggle('active', parseInt(el.dataset.vdesk) === currentDesktop);
+                // Add close button for non-first desktops
+                if (parseInt(el.dataset.vdesk) > 0) {
+                    let closeBtn = el.querySelector('.vdesk-close-btn');
+                    if (!closeBtn) {
+                        closeBtn = document.createElement('button');
+                        closeBtn.className = 'vdesk-close-btn';
+                        closeBtn.textContent = '×';
+                        closeBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            removeVirtualDesktop(parseInt(el.dataset.vdesk));
+                        });
+                        el.appendChild(closeBtn);
+                    }
+                } else {
+                    const closeBtn = el.querySelector('.vdesk-close-btn');
+                    if (closeBtn) closeBtn.remove();
+                }
+            });
+        }
+
+        vdeskAddBtn.addEventListener('click', addVirtualDesktop);
+
+        // Add click handlers to desktop items
+        document.addEventListener('click', (e) => {
+            const item = e.target.closest('.vdesk-item');
+            if (item) {
+                const id = parseInt(item.dataset.vdesk);
+                if (id !== currentDesktop) switchDesktop(id);
+            }
+        });
+
+        // Hook into launchApp to assign new windows to current desktop
+        const originalLaunchApp = launchApp;
+        launchApp = function(id) {
+            // Call original launchApp first
+            originalLaunchApp.call(this, id);
+            // Assign the new window to current desktop
+            const winEl = document.querySelector(`#win-${id}`);
+            if (winEl) {
+                // Store association
+                if (!virtualDesktops[currentDesktop]) {
+                    virtualDesktops[currentDesktop] = [];
+                }
+                if (!virtualDesktops[currentDesktop].includes(id)) {
+                    virtualDesktops[currentDesktop].push(id);
+                }
+                // If not on current desktop, hide it
+                if (!winEl.dataset.forceVisible) {
+                    if (!virtualDesktops[currentDesktop].includes(id)) {
+                        winEl.style.display = 'none';
+                    }
+                }
+            }
+        };
+
+        // ─── GLOBAL SEARCH SYSTEM ───
+        const searchOverlay = document.getElementById('globalSearchOverlay');
+        const searchInput = document.getElementById('globalSearchInput');
+        const searchResults = document.getElementById('globalSearchResults');
+
+        function openGlobalSearch() {
+            searchOverlay.classList.add('open');
+            setTimeout(() => searchInput.focus(), 100);
+            searchInput.value = '';
+            searchResults.innerHTML = '';
+            searchResults.classList.remove('has-results');
+        }
+
+        function closeGlobalSearch() {
+            searchOverlay.classList.remove('open');
+            searchInput.blur();
+        }
+
+        // Keyboard shortcut: Ctrl+Shift+F
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.shiftKey && e.key === 'F') {
+                e.preventDefault();
+                if (searchOverlay.classList.contains('open')) {
+                    closeGlobalSearch();
+                } else {
+                    openGlobalSearch();
+                }
+            }
+            if (e.key === 'Escape' && searchOverlay.classList.contains('open')) {
+                closeGlobalSearch();
+            }
+        });
+
+        // Search input handler
+        searchInput.addEventListener('input', () => {
+            const query = searchInput.value.trim().toLowerCase();
+            if (!query) {
+                searchResults.innerHTML = '';
+                searchResults.classList.remove('has-results');
+                return;
+            }
+
+            // Search through all apps
+            const allApps = getAllApps();
+            const matches = allApps.filter(app => 
+                app.name.toLowerCase().includes(query) || 
+                (app.url && app.url.toLowerCase().includes(query))
+            );
+
+            if (matches.length === 0) {
+                searchResults.innerHTML = `
+                    <div style="padding:20px;text-align:center;color:var(--text-dim);font-size:14px;">
+                        <i class="fas fa-search" style="font-size:24px;display:block;margin-bottom:8px;"></i>
+                        No results found for "<strong>${escapeHtml(query)}</strong>"
+                    </div>
+                `;
+                searchResults.classList.add('has-results');
+                return;
+            }
+
+            searchResults.innerHTML = matches.map(app => `
+                <div class="global-search-result-item" data-app-id="${app.id}">
+                    <i class="fas ${app.icon || 'fa-globe'}"></i>
+                    <span class="result-name">${escapeHtml(app.name)}</span>
+                    <span class="result-type">${app.isDefault ? 'Default' : 'Custom'}</span>
+                </div>
+            `).join('');
+            searchResults.classList.add('has-results');
+
+            // Click handler for results
+            searchResults.querySelectorAll('.global-search-result-item').forEach(el => {
+                el.addEventListener('click', () => {
+                    const id = el.dataset.appId;
+                    closeGlobalSearch();
+                    launchApp(id);
+                });
+            });
+        });
+
+        // Close search when clicking outside the box
+        searchOverlay.addEventListener('click', (e) => {
+            if (e.target === searchOverlay) {
+                closeGlobalSearch();
+            }
+        });
 
         init();
 
