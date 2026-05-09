@@ -1315,6 +1315,14 @@
             border-radius: 12px;
             backdrop-filter: blur(4px);
         }
+                .live-viewport {
+            position: absolute;
+            top: 0;
+            left: 0;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #000;
+        }
 
         /* ─── RESPONSIVE ─── */
         @media (max-width: 500px) {
@@ -1636,6 +1644,22 @@
             gap: 6px;
             font-size: 13px;
             color: var(--text-dim);
+        }
+                .notification-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: var(--danger);
+            color: white;
+            font-size: 9px;
+            font-weight: 700;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
         }
                 /* ─── DESKTOP WIDGETS ─── */
         .widgets-container {
@@ -3941,14 +3965,21 @@
         // ═══════════════════════════════════════════════════════════════════
         //  CORE UTILITIES
         // ═══════════════════════════════════════════════════════════════════
+        // Global flag: user has interacted with the page
+        let userHasInteracted = false;
+
+        // Set flag on first touch or click
+        document.addEventListener('touchstart', () => { userHasInteracted = true; }, { once: true });
+        document.addEventListener('click', () => { userHasInteracted = true; }, { once: true });
+
         function haptic(heavy = false) {
-            if ('vibrate' in navigator) {
+            // Only vibrate after user interaction and when the document has focus
+            if (userHasInteracted && 'vibrate' in navigator && document.hasFocus()) {
                 try {
                     if (heavy) navigator.vibrate([15, 50, 15, 50, 15]);
                     else navigator.vibrate(15);
                 } catch (e) {
-                    // Browser blocked vibration due to lack of user gesture – silently ignore
-                    // The vibration will work once the user has tapped the page
+                    // Silently ignore vibration errors
                 }
             }
         }
@@ -4217,6 +4248,7 @@
             if (notifications.length > 8) notifications.pop();
             renderNotifications();
             toast(msg);
+            updateNotificationBadge();
         }
 
         function renderNotifications() {
@@ -4690,31 +4722,23 @@
                             spinner.innerHTML = (() => {
                                 const url = app.url;
                                 let siteName = "Website";
+                                let faviconUrl = '';
                                 try {
-                                    const domain = new URL(url).hostname.replace(/^www\./, '');
+                                    const urlObj = new URL(url);
+                                    const domain = urlObj.hostname.replace(/^www\./, '');
                                     const parts = domain.split('.');
                                     siteName = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
                                     if (siteName === 'Youtube') siteName = 'YouTube';
                                     if (siteName === 'Github') siteName = 'GitHub';
-                                } catch (e) {}
-                                let faviconUrl = '';
-                      
-                                try {
-                                    const urlObj = new URL(url);
-                                    const domain = urlObj.hostname;
                                     faviconUrl = `https://www.google.com/s2/favicons?sz=64&domain=${domain}`;
-                                    const parts = domain.replace(/^www\./, '').split('.');
-                                    siteName = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
-                                    if (siteName === 'Youtube') siteName = 'YouTube';
-                                    if (siteName === 'Github') siteName = 'GitHub';
                                 } catch (e) {
                                     // Use fallback values if URL is invalid
-                                    faviconUrl = '';
                                     siteName = "Website";
+                                    faviconUrl = '';
                                 }
                                 return `
                                     <div style="text-align:center;gap:12px;display:flex;flex-direction:column;align-items:center;">
-                                        <img src="${faviconUrl}" style="width:48px;height:48px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.3);" />
+                                        ${faviconUrl ? `<img src="${faviconUrl}" style="width:48px;height:48px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.3);" />` : `<i class="fas fa-globe" style="font-size:48px;color:var(--text-dim);"></i>`}
                                         <div style="font-size:24px;font-weight:700;margin-top:4px;">${siteName}</div>
                                         <div style="font-size:9px;opacity:0.5;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">${siteName} requires a direct browser connection for security.</div>
                                         <button onclick="window.open('${escapeHtml(url)}', '_blank'); this.closest('.app-modal, .window')?.style?.display='none';"
@@ -4728,21 +4752,46 @@
                         }
                     }, 2000); // 2 seconds – quick fallback
 
+                    function showFallbackUI(spinner, url, wrap) {
+                        let siteName = "Website";
+                        let faviconUrl = '';
+                        try {
+                            const urlObj = new URL(url);
+                            const domain = urlObj.hostname.replace(/^www\./, '');
+                            const parts = domain.split('.');
+                            siteName = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+                            if (siteName === 'Youtube') siteName = 'YouTube';
+                            if (siteName === 'Github') siteName = 'GitHub';
+                            faviconUrl = `https://www.google.com/s2/favicons?sz=64&domain=${domain}`;
+                        } catch (e) {
+                            // Use default values if URL is invalid
+                        }
+                        spinner.innerHTML = `
+                            <div style="text-align:center;gap:12px;display:flex;flex-direction:column;align-items:center;">
+                                ${faviconUrl ? `<img src="${faviconUrl}" style="width:48px;height:48px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.3);" />` : `<i class="fas fa-globe" style="font-size:48px;color:var(--text-dim);"></i>`}
+                                <div style="font-size:24px;font-weight:700;margin-top:4px;">${siteName}</div>
+                                <div style="font-size:9px;opacity:0.5;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">${siteName} requires a direct browser connection for security.</div>
+                                <button onclick="window.open('${escapeHtml(url)}', '_blank'); this.closest('.app-modal, .window')?.style?.display='none';"
+                                        style="background:#3b82f6;color:white;border:none;padding:12px 32px;border-radius:30px;font-weight:600;cursor:pointer;box-shadow:0 4px 15px rgba(59,130,246,0.4);">
+                                    Open ${siteName}
+                                </button>
+                            </div>
+                        `;
+                    }
+
                     iframe.onload = () => {
                         clearTimeout(timeout);
                         if (loadFailed) return;
                         
+                        // Try to access the iframe's contentDocument to check for X-Frame-Options block
                         try {
-                            // Try to access the iframe's contentDocument
                             const doc = iframe.contentDocument || iframe.contentWindow.document;
-                            
                             // If we can access the document, check if the body is effectively empty
                             if (doc && doc.body && doc.body.innerHTML.trim() === '') {
                                 // Site loaded but body is empty – likely blocked (YouTube, etc.)
                                 loadFailed = true;
-                                window.open(app.url, '_blank');
-                                const container = wrap.closest('.app-modal, .window');
-                                if (container) container.style.display = 'none';
+                                // Show the custom fallback UI immediately
+                                showFallbackUI(spinner, app.url, wrap);
                                 toast('Site blocked from embedding, opened in new tab');
                             } else {
                                 // Site loaded successfully
@@ -4751,6 +4800,7 @@
                             }
                         } catch (e) {
                             // Cross-origin access error – site loaded successfully, but we cannot access its DOM
+                            // This means the site is allowed to be embedded (e.g., Bing? Actually it blocks), but we'll treat as success
                             spinner.remove();
                             iframe.contentWindow?.postMessage({ type: 'iframeResize', width: wrap.clientWidth, height: wrap.clientHeight }, '*');
                         }
@@ -5732,39 +5782,41 @@ win.addEventListener('pointerdown', () => {
                 ctx.fillStyle = '#f0f0f0';
                 ctx.font = '14px sans-serif';
                 ctx.fillText(app.app.name, canvas.width / 2, canvas.height / 2 + 40);
-            } 
-            // Native apps: live synced clone (updates in real-time)
-            else if (app.app.type === 'native') {
+                preview.classList.add('visible');
+                return;
+            }
+
+            // Native apps: live DOM mirroring with auto-update
+            if (app.app.type === 'native') {
                 canvas.style.display = 'none';
                 const source = app.contentNode;
                 if (!source) return;
 
-                // Check if a live viewport already exists
+                // Create a live viewport container
                 let viewport = preview.querySelector('.live-viewport');
                 if (!viewport) {
                     viewport = document.createElement('div');
                     viewport.className = 'live-viewport';
                     viewport.style.cssText = `
                         width: ${previewWidth}px;
-                        overflow: hidden;
-                        border-radius: 6px;
-                        background: #000;
                         position: absolute;
                         top: 0;
                         left: 0;
+                        overflow: hidden;
+                        border-radius: 6px;
+                        background: #000;
                     `;
                     preview.insertBefore(viewport, canvas);
                 }
 
-                // Scale and position the viewport
+                // Calculate scaling
                 const sourceWidth = source.offsetWidth || 800;
                 const sourceHeight = source.offsetHeight || 600;
                 const scale = previewWidth / sourceWidth;
                 const scaledHeight = sourceHeight * scale;
-                
                 viewport.style.height = scaledHeight + 'px';
 
-                // Clone the source structure
+                // Clone the current state
                 const clone = source.cloneNode(true);
                 clone.querySelectorAll('script').forEach(s => s.remove());
                 clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
@@ -5777,57 +5829,69 @@ win.addEventListener('pointerdown', () => {
                 clone.style.width = sourceWidth + 'px';
                 clone.style.height = sourceHeight + 'px';
 
-                // Replace content of viewport with new clone
+                // Update viewport
                 viewport.innerHTML = '';
                 viewport.appendChild(clone);
 
-                // Store a reference so we can update it later
-                if (!preview.dataset.liveAppId) {
-                    preview.dataset.liveAppId = appId;
-                    // Set up a refresh interval for live updates
-                    if (window._livePreviewInterval) {
-                        clearInterval(window._livePreviewInterval);
-                    }
-                    window._livePreviewInterval = setInterval(() => {
-                        const currentId = preview.dataset.liveAppId;
-                        if (currentId && runningApps[currentId] && preview.classList.contains('visible')) {
-                            const app = runningApps[currentId];
-                            if (app && app.app.type === 'native') {
-                                const source = app.contentNode;
-                                if (source) {
-                                    const viewport = preview.querySelector('.live-viewport');
-                                    if (viewport) {
-                                        const clone = source.cloneNode(true);
-                                        clone.querySelectorAll('script').forEach(s => s.remove());
-                                        clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
-                                        clone.style.pointerEvents = 'none';
-                                        clone.style.userSelect = 'none';
-                                        clone.style.position = 'relative';
-                                        clone.style.margin = '0';
-                                        const sourceWidth = source.offsetWidth || 800;
-                                        const sourceHeight = source.offsetHeight || 600;
-                                        const scale = previewWidth / sourceWidth;
-                                        clone.style.transform = `scale(${scale})`;
-                                        clone.style.transformOrigin = 'top left';
-                                        clone.style.width = sourceWidth + 'px';
-                                        clone.style.height = sourceHeight + 'px';
-                                        viewport.innerHTML = '';
-                                        viewport.appendChild(clone);
-                                    }
-                                }
-                            }
-                        }
-                    }, 500);
-                }
-
+                // Adjust preview height
                 const labelHeight = 20;
                 const totalHeight = scaledHeight + labelHeight + 20;
                 const maxPreviewHeight = window.innerHeight - 100;
                 preview.style.height = Math.min(totalHeight, maxPreviewHeight) + 'px';
-            }
 
-            // Single call to make the preview visible
-            preview.classList.add('visible');
+                // Store app ID for live updates
+                preview.dataset.liveAppId = appId;
+
+                // Set up live update interval
+                if (window._livePreviewInterval) {
+                    clearInterval(window._livePreviewInterval);
+                }
+                window._livePreviewInterval = setInterval(() => {
+                    const currentId = preview.dataset.liveAppId;
+                    if (!currentId || !preview.classList.contains('visible')) return;
+                    const app = runningApps[currentId];
+                    if (!app || app.app.type !== 'native') return;
+                    const source = app.contentNode;
+                    if (!source) return;
+                    const viewport = preview.querySelector('.live-viewport');
+                    if (!viewport) return;
+
+                    const sourceWidth = source.offsetWidth || 800;
+                    const sourceHeight = source.offsetHeight || 600;
+                    const scale = previewWidth / sourceWidth;
+                    const scaledHeight = sourceHeight * scale;
+
+                    const clone = source.cloneNode(true);
+                    clone.querySelectorAll('script').forEach(s => s.remove());
+                    clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+                    clone.style.pointerEvents = 'none';
+                    clone.style.userSelect = 'none';
+                    clone.style.position = 'relative';
+                    clone.style.margin = '0';
+                    clone.style.transform = `scale(${scale})`;
+                    clone.style.transformOrigin = 'top left';
+                    clone.style.width = sourceWidth + 'px';
+                    clone.style.height = sourceHeight + 'px';
+
+                    viewport.innerHTML = '';
+                    viewport.style.height = scaledHeight + 'px';
+                    viewport.appendChild(clone);
+                }, 500);
+
+                preview.classList.add('visible');
+
+                // Clean up interval when preview is closed
+                const cleanup = () => {
+                    if (window._livePreviewInterval) {
+                        clearInterval(window._livePreviewInterval);
+                        window._livePreviewInterval = null;
+                    }
+                    preview.removeEventListener('mouseleave', cleanup);
+                };
+                preview.addEventListener('mouseleave', cleanup);
+                // Also clean up when the close button is used
+                closeBtn.addEventListener('click', cleanup);
+            }
         }
         // ═══════════════════════════════════════════════════════════════════
         //  RECENTS DRAWER
@@ -6753,7 +6817,11 @@ homeBtn.onclick = () => {
 
         function openGlobalSearch() {
             searchOverlay.classList.add('open');
-            setTimeout(() => searchInput.focus(), 100);
+            // Force focus immediately after the overlay appears
+            requestAnimationFrame(() => {
+                searchInput.focus();
+                searchInput.select(); // Select any existing text for quick override
+            });
             searchInput.value = '';
             searchResults.innerHTML = '';
             searchResults.classList.remove('has-results');
@@ -7705,6 +7773,18 @@ homeBtn.onclick = () => {
             notificationCenter.classList.remove('open');
         }
 
+        function updateNotificationBadge() {
+            const badge = document.getElementById('notifBadge');
+            if (!badge) return;
+            const count = notifications.length;
+            if (count > 0) {
+                badge.style.display = 'flex';
+                badge.textContent = count > 9 ? '9+' : count;
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
         function renderNotificationsCenter() {
             if (notifications.length === 0) {
                 ncList.innerHTML = `
@@ -7743,6 +7823,7 @@ homeBtn.onclick = () => {
             renderNotificationsCenter();
             renderNotifications();
             toast('All notifications cleared');
+            updateNotificationBadge();
         });
 
         // Close notification center when clicking outside
@@ -7771,7 +7852,12 @@ homeBtn.onclick = () => {
         const ncToggle = document.createElement('div');
         ncToggle.className = 'system-tray-toggle';
         ncToggle.dataset.toggle = 'notifications';
-        ncToggle.innerHTML = '<i class="fas fa-bell"></i><span>Notif Center</span>';
+        ncToggle.style.position = 'relative';
+        ncToggle.innerHTML = `
+            <i class="fas fa-bell" style="position:relative;"></i>
+            <span class="notification-badge" id="notifBadge" style="display:none;">0</span>
+            <span>Notif Center</span>
+        `;
         ncToggle.addEventListener('click', openNotificationCenter);
         document.querySelector('.system-tray-quick-toggles')?.appendChild(ncToggle);
         
