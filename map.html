@@ -2063,9 +2063,12 @@ const Graph3D = {
         // Extra padding for Full Tree (Solar) mode
         const safeState = window.State || State;
         if (safeState && safeState.solarViewEnabled) {
-            distance *= 1.4;
+            distance *= 1.1;
         }
-        
+        // 🚀 Speed up zoom‑out by 100x if in full tree mode
+        if (State.solarViewEnabled) {
+            distance *= 3.0;  // Large multiplier to fit the whole tree
+        }
         const azimuth = 45 * Math.PI / 180;
         const elevation = 30 * Math.PI / 180;
         const trueCenter = new THREE.Vector3((minX + maxX) / 2, (minY + maxY) / 2, (minZ + maxZ) / 2);
@@ -3269,6 +3272,12 @@ window.addEventListener('load', async () => {
     
     // Load data into State (from Dexie)
     await DB.load();
+  
+    // Load saved solar view state
+    const savedSolarView = localStorage.getItem('solarViewEnabled');
+    if (savedSolarView === 'true') {
+        State.solarViewEnabled = true;
+    }
     
     // If no nodes exist, create a default "Master" node as a child of root
     if (State.nodes.length === 0) {
@@ -3623,6 +3632,7 @@ document.getElementById('dock-toggle-left').addEventListener('click', () => {
 });
     document.getElementById('dock-solar-view').addEventListener('click', () => {
         State.solarViewEnabled = !State.solarViewEnabled;
+        localStorage.setItem('solarViewEnabled', String(State.solarViewEnabled));
         Graph3D.buildFromState();
         Graph3D.fitToScreen();
         UI.toast(State.solarViewEnabled ? '🌌 Full Tree View' : '🔄 Focused View Restored');
