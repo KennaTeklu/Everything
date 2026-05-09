@@ -892,6 +892,7 @@ input[type="range"]::-webkit-slider-thumb {
             <button id="dock-add" class="btn-primary"><i class="fas fa-plus"></i> Add File</button>
             <button id="dock-settings"><i class="fas fa-cog"></i> Settings</button>
             <button id="dock-backup"><i class="fas fa-download"></i> Backup</button>
+                        <button id="dock-solar-view" class="btn-secondary"><i class="fas fa-solar-system"></i> Solar System</button>
             <button id="library-categories-btn" class="btn-primary"><i class="fas fa-book"></i> Try Kenna's setup</button>
             <button id="remove-library-categories-btn" class="btn-danger"><i class="fas fa-trash-alt"></i> Remove Kenna's Categories</button>
             <button id="fit-graph-btn" class="btn-secondary"><i class="fas fa-expand-alt"></i> Reset View</button>
@@ -1543,6 +1544,7 @@ const Graph3D = {
         }
     },
     buildFromState() {
+        // 1. Clear existing scene
         for (let obj of this.nodeObjects) {
             if (obj.mesh) {
                 this.scene.remove(obj.mesh);
@@ -1555,70 +1557,137 @@ const Graph3D = {
             if (line.geometry) line.geometry.dispose();
             if (line.material) line.material.dispose();
         }
-        this.spheres.clear(); this.lines.clear(); this.nodeObjects = [];
+        this.spheres.clear();
+        this.lines.clear();
+        this.nodeObjects = [];
 
-        const centerNode = State.focusId === 'root' ?
-            { id: 'root', name: 'Master Library', type: 'root', size: 20000, understanding: 0, parentIds: [] } :
-            State.nodes.find(n => n.id === State.focusId);
-        if (!centerNode && State.focusId !== 'root') return Core.goHome();
+        // 2. Determine the root node
+        const effectiveRootId = State.solarViewEnabled ? 'root' : State.focusId;
+        let centerNode = effectiveRootId === 'root' ?
+            { id: 'root', name: 'Knowledge Universe', type: 'root', size: 30000, understanding: 0, parentIds: [] } :
+            State.nodes.find(n => n.id === effectiveRootId);
+        
+        if (!centerNode && effectiveRootId !== 'root') return Core.goHome();
 
-        let children = State.nodes.filter(n => n.parentIds.includes(centerNode.id));
-        let shadowParents = [];
-        if (centerNode.id !== 'root') {
-            centerNode.parentIds.forEach(pid => {
-                if (pid !== 'root' && !State.path.some(p => p.id === pid)) {
-                    let pNode = State.nodes.find(n => n.id === pid);
-                    if (pNode) shadowParents.push(pNode);
+        // 3. Build the node list
+        let allNodes = [];
+        let edges = [];
+        let depthMap = {};
+
+        if (State.solarViewEnabled) {
+            // === SOLAR SYSTEM MODE: Traverse entire tree ===
+            const rootNode = centerNode;
+            allNodes.push(rootNode);
+            depthMap[rootNode.id] = 0;
+
+            // Recursive function to gather all descendants
+            const gatherNodes = (node, depth) => {
+                const children = State.nodes.filter(n => n.parentIds.includes(node.id));
+                for (let child of children) {
+                    allNodes.push(child);
+                    depthMap[child.id] = depth + 1;
+                    edges.push({ src: node.id, tgt: child.id });
+                    gatherNodes(child, depth + 1);
                 }
-            });
-        }
-        let allNodes = [centerNode, ...children, ...shadowParents];
-        this.centerNodeId = centerNode.id;
-        this.shadowParentIds = shadowParents.map(p => p.id);
+            };
+            gatherNodes(rootNode, 0);
 
-        if (children.length > 0) {
-            let totalDescendantsSum = 0;
-            for (let child of children) totalDescendantsSum += MathCore.getTotalSize(child.id);
-            for (let child of children) {
-                let childTotal = MathCore.getTotalSize(child.id);
-                let ratio = childTotal / totalDescendantsSum;
-                let baseRadius = MathCore.getSize(childTotal) * 0.08;
-                let siblingFactor = Math.pow(0.7, children.length - 1);
-                let ratioBoost = 0.5 + ratio * 0.8;
-                let finalRadius = baseRadius * siblingFactor * ratioBoost;
-                child._adjustedRadius = Math.min(0.8, Math.max(0.2, finalRadius));
+            // If no nodes besides root, add a blank placeholder
+            if (allNodes.length === 1) {
+                const dummy = {
+                    id: 'dummy',
+                    name: 'Add Knowledge',
+                    type: 'category',
+                    parentIds: ['root'],
+                    size: 500,
+                    understanding: 0,
+                    content: 'Start by importing categories or books via the Dock.',
+                    date: Date.now()
+                };
+                allNodes.push(dummy);
+                depthMap[dummy.id] = 1;
+                edges.push({ src: 'root', tgt: 'dummy' });
             }
-            let parentTotal = MathCore.getTotalSize(centerNode.id);
-            centerNode._adjustedRadius = Math.min(1.2, Math.max(0.5, MathCore.getSize(parentTotal) * 0.08));
-        }
 
-        for (let node of allNodes) {
-            const saved = State.fixedPositions[node.id];
-            if (saved) { node.x = saved.x; node.y = saved.y; node.z = saved.z; node.fx = saved.x; node.fy = saved.y; node.fz = saved.z; }
-            else {
+            this.centerNodeId = 'root';
+            this.shadowParentIds = [];
+
+            // Assign positions
+            let childCounts = {};
+            for (let node of allNodes) {
+                const depth = depthMap[node.id] || 0;
+                const index = allNodes.indexOf(node);
+                // Distribute on a sphere with radius proportional to depth
+                const radius = 5.0 + depth * 3.5;
+                const phi = Math.acos(1 - 2 * (index + 0.5) / allNodes.length);
+                const theta = Math.PI * 2 * (index + 0.5) * (Math.sqrt(5) - 1);
+                node.x = Math.sin(phi) * Math.cos(theta) * radius;
+                node.y = Math.sin(phi) * Math.sin(theta) * radius;
+                node.z = Math.cos(phi) * radius;
                 node.fx = node.fy = node.fz = null;
-                if (node.id === centerNode.id) { node.x = 0; node.y = 0; node.z = 0; node.fx=0; node.fy=0; node.fz=0; } else {
-                    const isParent = shadowParents.some(p => p.id === node.id);
-                    if (!isParent) {
-                        const childCount = children.length;
-                        const idx = children.indexOf(node);
-                        const phi = Math.acos(1 - 2 * (idx + 0.5) / childCount);
-                        const theta = Math.PI * 2 * (idx + 0.5) * (Math.sqrt(5) - 1);
-                        const radius = 4.5;
-                        node.x = Math.sin(phi) * Math.cos(theta) * radius;
-                        node.y = Math.sin(phi) * Math.sin(theta) * radius;
-                        node.z = Math.cos(phi) * radius;
-                    } else {
-                        const angle = Math.random() * Math.PI * 2;
-                        const radius = 4 + Math.random() * 2;
-                        node.x = Math.cos(angle) * radius;
-                        node.z = Math.sin(angle) * radius;
-                        node.y = 3 + Math.random() * 2;
+            }
+
+        } else {
+            // === STANDARD FOCUSED MODE ===
+            let children = State.nodes.filter(n => n.parentIds.includes(centerNode.id));
+            let shadowParents = [];
+            if (centerNode.id !== 'root') {
+                centerNode.parentIds.forEach(pid => {
+                    if (pid !== 'root' && !State.path.some(p => p.id === pid)) {
+                        let pNode = State.nodes.find(n => n.id === pid);
+                        if (pNode) shadowParents.push(pNode);
+                    }
+                });
+            }
+            allNodes = [centerNode, ...children, ...shadowParents];
+            this.centerNodeId = centerNode.id;
+            this.shadowParentIds = shadowParents.map(p => p.id);
+
+            if (children.length > 0) {
+                let totalDescendantsSum = 0;
+                for (let child of children) totalDescendantsSum += MathCore.getTotalSize(child.id);
+                for (let child of children) {
+                    let childTotal = MathCore.getTotalSize(child.id);
+                    let ratio = childTotal / totalDescendantsSum;
+                    let baseRadius = MathCore.getSize(childTotal) * 0.08;
+                    let siblingFactor = Math.pow(0.7, children.length - 1);
+                    let ratioBoost = 0.5 + ratio * 0.8;
+                    let finalRadius = baseRadius * siblingFactor * ratioBoost;
+                    child._adjustedRadius = Math.min(0.8, Math.max(0.2, finalRadius));
+                }
+                let parentTotal = MathCore.getTotalSize(centerNode.id);
+                centerNode._adjustedRadius = Math.min(1.2, Math.max(0.5, MathCore.getSize(parentTotal) * 0.08));
+            }
+
+            for (let node of allNodes) {
+                const saved = State.fixedPositions[node.id];
+                if (saved) { node.x = saved.x; node.y = saved.y; node.z = saved.z; node.fx = saved.x; node.fy = saved.y; node.fz = saved.z; }
+                else {
+                    node.fx = node.fy = node.fz = null;
+                    if (node.id === centerNode.id) { node.x = 0; node.y = 0; node.z = 0; node.fx=0; node.fy=0; node.fz=0; } else {
+                        const isParent = shadowParents.some(p => p.id === node.id);
+                        if (!isParent) {
+                            const childCount = children.length;
+                            const idx = children.indexOf(node);
+                            const phi = Math.acos(1 - 2 * (idx + 0.5) / childCount);
+                            const theta = Math.PI * 2 * (idx + 0.5) * (Math.sqrt(5) - 1);
+                            const radius = 4.5;
+                            node.x = Math.sin(phi) * Math.cos(theta) * radius;
+                            node.y = Math.sin(phi) * Math.sin(theta) * radius;
+                            node.z = Math.cos(phi) * radius;
+                        } else {
+                            const angle = Math.random() * Math.PI * 2;
+                            const radius = 4 + Math.random() * 2;
+                            node.x = Math.cos(angle) * radius;
+                            node.z = Math.sin(angle) * radius;
+                            node.y = 3 + Math.random() * 2;
+                        }
                     }
                 }
             }
         }
 
+        // 4. Create spheres and lines
         for (let node of allNodes) {
             const totalSize = MathCore.getTotalSize(node.id);
             let radius = node._adjustedRadius !== undefined ? node._adjustedRadius : Math.max(0.8, MathCore.getSize(totalSize) * 0.25);
@@ -1628,7 +1697,7 @@ const Graph3D = {
             material.emissive = new THREE.Color(color);
             material.emissiveIntensity = 0.3;
             const mesh = new THREE.Mesh(geometry, material);
-            mesh.userData = { id: node.id, name: node.name }; // store name for raycasting display
+            mesh.userData = { id: node.id, name: node.name };
             mesh.position.set(node.x, node.y, node.z);
             this.scene.add(mesh);
             
@@ -1636,26 +1705,56 @@ const Graph3D = {
             this.nodeObjects.push({ id: node.id, mesh, radius, compositeRadius: radius, x: node.x, y: node.y, z: node.z, vx:0, vy:0, vz:0, fx: node.fx, fy: node.fy, fz: node.fz, _nodeName: node.name });
         }
 
-        for (let child of children) {
-            const key = `${centerNode.id}->${child.id}`;
-            const src = this.nodeObjects.find(o => o.id === centerNode.id);
-            const tgt = this.nodeObjects.find(o => o.id === child.id);
-            if (src && tgt) {
-                const points = [new THREE.Vector3(src.x, src.y, src.z), new THREE.Vector3(tgt.x, tgt.y, tgt.z)];
-                const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: 0x88aaff, linewidth: 2 }));
-                this.scene.add(line); this.lines.set(key, line);
+        // 5. Draw edges (standard mode uses direct children; solar mode uses all collected edges)
+        if (State.solarViewEnabled) {
+            for (let edge of edges) {
+                const src = this.nodeObjects.find(o => o.id === edge.src);
+                const tgt = this.nodeObjects.find(o => o.id === edge.tgt);
+                if (src && tgt) {
+                    const points = [new THREE.Vector3(src.x, src.y, src.z), new THREE.Vector3(tgt.x, tgt.y, tgt.z)];
+                    const line = new THREE.Line(
+                        new THREE.BufferGeometry().setFromPoints(points),
+                        new THREE.LineBasicMaterial({ color: 0x88aaff, transparent: true, opacity: 0.4 })
+                    );
+                    this.scene.add(line);
+                    this.lines.set(`${edge.src}->${edge.tgt}`, line);
+                }
+            }
+        } else {
+            for (let child of State.nodes.filter(n => n.parentIds.includes(centerNode.id))) {
+                const key = `${centerNode.id}->${child.id}`;
+                const src = this.nodeObjects.find(o => o.id === centerNode.id);
+                const tgt = this.nodeObjects.find(o => o.id === child.id);
+                if (src && tgt) {
+                    const points = [new THREE.Vector3(src.x, src.y, src.z), new THREE.Vector3(tgt.x, tgt.y, tgt.z)];
+                    const line = new THREE.Line(
+                        new THREE.BufferGeometry().setFromPoints(points),
+                        new THREE.LineBasicMaterial({ color: 0x88aaff, linewidth: 2 })
+                    );
+                    this.scene.add(line);
+                    this.lines.set(key, line);
+                }
+            }
+            for (let parent of (this.shadowParentIds || [])) {
+                const pNode = State.nodes.find(n => n.id === parent);
+                if (pNode) {
+                    const key = `${parent}->${centerNode.id}`;
+                    const src = this.nodeObjects.find(o => o.id === parent);
+                    const tgt = this.nodeObjects.find(o => o.id === centerNode.id);
+                    if (src && tgt) {
+                        const points = [new THREE.Vector3(src.x, src.y, src.z), new THREE.Vector3(tgt.x, tgt.y, tgt.z)];
+                        const line = new THREE.Line(
+                            new THREE.BufferGeometry().setFromPoints(points),
+                            new THREE.LineBasicMaterial({ color: 0x88aaff, transparent: true, opacity: 0.4 })
+                        );
+                        this.scene.add(line);
+                        this.lines.set(key, line);
+                    }
+                }
             }
         }
-        for (let parent of shadowParents) {
-            const key = `${parent.id}->${centerNode.id}`;
-            const src = this.nodeObjects.find(o => o.id === parent.id);
-            const tgt = this.nodeObjects.find(o => o.id === centerNode.id);
-            if (src && tgt) {
-                const points = [new THREE.Vector3(src.x, src.y, src.z), new THREE.Vector3(tgt.x, tgt.y, tgt.z)];
-                const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: 0x88aaff, linewidth: 1, transparent: true, opacity: 0.4 }));
-                this.scene.add(line); this.lines.set(key, line);
-            }
-        }
+
+        // 6. Initialize force simulation
         this.initForceSimulation();
     },
     initForceSimulation() {
@@ -3574,6 +3673,12 @@ document.getElementById('dock-toggle-left').addEventListener('click', () => {
     localStorage.setItem('dock_collapsed', 'true');
     window.dispatchEvent(new Event('resize'));
 });
+    document.getElementById('dock-solar-view').addEventListener('click', () => {
+        State.solarViewEnabled = !State.solarViewEnabled;
+        Graph3D.buildFromState();
+        Graph3D.fitToScreen();
+        UI.toast(State.solarViewEnabled ? '🌌 Solar View Enabled' : '🔄 Standard View Restored');
+    });
 document.getElementById('dock-toggle-right').addEventListener('click', () => {
     const dock = document.getElementById('dock');
     if (dock.classList.contains('collapsed')) {
