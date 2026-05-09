@@ -2040,12 +2040,12 @@ const Graph3D = {
         const tanFov = Math.tan(fovRad / 2);
         
         // Use a dynamic fill factor based on the number of nodes
-        const nodeCount = this.nodeObjects.length;
+        const totalNodeCount = this.nodeObjects.length;
         let fillFactor = 1.2; // Default for smaller trees
-        if (nodeCount > 50) fillFactor = 1.0;
-        if (nodeCount > 100) fillFactor = 0.8;
-        if (nodeCount > 200) fillFactor = 0.6;
-        if (nodeCount > 500) fillFactor = 0.5;
+        if (totalNodeCount > 50) fillFactor = 1.0;
+        if (totalNodeCount > 100) fillFactor = 0.8;
+        if (totalNodeCount > 200) fillFactor = 0.6;
+        if (totalNodeCount > 500) fillFactor = 0.5;
         this.fillFactor = fillFactor;
 
         const targetSizeX = sizeX / this.fillFactor;
