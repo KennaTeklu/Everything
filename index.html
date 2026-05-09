@@ -1532,6 +1532,233 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
+                /* ─── SYSTEM TRAY ─── */
+        .system-tray {
+            position: fixed;
+            bottom: 60px;
+            right: 16px;
+            background: var(--surface-solid);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 12px;
+            width: 280px;
+            z-index: 2000;
+            display: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(20px);
+            opacity: 0;
+            transform: translateY(10px) scale(0.97);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+        .system-tray.open {
+            display: block;
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        .system-tray-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+        .system-tray-header .title {
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .system-tray-header .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-size: 16px;
+            cursor: pointer;
+            padding: 0 4px;
+            transition: color 0.15s;
+        }
+        .system-tray-header .close-btn:hover {
+            color: var(--text);
+        }
+        .system-tray-quick-toggles {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .system-tray-toggle {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 4px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.15s;
+            background: var(--surface);
+        }
+        .system-tray-toggle:hover {
+            background: var(--surface-hover);
+        }
+        .system-tray-toggle i {
+            font-size: 20px;
+            color: var(--text-dim);
+        }
+        .system-tray-toggle.active i {
+            color: var(--primary);
+        }
+        .system-tray-toggle span {
+            font-size: 9px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .system-tray-toggle.active span {
+            color: var(--text);
+        }
+        .system-tray-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 8px;
+            border-top: 1px solid var(--border);
+        }
+        .system-tray-bottom .time-display {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .system-tray-bottom .battery-display {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+                /* ─── DESKTOP WIDGETS ─── */
+        .widgets-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            pointer-events: none;
+        }
+        .widget {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            min-width: 200px;
+            pointer-events: auto;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+        .widget:hover {
+            transform: translateY(-2px);
+        }
+        .widget-title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+        }
+        .widget-clock {
+            font-size: 32px;
+            font-weight: 200;
+            text-align: center;
+            padding: 8px 0;
+        }
+        .widget-clock .date {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
+        .widget-weather {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 0;
+        }
+        .widget-weather .temp {
+            font-size: 28px;
+            font-weight: 300;
+        }
+        .widget-weather .desc {
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+        .widget-weather .icon {
+            font-size: 32px;
+            color: var(--primary);
+        }
+        .widget-calendar {
+            padding: 8px 0;
+        }
+        .widget-calendar .day-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            margin-top: 8px;
+        }
+        .widget-calendar .day-grid .day {
+            text-align: center;
+            font-size: 12px;
+            padding: 4px 0;
+            border-radius: 6px;
+        }
+        .widget-calendar .day-grid .day.today {
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+        }
+        .widget-calendar .day-grid .day.other-month {
+            opacity: 0.3;
+        }
+        .widget-sysinfo {
+            font-size: 12px;
+            line-height: 1.6;
+        }
+        .widget-sysinfo .stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 2px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .widget-sysinfo .stat:last-child {
+            border-bottom: none;
+        }
+        .widget-sysinfo .stat .label {
+            color: var(--text-dim);
+        }
+        .widget-sysinfo .stat .value {
+            font-weight: 500;
+        }
+        .widget-close-btn {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            background: rgba(0,0,0,0.4);
+            border: none;
+            color: white;
+            font-size: 10px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .widget:hover .widget-close-btn {
+            opacity: 1;
+        }
+        .widget-close-btn:hover {
+            background: rgba(255,50,50,0.8);
+        }
     </style>
 </head>
 <body>
@@ -1651,6 +1878,83 @@
             <div class="global-search-results" id="globalSearchResults"></div>
             <div style="margin-top:12px;font-size:11px;color:var(--text-dim);text-align:center;border-top:1px solid var(--border);padding-top:12px;">
                 Press <kbd style="background:var(--surface);padding:2px 8px;border-radius:4px;border:1px solid var(--border);">Ctrl+Shift+F</kbd> to open search · <kbd style="background:var(--surface);padding:2px 8px;border-radius:4px;border:1px solid var(--border);">Esc</kbd> to close
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── SYSTEM TRAY ─── -->
+    <div class="system-tray" id="systemTray">
+        <div class="system-tray-header">
+            <span class="title">Quick Settings</span>
+            <button class="close-btn" id="trayCloseBtn">&times;</button>
+        </div>
+        <div class="system-tray-quick-toggles">
+            <div class="system-tray-toggle" data-toggle="wifi">
+                <i class="fas fa-wifi"></i>
+                <span>Wi-Fi</span>
+            </div>
+            <div class="system-tray-toggle" data-toggle="bluetooth">
+                <i class="fas fa-bluetooth-b"></i>
+                <span>Bluetooth</span>
+            </div>
+            <div class="system-tray-toggle" data-toggle="darkmode">
+                <i class="fas fa-moon"></i>
+                <span>Dark Mode</span>
+            </div>
+            <div class="system-tray-toggle" data-toggle="volume">
+                <i class="fas fa-volume-up"></i>
+                <span>Volume</span>
+            </div>
+        </div>
+        <div class="system-tray-bottom">
+            <span class="time-display" id="trayTime">--:--</span>
+            <span class="battery-display">
+                <i class="fas fa-battery-three-quarters"></i>
+                <span id="trayBattery">87%</span>
+            </span>
+        </div>
+    </div>
+
+    <!-- ─── DESKTOP WIDGETS ─── -->
+    <div class="widgets-container" id="widgetsContainer">
+        <!-- Clock Widget -->
+        <div class="widget" data-widget="clock" id="widgetClock">
+            <button class="widget-close-btn" data-widget="clock">&times;</button>
+            <div class="widget-clock">
+                <div id="widgetClockTime">--:--</div>
+                <div class="date" id="widgetClockDate">--</div>
+            </div>
+        </div>
+        <!-- Weather Widget -->
+        <div class="widget" data-widget="weather" id="widgetWeather">
+            <button class="widget-close-btn" data-widget="weather">&times;</button>
+            <div class="widget-title">Weather</div>
+            <div class="widget-weather">
+                <i class="fas fa-cloud-sun icon"></i>
+                <div>
+                    <div class="temp" id="widgetTemp">72°F</div>
+                    <div class="desc" id="widgetWeatherDesc">Partly Cloudy</div>
+                </div>
+            </div>
+        </div>
+        <!-- Calendar Widget -->
+        <div class="widget" data-widget="calendar" id="widgetCalendar">
+            <button class="widget-close-btn" data-widget="calendar">&times;</button>
+            <div class="widget-title">Calendar</div>
+            <div class="widget-calendar">
+                <div id="widgetMonthYear">January 2026</div>
+                <div class="day-grid" id="widgetDayGrid"></div>
+            </div>
+        </div>
+        <!-- System Info Widget -->
+        <div class="widget" data-widget="sysinfo" id="widgetSysInfo">
+            <button class="widget-close-btn" data-widget="sysinfo">&times;</button>
+            <div class="widget-title">System</div>
+            <div class="widget-sysinfo">
+                <div class="stat"><span class="label">CPU</span><span class="value" id="widgetCPU">0%</span></div>
+                <div class="stat"><span class="label">Memory</span><span class="value" id="widgetMem">0%</span></div>
+                <div class="stat"><span class="label">Uptime</span><span class="value" id="widgetUptime">0h</span></div>
+                <div class="stat"><span class="label">Apps</span><span class="value" id="widgetApps">0</span></div>
             </div>
         </div>
     </div>
@@ -4510,6 +4814,159 @@ homeBtn.onclick = () => {
                 closeGlobalSearch();
             }
         });
+
+        // ─── SYSTEM TRAY ───
+        const systemTray = document.getElementById('systemTray');
+        const trayCloseBtn = document.getElementById('trayCloseBtn');
+        const trayTime = document.getElementById('trayTime');
+        const trayBattery = document.getElementById('trayBattery');
+
+        // Toggle system tray when clicking the tray icon in status bar
+        const trayIcon = document.createElement('span');
+        trayIcon.innerHTML = '<i class="fas fa-chevron-up" style="cursor:pointer;margin-left:8px;"></i>';
+        trayIcon.addEventListener('click', () => {
+            systemTray.classList.toggle('open');
+        });
+        statusBar.querySelector('.battery-area')?.appendChild(trayIcon);
+
+        // Close tray when clicking outside
+        document.addEventListener('click', (e) => {
+            if (systemTray.classList.contains('open') && 
+                !systemTray.contains(e.target) && 
+                !trayIcon.contains(e.target)) {
+                systemTray.classList.remove('open');
+            }
+        });
+
+        trayCloseBtn.addEventListener('click', () => {
+            systemTray.classList.remove('open');
+        });
+
+        // Update tray time
+        function updateTrayTime() {
+            const now = new Date();
+            trayTime.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+        setInterval(updateTrayTime, 1000);
+        updateTrayTime();
+
+        // Update tray battery
+        function updateTrayBattery() {
+            const level = batteryFill.style.width || '87%';
+            trayBattery.textContent = level;
+        }
+        setInterval(updateTrayBattery, 5000);
+        updateTrayBattery();
+
+        // Toggle handlers
+        document.querySelectorAll('.system-tray-toggle').forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                const name = toggle.dataset.toggle;
+                toggle.classList.toggle('active');
+                if (name === 'darkmode') {
+                    toggleTheme();
+                } else if (name === 'wifi') {
+                    toast('Wi-Fi toggled: ' + (toggle.classList.contains('active') ? 'ON' : 'OFF'));
+                } else if (name === 'bluetooth') {
+                    toast('Bluetooth toggled: ' + (toggle.classList.contains('active') ? 'ON' : 'OFF'));
+                } else if (name === 'volume') {
+                    toast('Volume toggled: ' + (toggle.classList.contains('active') ? 'ON' : 'OFF'));
+                }
+            });
+        });
+
+        // ─── DESKTOP WIDGETS ───
+        const widgetsContainer = document.getElementById('widgetsContainer');
+
+        // Clock widget
+        function updateClockWidget() {
+            const now = new Date();
+            document.getElementById('widgetClockTime').textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('widgetClockDate').textContent = now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+        }
+        setInterval(updateClockWidget, 1000);
+        updateClockWidget();
+
+        // Calendar widget
+        function renderCalendar() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            document.getElementById('widgetMonthYear').textContent = now.toLocaleDateString([], { month: 'long', year: 'numeric' });
+            
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const today = now.getDate();
+            
+            let html = '';
+            const dayNames = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+            dayNames.forEach(d => html += `<div style="text-align:center;font-size:10px;color:var(--text-dim);padding:2px 0;">${d}</div>`);
+            
+            for (let i = 0; i < firstDay; i++) {
+                html += '<div></div>';
+            }
+            for (let d = 1; d <= daysInMonth; d++) {
+                html += `<div class="day${d === today ? ' today' : ''}">${d}</div>`;
+            }
+            document.getElementById('widgetDayGrid').innerHTML = html;
+        }
+        renderCalendar();
+
+        // System info widget (simulated stats)
+        function updateSysInfo() {
+            const cpu = Math.floor(Math.random() * 30) + 10;
+            const mem = Math.floor(Math.random() * 40) + 30;
+            const uptime = Math.floor((Date.now() - performance.now()) / 1000 / 3600);
+            const appCount = Object.keys(runningApps).length;
+            document.getElementById('widgetCPU').textContent = cpu + '%';
+            document.getElementById('widgetMem').textContent = mem + '%';
+            document.getElementById('widgetUptime').textContent = uptime + 'h';
+            document.getElementById('widgetApps').textContent = appCount;
+        }
+        setInterval(updateSysInfo, 2000);
+        updateSysInfo();
+
+        // Weather widget (using free API or simulated)
+        function updateWeather() {
+            // Simulated weather data - you can replace with a real API call
+            const temps = [68, 72, 75, 70, 65, 78, 80];
+            const conditions = ['Sunny', 'Partly Cloudy', 'Cloudy', 'Light Rain', 'Clear', 'Windy'];
+            const temp = temps[Math.floor(Math.random() * temps.length)];
+            const cond = conditions[Math.floor(Math.random() * conditions.length)];
+            document.getElementById('widgetTemp').textContent = temp + '°F';
+            document.getElementById('widgetWeatherDesc').textContent = cond;
+        }
+        setInterval(updateWeather, 30000);
+        updateWeather();
+
+        // Close widget buttons
+        document.querySelectorAll('.widget-close-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const widgetId = btn.dataset.widget;
+                const widget = document.querySelector(`[data-widget="${widgetId}"]`);
+                if (widget) {
+                    widget.style.opacity = '0';
+                    widget.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        widget.style.display = 'none';
+                    }, 200);
+                }
+            });
+        });
+
+        // Toggle widgets visibility from system tray
+        // Add this to the system tray creation logic (in Step 18c)
+        const widgetToggle = document.createElement('div');
+        widgetToggle.className = 'system-tray-toggle';
+        widgetToggle.dataset.toggle = 'widgets';
+        widgetToggle.innerHTML = '<i class="fas fa-th-large"></i><span>Widgets</span>';
+        widgetToggle.addEventListener('click', () => {
+            const isHidden = widgetsContainer.style.display === 'none';
+            widgetsContainer.style.display = isHidden ? 'flex' : 'none';
+            widgetToggle.classList.toggle('active');
+            toast(isHidden ? 'Widgets shown' : 'Widgets hidden');
+        });
+        document.querySelector('.system-tray-quick-toggles')?.appendChild(widgetToggle);
 
         init();
 
