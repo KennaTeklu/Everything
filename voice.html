@@ -1488,6 +1488,16 @@
             mobileMenuToggle.addEventListener('click', () => {
                 sidebar.classList.toggle('active');
             });
+
+// Inside your custom HTML pages (e.g., map.html, quiz.html)
+window.addEventListener('message', (e) => {
+    if (e.data && e.data.type === 'focusInput') {
+        const input = document.querySelector('input, textarea');
+        if (input) {
+            input.focus();
+        }
+    }
+});
             
             // Close mobile menu when clicking outside
             document.addEventListener('click', (e) => {

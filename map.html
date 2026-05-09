@@ -3396,6 +3396,15 @@ document.getElementById('collapse-toggle-btn').addEventListener('click', () => {
     card.classList.toggle('collapsed');
     localStorage.setItem('control_card_collapsed', card.classList.contains('collapsed'));
 });
+// Inside your custom HTML pages (e.g., map.html, quiz.html)
+window.addEventListener('message', (e) => {
+    if (e.data && e.data.type === 'focusInput') {
+        const input = document.querySelector('input, textarea');
+        if (input) {
+            input.focus();
+        }
+    }
+});
 document.querySelectorAll('.snap-btn').forEach(btn => btn.addEventListener('click', (e) => UI.snapCard(e.target.dataset.pos)));
 document.getElementById('search-input').addEventListener('input', UI.renderFolders);
 document.getElementById('sort-select').addEventListener('change', UI.renderFolders);

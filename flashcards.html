@@ -2510,6 +2510,15 @@ function initTutorial() {
         else if (flipped) flashScreen("red", 300);
       }
     });
+    // Inside your custom HTML pages (e.g., map.html, quiz.html)
+    window.addEventListener('message', (e) => {
+        if (e.data && e.data.type === 'focusInput') {
+            const input = document.querySelector('input, textarea');
+            if (input) {
+                input.focus();
+            }
+        }
+    });
     document.getElementById("answerInput").addEventListener("input", filterAndShowSuggestions);
     document.getElementById("answerInput").addEventListener("blur", () => {
       setTimeout(() => document.getElementById("suggestionsDropdown").style.display = "none", 150);

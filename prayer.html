@@ -3381,6 +3381,7 @@
                 Math.round((gameState.quiz.score / quizQuestions.length) * 100) : 0;
             document.getElementById('quiz-mastery').textContent = `${quizPercent}%`;
         }
+        
 
         // ========== EVENT LISTENERS ==========
         function setupEventListeners() {
@@ -3416,6 +3417,15 @@
                 touchEndX = e.changedTouches[0].screenX;
                 handleSwipe();
             }, { passive: true });
+// Inside your custom HTML pages (e.g., map.html, quiz.html)
+window.addEventListener('message', (e) => {
+    if (e.data && e.data.type === 'focusInput') {
+        const input = document.querySelector('input, textarea');
+        if (input) {
+            input.focus();
+        }
+    }
+});
             
             function handleSwipe() {
                 const swipeThreshold = 50;

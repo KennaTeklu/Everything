@@ -4820,7 +4820,22 @@
                                     if (siteName === 'Youtube') siteName = 'YouTube';
                                     if (siteName === 'Github') siteName = 'GitHub';
                                 } catch (e) {}
-                                const faviconUrl = `https://www.google.com/s2/favicons?sz=64&domain=${new URL(url).hostname}`;
+                                let faviconUrl = '';
+                                try {
+                                    if (url && typeof url === 'string' && url.trim() !== '' && url !== 'about:blank') {
+                                        const urlObj = new URL(url);
+                                        const domain = urlObj.hostname.replace(/^www\./, '');
+                                        const parts = domain.split('.');
+                                        siteName = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+                                        if (siteName === 'Youtube') siteName = 'YouTube';
+                                        if (siteName === 'Github') siteName = 'GitHub';
+                                        faviconUrl = `https://www.google.com/s2/favicons?sz=64&domain=${domain}`;
+                                    }
+                                } catch (e) {
+                                    // Use default values if URL is invalid
+                                    faviconUrl = '';
+                                    siteName = "Website";
+                                }
                                 return `
                                     <div style="text-align:center;gap:12px;display:flex;flex-direction:column;align-items:center;">
                                         <img src="${faviconUrl}" style="width:48px;height:48px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.3);" />
@@ -4921,6 +4936,25 @@
                         };
 
                         frame.onload = () => loading.classList.remove('active');
+                                                // Focus the input safely without triggering the cross-origin warning
+                        frame.addEventListener('load', () => {
+                            try {
+                                // Attempt to focus via postMessage to avoid cross-origin block
+                                if (frame.contentWindow) {
+                                    frame.contentWindow.postMessage({ type: 'focusInput' }, '*');
+                                }
+                            } catch (e) {
+                                // Cross-origin access blocked, ignore
+                            }
+                        });
+
+                        // Fallback: focus input after a short delay if the user is on the same origin
+                        setTimeout(() => {
+                            const input = wrap.querySelector(`#url-input-${app.id}`);
+                            if (input && document.activeElement !== input) {
+                                input.focus();
+                            }
+                        }, 500);
 
                         backBtn.onclick = () => {
                             if (currentIndex > 0) {

@@ -492,6 +492,16 @@
             } catch(err) { statusDiv.innerHTML = `❌ Error: ${err.message}`; }
         });
 
+        // Inside your custom HTML pages (e.g., map.html, quiz.html)
+window.addEventListener('message', (e) => {
+    if (e.data && e.data.type === 'focusInput') {
+        const input = document.querySelector('input, textarea');
+        if (input) {
+            input.focus();
+        }
+    }
+});
+
         // ========= URL FETCH with readability ==========
         document.getElementById('fetchUrlBtn').addEventListener('click', async () => {
             let url = document.getElementById('urlInput').value.trim();

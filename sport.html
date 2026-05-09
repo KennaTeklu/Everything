@@ -4189,6 +4189,15 @@ const VERSION_STORAGE_KEY = 'workout_app_version';
                 localStorage.setItem(VERSION_STORAGE_KEY, APP_VERSION);
                 location.reload();
             });
+// Inside your custom HTML pages (e.g., map.html, quiz.html)
+window.addEventListener('message', (e) => {
+    if (e.data && e.data.type === 'focusInput') {
+        const input = document.querySelector('input, textarea');
+        if (input) {
+            input.focus();
+        }
+    }
+});
             document.getElementById('closeBannerBtn').addEventListener('click', () => {
                 banner.remove();
             });

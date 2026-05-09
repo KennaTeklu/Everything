@@ -772,6 +772,16 @@
 
         if (nextMeal) {
 
+        // Inside your custom HTML pages (e.g., map.html, quiz.html)
+        window.addEventListener('message', (e) => {
+            if (e.data && e.data.type === 'focusInput') {
+                const input = document.querySelector('input, textarea');
+                if (input) {
+                    input.focus();
+                }
+            }
+        });
+
             document.getElementById('yesBtn')?.addEventListener('click', () => reportCompliance(nextMeal, 'yes'));
 
             document.getElementById('lessBtn')?.addEventListener('click', () => {

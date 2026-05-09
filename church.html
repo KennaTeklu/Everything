@@ -2523,6 +2523,16 @@ small { font-size: 0.75rem; color: #888; display: block; margin-top: 4px; }
             });
         });
       	
+        // Inside your custom HTML pages (e.g., map.html, quiz.html)
+        window.addEventListener('message', (e) => {
+            if (e.data && e.data.type === 'focusInput') {
+                const input = document.querySelector('input, textarea');
+                if (input) {
+                    input.focus();
+                }
+            }
+        });
+
         // Close modals on overlay click
         document.getElementById('editModal').addEventListener('click', function(e) { if (e.target === this) closeEditModal(); });
         document.getElementById('cameraModal').addEventListener('click', function(e) { if (e.target === this) closeCamera(); });

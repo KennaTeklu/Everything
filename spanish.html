@@ -1933,6 +1933,15 @@ function handleTutorialKeys(e) {
     }
 }
 document.addEventListener('keydown', handleTutorialKeys);
+// Inside your custom HTML pages (e.g., map.html, quiz.html)
+window.addEventListener('message', (e) => {
+    if (e.data && e.data.type === 'focusInput') {
+        const input = document.querySelector('input, textarea');
+        if (input) {
+            input.focus();
+        }
+    }
+});
 
 // Event listeners
 document.getElementById("answerInput").addEventListener("keypress", (e) => {

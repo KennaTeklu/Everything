@@ -2941,6 +2941,7 @@
             document.getElementById('fat-min-label').textContent = document.getElementById('fat-min').value;
             document.getElementById('fat-max-label').textContent = document.getElementById('fat-max').value;
 
+
             grid.innerHTML = '';
             if (filtered.length === 0) {
                 empty.style.display = 'block';
@@ -3372,6 +3373,15 @@
                 showNotification('Settings saved');
                 requestRender(['dashboard']);
             });
+            // Inside your custom HTML pages (e.g., map.html, quiz.html)
+window.addEventListener('message', (e) => {
+    if (e.data && e.data.type === 'focusInput') {
+        const input = document.querySelector('input, textarea');
+        if (input) {
+            input.focus();
+        }
+    }
+});
 
             document.getElementById('recipe-form')?.addEventListener('submit', (e) => {
                 e.preventDefault();
