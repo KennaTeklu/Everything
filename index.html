@@ -2254,23 +2254,30 @@
                     let timeout = setTimeout(() => {
                         if (!iframe.contentWindow || iframe.contentDocument?.readyState !== 'complete') {
                             loadFailed = true;
-                            spinner.innerHTML = `
-                                <div style="text-align:center;gap:12px;display:flex;flex-direction:column;align-items:center;">
-                                    <i class="fas fa-exclamation-triangle" style="font-size:48px;color:var(--danger);"></i>
-                                    <div>This site cannot be opened inside this OS</div>
-                                    <div style="font-size:12px;color:var(--text-dim);">${escapeHtml(app.url)}</div>
-                                    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:8px;">
-                                        <button onclick="this.closest('.app-native')?.querySelector('iframe')?.src='${app.url}'"
-                                                style="padding:8px 24px;border-radius:30px;background:var(--primary);color:white;border:none;cursor:pointer;font-weight:500;">
-                                            Retry
-                                        </button>
-                                        <button onclick="window.open('${escapeHtml(app.url)}', '_blank'); this.closest('.app-modal, .window')?.style?.display='none';"
-                                                style="padding:8px 24px;border-radius:30px;background:var(--surface-hover);color:var(--text);border:none;cursor:pointer;font-weight:500;">
-                                            Open in your browser
+                            // Dynamic fallback UI with favicon, site name, and "Open {Name}" button
+                            spinner.innerHTML = (() => {
+                                const url = app.url;
+                                let siteName = "Website";
+                                try {
+                                    const domain = new URL(url).hostname.replace(/^www\./, '');
+                                    const parts = domain.split('.');
+                                    siteName = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+                                    if (siteName === 'Youtube') siteName = 'YouTube';
+                                    if (siteName === 'Github') siteName = 'GitHub';
+                                } catch (e) {}
+                                const faviconUrl = `https://www.google.com/s2/favicons?sz=64&domain=${new URL(url).hostname}`;
+                                return `
+                                    <div style="text-align:center;gap:12px;display:flex;flex-direction:column;align-items:center;">
+                                        <img src="${faviconUrl}" style="width:48px;height:48px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.3);" />
+                                        <div style="font-size:24px;font-weight:700;margin-top:4px;">${siteName}</div>
+                                        <div style="font-size:9px;opacity:0.5;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">${siteName} requires a direct browser connection for security.</div>
+                                        <button onclick="window.open('${escapeHtml(url)}', '_blank'); this.closest('.app-modal, .window')?.style?.display='none';"
+                                                style="background:#3b82f6;color:white;border:none;padding:12px 32px;border-radius:30px;font-weight:600;cursor:pointer;box-shadow:0 4px 15px rgba(59,130,246,0.4);">
+                                            Open ${siteName}
                                         </button>
                                     </div>
-                                </div>
-                            `;
+                                `;
+                            })();
                             toast('Could not load: ' + app.name, 'error');
                         }
                     }, 2000); // 2 seconds – quick fallback
@@ -2307,23 +2314,29 @@
                         if (!loadFailed) {
                             clearTimeout(timeout);
                             loadFailed = true;
-                            spinner.innerHTML = `
-                                <div style="text-align:center;gap:12px;display:flex;flex-direction:column;align-items:center;">
-                                    <i class="fas fa-exclamation-triangle" style="font-size:48px;color:var(--danger);"></i>
-                                    <div>This site cannot be opened inside this OS</div>
-                                    <div style="font-size:12px;color:var(--text-dim);">${escapeHtml(app.url)}</div>
-                                    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:8px;">
-                                        <button onclick="this.closest('.app-native')?.querySelector('iframe')?.src='${app.url}'"
-                                                style="padding:8px 24px;border-radius:30px;background:var(--primary);color:white;border:none;cursor:pointer;font-weight:500;">
-                                            Retry
-                                        </button>
-                                        <button onclick="window.open('${escapeHtml(app.url)}', '_blank'); this.closest('.app-modal, .window')?.style?.display='none';"
-                                                style="padding:8px 24px;border-radius:30px;background:var(--surface-hover);color:var(--text);border:none;cursor:pointer;font-weight:500;">
-                                            Open in your browser
+                            spinner.innerHTML = (() => {
+                                const url = app.url;
+                                let siteName = "Website";
+                                try {
+                                    const domain = new URL(url).hostname.replace(/^www\./, '');
+                                    const parts = domain.split('.');
+                                    siteName = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+                                    if (siteName === 'Youtube') siteName = 'YouTube';
+                                    if (siteName === 'Github') siteName = 'GitHub';
+                                } catch (e) {}
+                                const faviconUrl = `https://www.google.com/s2/favicons?sz=64&domain=${new URL(url).hostname}`;
+                                return `
+                                    <div style="text-align:center;gap:12px;display:flex;flex-direction:column;align-items:center;">
+                                        <img src="${faviconUrl}" style="width:48px;height:48px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.3);" />
+                                        <div style="font-size:24px;font-weight:700;margin-top:4px;">${siteName}</div>
+                                        <div style="font-size:9px;opacity:0.5;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">${siteName} requires a direct browser connection for security.</div>
+                                        <button onclick="window.open('${escapeHtml(url)}', '_blank'); this.closest('.app-modal, .window')?.style?.display='none';"
+                                                style="background:#3b82f6;color:white;border:none;padding:12px 32px;border-radius:30px;font-weight:600;cursor:pointer;box-shadow:0 4px 15px rgba(59,130,246,0.4);">
+                                            Open ${siteName}
                                         </button>
                                     </div>
-                                </div>
-                            `;
+                                `;
+                            })();
                             toast('Could not load: ' + app.name, 'error');
                         }
                     };
@@ -2747,6 +2760,15 @@
                 notifDrawer.classList.remove('higher');
             } else if (document.body.classList.contains('desktop-mode')) {
                 if (app.winEl) {
+                    // Save position and size before removing
+                    const rect = app.winEl.getBoundingClientRect();
+                    app.componentData = app.componentData || {};
+                    app.componentData.windowState = {
+                        left: rect.left,
+                        top: rect.top,
+                        width: rect.width,
+                        height: rect.height
+                    };
                     app.winEl.remove();
                     app.winEl = null;
                 }
@@ -2776,10 +2798,19 @@ function closeModal() {
             win.className = 'window';
             win.id = `win-${id}`;
             const offset = Math.min(Object.keys(runningApps).length * 30, 200);
-            win.style.top = `${50 + offset}px`;
-            win.style.left = `${50 + offset}px`;
-            win.style.width = '600px';
-            win.style.height = '450px';
+            // Restore saved position and size if available
+            const savedState = runningApps[id]?.componentData?.windowState;
+            if (savedState) {
+                win.style.left = savedState.left + 'px';
+                win.style.top = savedState.top + 'px';
+                win.style.width = savedState.width + 'px';
+                win.style.height = savedState.height + 'px';
+            } else {
+                win.style.top = `${50 + offset}px`;
+                win.style.left = `${50 + offset}px`;
+                win.style.width = '600px';
+                win.style.height = '450px';
+            }
             win.innerHTML = `
             <div class="win-header">
               <div style="font-size:12px; font-weight:500;"><i class="fas ${app.icon || 'fa-globe'}" style="margin-right:6px;"></i>${escapeHtml(app.name)}</div>
@@ -2824,7 +2855,11 @@ win.addEventListener('pointerdown', () => {
     bringToFront(win);
 }, { capture: true }); 
 // Using 'capture: true' intercepts the click before the inner app can swallow it.
-
+        // Set minimum and maximum window size constraints
+        win.style.minWidth = '300px';
+        win.style.minHeight = '200px';
+        win.style.maxWidth = '100vw';
+        win.style.maxHeight = 'calc(100vh - 50px)';
         // Restore scroll position after iframe loads
         const iframe = contentNode.querySelector('iframe');
         if (iframe) {
@@ -2895,7 +2930,107 @@ win.addEventListener('pointerdown', () => {
             handle.onpointerup = () => isDragging = false;
             handle.onpointercancel = () => isDragging = false;
         }
+        // ── Global 8-Direction Resizing for All Windows ──
+        function setupUniversalResizing() {
+            const winContainer = document.querySelector('#windowContainer');
+            if (!winContainer) return;
 
+            const attachResizers = (win) => {
+                if (win.dataset.resizersAttached === 'true') return;
+
+                const positions = ['t', 'b', 'l', 'r', 'tl', 'tr', 'bl', 'br'];
+                const handleSize = 8;
+                const offset = -4;
+
+                positions.forEach(pos => {
+                    const handle = document.createElement('div');
+                    handle.className = `universal-resizer resizer-${pos}`;
+                    
+                    let css = `position: absolute; z-index: 9999; background: transparent; user-select: none; `;
+                    switch(pos) {
+                        case 't': css += `top: ${offset}px; left: ${handleSize}px; right: ${handleSize}px; height: ${handleSize}px; cursor: ns-resize;`; break;
+                        case 'b': css += `bottom: ${offset}px; left: ${handleSize}px; right: ${handleSize}px; height: ${handleSize}px; cursor: ns-resize;`; break;
+                        case 'l': css += `left: ${offset}px; top: ${handleSize}px; bottom: ${handleSize}px; width: ${handleSize}px; cursor: ew-resize;`; break;
+                        case 'r': css += `right: ${offset}px; top: ${handleSize}px; bottom: ${handleSize}px; width: ${handleSize}px; cursor: ew-resize;`; break;
+                        case 'tl': css += `top: ${offset}px; left: ${offset}px; width: ${handleSize}px; height: ${handleSize}px; cursor: nwse-resize;`; break;
+                        case 'tr': css += `top: ${offset}px; right: ${offset}px; width: ${handleSize}px; height: ${handleSize}px; cursor: nesw-resize;`; break;
+                        case 'bl': css += `bottom: ${offset}px; left: ${offset}px; width: ${handleSize}px; height: ${handleSize}px; cursor: nesw-resize;`; break;
+                        case 'br': css += `bottom: ${offset}px; right: ${offset}px; width: ${handleSize}px; height: ${handleSize}px; cursor: nwse-resize;`; break;
+                    }
+                    handle.style.cssText = css;
+
+                    handle.addEventListener('mousedown', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        const startWidth = win.offsetWidth;
+                        const startHeight = win.offsetHeight;
+                        const startX = e.clientX;
+                        const startY = e.clientY;
+                        const startLeft = win.offsetLeft;
+                        const startTop = win.offsetTop;
+
+                        const onMouseMove = (me) => {
+                            const dx = me.clientX - startX;
+                            const dy = me.clientY - startY;
+
+                            if (pos.includes('t')) {
+                                const newHeight = Math.max(100, startHeight - dy);
+                                if (newHeight > 100) {
+                                    win.style.height = newHeight + 'px';
+                                    win.style.top = (startTop + dy) + 'px';
+                                }
+                            }
+                            if (pos.includes('b')) {
+                                win.style.height = Math.max(100, startHeight + dy) + 'px';
+                            }
+                            if (pos.includes('l')) {
+                                const newWidth = Math.max(150, startWidth - dx);
+                                if (newWidth > 150) {
+                                    win.style.width = newWidth + 'px';
+                                    win.style.left = (startLeft + dx) + 'px';
+                                }
+                            }
+                            if (pos.includes('r')) {
+                                win.style.width = Math.max(150, startWidth + dx) + 'px';
+                            }
+                        };
+
+                        const onMouseUp = () => {
+                            document.removeEventListener('mousemove', onMouseMove);
+                            document.removeEventListener('mouseup', onMouseUp);
+                            document.body.style.cursor = 'default';
+                        };
+
+                        document.body.style.cursor = window.getComputedStyle(handle).cursor;
+                        document.addEventListener('mousemove', onMouseMove);
+                        document.addEventListener('mouseup', onMouseUp);
+                    });
+
+                    win.appendChild(handle);
+                });
+                win.dataset.resizersAttached = 'true';
+            };
+
+            // Apply to existing windows
+            document.querySelectorAll('#windowContainer > .window').forEach(attachResizers);
+
+            // Watch for new windows
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach(m => {
+                    m.addedNodes.forEach(node => {
+                        if (node.nodeType === 1) {
+                            if (node.classList.contains('window')) attachResizers(node);
+                            node.querySelectorAll('.window').forEach(attachResizers);
+                        }
+                    });
+                });
+            });
+            observer.observe(winContainer, { childList: true, subtree: true });
+        }
+
+        // Call it after the window container is ready
+        setTimeout(setupUniversalResizing, 100);
         function updateTaskbar() {
             if (!taskbarApps) return;
             taskbarApps.innerHTML = '';
@@ -2915,20 +3050,6 @@ win.addEventListener('pointerdown', () => {
                 let isHovering = false;
 
                 div.addEventListener('mouseenter', () => {
-                    isHovering = true;
-                    if (previewTimer) {
-                        clearTimeout(previewTimer);
-                        previewTimer = null;
-                    }
-                    previewTimer = setTimeout(() => {
-                        if (isHovering) {
-                            showTaskbarPreview(id, div);
-                        }
-                    }, 100);
-                });
-
-                div.addEventListener('mouseleave', () => {
-                    isHovering = false;
                     if (previewTimer) {
                         clearTimeout(previewTimer);
                         previewTimer = null;
@@ -2937,9 +3058,28 @@ win.addEventListener('pointerdown', () => {
                     if (preview) {
                         preview.classList.remove('visible');
                     }
+                    previewTimer = setTimeout(() => {
+                        showTaskbarPreview(id, div);
+                    }, 100);
+                });
+
+                div.addEventListener('mouseleave', () => {
+                    if (previewTimer) {
+                        clearTimeout(previewTimer);
+                        previewTimer = null;
+                    }
+                    const preview = document.getElementById('taskbarPreview');
+                    if (preview) {
+                        setTimeout(() => {
+                            if (!preview.matches(':hover')) {
+                                preview.classList.remove('visible');
+                            }
+                        }, 50);
+                    }
                 });
 
                 div.onclick = () => {
+                    // ... your existing onclick logic ...
                     if (document.body.classList.contains('desktop-mode')) {
                         if (!runningApps[id].winEl) launchApp(id);
                         else if (runningApps[id].winEl) {
@@ -2965,17 +3105,24 @@ win.addEventListener('pointerdown', () => {
                 taskbarApps.appendChild(div);
             });
 
-            // Also handle mouse events on the preview window to keep it open when hovering over it
+            // Global mouse tracker: force hide preview when mouse is not over taskbar or preview
             const preview = document.getElementById('taskbarPreview');
-            if (preview) {
-                preview.addEventListener('mouseenter', () => {
-                    preview.classList.add('visible');
-                    // Cancel any pending hide timer
-                    if (preview._hideTimer) {
-                        clearTimeout(preview._hideTimer);
-                        preview._hideTimer = null;
+            const taskbar = document.getElementById('taskbar');
+            
+            if (preview && taskbar) {
+                document.addEventListener('mousemove', (e) => {
+                    const isOverTaskbar = taskbar.contains(e.target);
+                    const isOverPreview = preview.contains(e.target);
+                    
+                    if (!isOverTaskbar && !isOverPreview) {
+                        preview.classList.remove('visible');
                     }
                 });
+
+                preview.addEventListener('mouseenter', () => {
+                    preview.classList.add('visible');
+                });
+
                 preview.addEventListener('mouseleave', () => {
                     preview.classList.remove('visible');
                 });
@@ -2987,65 +3134,72 @@ win.addEventListener('pointerdown', () => {
             const app = runningApps[appId];
             if (!app) return;
             const rect = element.getBoundingClientRect();
-            const preview = taskbarPreview;
-            const canvas = previewCanvas;
+            const preview = document.getElementById('taskbarPreview');
+            const canvas = document.getElementById('previewCanvas');
+            const previewLabel = document.getElementById('previewLabel');
+            if (!preview || !canvas || !previewLabel) return;
 
             // Position preview above the taskbar item
-            preview.style.left = (rect.left + rect.width / 2 - 140) + 'px';
-            preview.style.bottom = '60px';
+            const previewWidth = 280;
+            const previewHeight = 180;
+            preview.style.width = previewWidth + 'px';
+            preview.style.height = previewHeight + 'px';
+            // Position the preview directly above the taskbar item
+            preview.style.left = (rect.left + rect.width / 2 - previewWidth / 2) + 'px';
+            preview.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
             preview.style.display = 'block';
             preview.style.opacity = '1';
-
             previewLabel.textContent = app.app.name;
 
-             // Capture iframe content to canvas (if iframe)
-            if (app.app.type === 'iframe') {
-                const iframe = app.contentNode.querySelector('iframe') || modalIframe;
-                if (iframe && iframe.contentWindow) {
-                    try {
-                        // Try to access contentDocument – if CORS blocks, just show app name
-                        const doc = iframe.contentDocument || iframe.contentWindow.document;
-                        if (doc) {
-                            const ctx = canvas.getContext('2d');
-                            ctx.fillStyle = '#1e293b';
-                            ctx.fillRect(0, 0, canvas.width, canvas.height);
-                            ctx.fillStyle = '#3b82f6';
-                            ctx.font = '32px sans-serif';
-                            ctx.textAlign = 'center';
-                            ctx.textBaseline = 'middle';
-                            ctx.fillText('📄', canvas.width / 2, canvas.height / 2 - 10);
-                            ctx.fillStyle = '#f0f0f0';
-                            ctx.font = '14px sans-serif';
-                            ctx.fillText(app.app.name, canvas.width / 2, canvas.height / 2 + 40);
-                        }
-                    } catch (e) {
-                        // CORS error - silently ignore and show fallback
-                        const ctx = canvas.getContext('2d');
-                        ctx.fillStyle = '#1e293b';
-                        ctx.fillRect(0, 0, canvas.width, canvas.height);
-                        ctx.fillStyle = '#3b82f6';
-                        ctx.font = '32px sans-serif';
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.fillText('📄', canvas.width / 2, canvas.height / 2 - 10);
-                        ctx.fillStyle = '#f0f0f0';
-                        ctx.font = '14px sans-serif';
-                        ctx.fillText(app.app.name, canvas.width / 2, canvas.height / 2 + 40);
-                    }
-                } else {
-                    const ctx = canvas.getContext('2d');
-                    ctx.fillStyle = '#1e293b';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    ctx.fillStyle = '#3b82f6';
-                    ctx.font = '32px sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText('📄', canvas.width / 2, canvas.height / 2 - 10);
-                    ctx.fillStyle = '#f0f0f0';
-                    ctx.font = '14px sans-serif';
-                    ctx.fillText(app.app.name, canvas.width / 2, canvas.height / 2 + 40);
+                        // Add a small close button to the preview
+            let closeBtn = preview.querySelector('.preview-close-btn');
+            if (!closeBtn) {
+                closeBtn = document.createElement('button');
+                closeBtn.className = 'preview-close-btn';
+                closeBtn.innerHTML = '✕';
+                closeBtn.style.cssText = `
+                    position: absolute;
+                    top: 4px;
+                    right: 6px;
+                    background: rgba(0,0,0,0.6);
+                    border: none;
+                    color: white;
+                    font-size: 12px;
+                    width: 20px;
+                    height: 20px;
+                    border-radius: 50%;
+                    cursor: pointer;
+                    z-index: 10;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: background 0.15s;
+                `;
+                closeBtn.addEventListener('mouseenter', () => {
+                    closeBtn.style.background = 'rgba(255,50,50,0.8)';
+                });
+                closeBtn.addEventListener('mouseleave', () => {
+                    closeBtn.style.background = 'rgba(0,0,0,0.6)';
+                });
+                closeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const preview = document.getElementById('taskbarPreview');
+                    if (preview) preview.classList.remove('visible');
+                });
+                preview.appendChild(closeBtn);
+            }
+
+            // Clear any previous DOM clones (keep the canvas and label)
+            const previewChildren = Array.from(preview.children);
+            previewChildren.forEach(child => {
+                if (child !== canvas && child !== previewLabel) {
+                    child.remove();
                 }
-            } else {
+            });
+
+            // Iframe apps: use canvas fallback (cross-origin restrictions apply)
+            if (app.app.type === 'iframe') {
+                canvas.style.display = 'block';
                 const ctx = canvas.getContext('2d');
                 ctx.fillStyle = '#1e293b';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -3057,6 +3211,56 @@ win.addEventListener('pointerdown', () => {
                 ctx.fillStyle = '#f0f0f0';
                 ctx.font = '14px sans-serif';
                 ctx.fillText(app.app.name, canvas.width / 2, canvas.height / 2 + 40);
+                preview.classList.add('visible');
+                return;
+            }
+
+            // Native apps: clone the DOM structure and scale it into a miniature
+            if (app.app.type === 'native') {
+                canvas.style.display = 'none';
+                const source = app.contentNode;
+                if (!source) return;
+
+                // Clone the entire app structure
+                const clone = source.cloneNode(true);
+                // Strip scripts and IDs to prevent conflicts
+                clone.querySelectorAll('script').forEach(s => s.remove());
+                clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+                // Make it a non-interactive visual shell
+                clone.style.pointerEvents = 'none';
+                clone.style.userSelect = 'none';
+                clone.style.position = 'relative';
+                clone.style.margin = '0';
+
+                // Calculate scaling to fit the preview box (280px wide)
+                const sourceWidth = source.offsetWidth || 800;
+                const sourceHeight = source.offsetHeight || 600;
+                const scale = previewWidth / sourceWidth;
+                const scaledHeight = sourceHeight * scale;
+
+                // Create a viewport container to hold the scaled clone
+                const viewport = document.createElement('div');
+                viewport.style.cssText = `
+                    width: ${previewWidth}px;
+                    height: ${scaledHeight}px;
+                    overflow: hidden;
+                    border-radius: 6px;
+                    background: #000;
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                `;
+
+                // Scale the clone to fit within the viewport
+                clone.style.transform = `scale(${scale})`;
+                clone.style.transformOrigin = 'top left';
+                clone.style.width = sourceWidth + 'px';
+                clone.style.height = sourceHeight + 'px';
+
+                viewport.appendChild(clone);
+                // Insert the viewport at the beginning of the preview box
+                preview.insertBefore(viewport, canvas);
+                preview.style.height = (scaledHeight + 40) + 'px'; // Add space for label
             }
 
             preview.classList.add('visible');
