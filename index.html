@@ -3348,14 +3348,14 @@
             background: var(--border);
             margin: 4px 12px;
         }
-                /* ─── EDGE SWIPE ZONE (MOBILE BACK GESTURE) ─── */
+        /* ─── EDGE SWIPE ZONE (MOBILE BACK GESTURE) ─── */
         .edge-swipe-zone {
             position: fixed;
             top: 0; 
             left: 0; 
             bottom: 0;
             width: 15px; /* Thin invisible strip on the left edge */
-            z-index: 9999;
+            z-index: 150; /* Keeps it above app modal (40) but below natification drawer (300) */
             display: none;
             touch-action: none;
         }
@@ -3368,6 +3368,7 @@
 
     <!-- ─── DESKTOP BACKGROUND ─── -->
     <div id="desktop-bg"></div>
+        <div class="edge-swipe-zone" id="edgeSwipeZone"></div>
 
     <!-- ─── LOCK SCREEN ─── -->
     <div class="lock-screen locked" id="lockScreen">
@@ -5171,7 +5172,7 @@
             lastActiveAppId = id;
 
             // === Mobile launch (Step 3: requestAnimationFrame polish + iframe state preservation) ===
-                        if (isMobile() && !document.body.classList.contains('desktop-mode')) {
+            if (isMobile() && !document.body.classList.contains('desktop-mode')) {
                 modal.classList.remove('open');
                 
                 requestAnimationFrame(() => {
@@ -5299,9 +5300,13 @@
                 }
                 iframe?.contentWindow?.postMessage({ type: 'disposeResources' }, '*');
             }
-            if (isMobile() && !document.body.classList.contains('desktop-mode')) {
+                        if (isMobile() && !document.body.classList.contains('desktop-mode')) {
                 modal.classList.remove('open');
                 notifDrawer.classList.remove('higher');
+                // CLEANUP: Physically remove the node from the mobile modal
+                if (app.contentNode && app.contentNode.parentNode) {
+                    app.contentNode.parentNode.removeChild(app.contentNode);
+                }
             } else if (document.body.classList.contains('desktop-mode')) {
                 if (app.winEl) {
                     // Save position and size before removing

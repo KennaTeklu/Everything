@@ -3328,6 +3328,24 @@ window.addEventListener('load', async () => {
     // --- End of migration ---
     
     Graph3D.init();
+        // ─── OS BACK NAVIGATION HANDLER ───
+    window.addEventListener('message', (e) => {
+        if (e.data && e.data.type === 'canGoBack') {
+            // Determine if we can go back internally (e.g., if we have a folder history)
+            const canGoBack = State.path.length > 1 || State.focusId !== 'root';
+            
+            // Reply to the OS
+            e.source.postMessage({ 
+                type: 'canGoBackResponse', 
+                canGoBack: canGoBack 
+            }, '*');
+        } else if (e.data && e.data.type === 'performBack') {
+            // Perform the back action
+            if (State.path.length > 1 || State.focusId !== 'root') {
+                Core.goUp();
+            }
+        }
+    });
     SessionManager.restore();
     Core.refresh();
     if (State.colorblind) document.body.classList.add('colorblind-mode');
