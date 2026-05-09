@@ -2051,18 +2051,27 @@ const Graph3D = {
         const vDist = targetSizeY / (2 * tanFov);
         let distance = Math.max(hDist, vDist, 3);
         // Add extra padding for very large trees
-        if (nodeCount > 100) distance *= 1.2;
-        if (nodeCount > 300) distance *= 1.3;
+        const totalNodes = this.nodeObjects.length;
+        if (totalNodes > 100) distance *= 1.2;
+        if (totalNodes > 300) distance *= 1.3;
+        // Restore fillFactor (needed elsewhere in Graph3D)
+        this.fillFactor = totalNodes > 500 ? 0.5 : totalNodes > 200 ? 0.6 : totalNodes > 100 ? 0.8 : totalNodes > 50 ? 1.0 : 1.2;
         
-        const nodeCount = this.nodeObjects.length;
-        const densityFactor = Math.min(1, 20 / nodeCount);
+        const densityFactor = Math.min(1, 20 / totalNodes);
         distance *= (1 + 0.3 * densityFactor);
+        
+        // Extra padding for Full Tree (Solar) mode
+        const safeState = window.State || State;
+        if (safeState && safeState.solarViewEnabled) {
+            distance *= 1.4;
+        }
         
         const azimuth = 45 * Math.PI / 180;
         const elevation = 30 * Math.PI / 180;
-        const x = center.x + Math.cos(azimuth) * Math.cos(elevation) * distance;
-        const y = center.y + Math.sin(elevation) * distance;
-        const z = center.z + Math.sin(azimuth) * Math.cos(elevation) * distance;
+        const trueCenter = new THREE.Vector3((minX + maxX) / 2, (minY + maxY) / 2, (minZ + maxZ) / 2);
+        const x = trueCenter.x + Math.cos(azimuth) * Math.cos(elevation) * distance;
+        const y = trueCenter.y + Math.sin(elevation) * distance;
+        const z = trueCenter.z + Math.sin(azimuth) * Math.cos(elevation) * distance;
         
         this.camera.position.set(x, y, z);
         this.controls.target.copy(center);
@@ -3375,40 +3384,13 @@ window.addEventListener('load', async () => {
     // --- End of migration ---
     
     Graph3D.init();
-
-        // ─── OS BACK NAVIGATION HANDLER ───
+    // ─── OS BACK NAVIGATION HANDLER ───
     window.addEventListener('message', (e) => {
         if (e.data && e.data.type === 'canGoBack') {
-            // Determine if we can go back internally (has path history)
             const canGoBack = State.path.length > 1 || State.focusId !== 'root';
-            // Reply to the OS
-            e.source.postMessage({
-                type: 'canGoBackResponse',
-                canGoBack: canGoBack
-            }, '*');
+            e.source.postMessage({ type: 'canGoBackResponse', canGoBack }, '*');
         } else if (e.data && e.data.type === 'performBack') {
-            // Perform the back action (zoom out / go up)
-            if (State.path.length > 1 || State.focusId !== 'root') {
-                Core.goUp();
-            }
-        }
-    });
-        // ─── OS BACK NAVIGATION HANDLER ───
-    window.addEventListener('message', (e) => {
-        if (e.data && e.data.type === 'canGoBack') {
-            // Determine if we can go back internally (e.g., if we have a folder history)
-            const canGoBack = State.path.length > 1 || State.focusId !== 'root';
-            
-            // Reply to the OS
-            e.source.postMessage({ 
-                type: 'canGoBackResponse', 
-                canGoBack: canGoBack 
-            }, '*');
-        } else if (e.data && e.data.type === 'performBack') {
-            // Perform the back action
-            if (State.path.length > 1 || State.focusId !== 'root') {
-                Core.goUp();
-            }
+            if (State.path.length > 1 || State.focusId !== 'root') Core.goUp();
         }
     });
     SessionManager.restore();
