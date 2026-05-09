@@ -659,6 +659,10 @@
             padding-top: calc(36px + var(--safe-top));
         }
 
+                body:not(.desktop-mode) #widgetsContainer {
+            display: none !important;
+        }
+
          /* Hide the ghost iframe so it stops stealing 50% of the screen */
         #modalIframe {
             display: none !important;
