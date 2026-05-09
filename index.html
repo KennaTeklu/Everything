@@ -2419,6 +2419,20 @@
         .clipboard-header .close-btn:hover {
             color: var(--text);
         }
+                .clipboard-header .clear-all-btn {
+            background: var(--danger);
+            border: none;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            margin-right: 8px;
+            transition: background 0.15s;
+        }
+        .clipboard-header .clear-all-btn:hover {
+            background: #dc2626;
+        }
         .clipboard-list {
             flex: 1;
             overflow-y: auto;
@@ -3638,10 +3652,13 @@
         <!-- ─── CLIPBOARD HISTORY ─── -->
     <div class="clipboard-overlay" id="clipboardOverlay">
         <div class="clipboard-window">
-            <div class="clipboard-header">
-                <h3><i class="fas fa-clipboard-list" style="margin-right:8px;color:var(--primary);"></i>Clipboard History</h3>
-                <button class="close-btn" id="clipboardClose">&times;</button>
-            </div>
+                <div class="clipboard-header">
+                    <h3><i class="fas fa-clipboard-list" style="margin-right:8px;color:var(--primary);"></i>Clipboard History</h3>
+                    <div>
+                        <button class="clear-all-btn" id="clipboardClearAll">Clear All</button>
+                        <button class="close-btn" id="clipboardClose">&times;</button>
+                    </div>
+                </div>
             <div class="clipboard-list" id="clipboardList">
                 <div class="clipboard-empty">
                     <i class="fas fa-clipboard"></i>
@@ -5698,12 +5715,38 @@ win.addEventListener('pointerdown', () => {
                 ctx.font = '14px sans-serif';
                 ctx.fillText(app.app.name, canvas.width / 2, canvas.height / 2 + 40);
             } 
-            // Native apps: clone the DOM structure and scale it into a miniature
+            // Native apps: live synced clone (updates in real-time)
             else if (app.app.type === 'native') {
                 canvas.style.display = 'none';
                 const source = app.contentNode;
                 if (!source) return;
 
+                // Check if a live viewport already exists
+                let viewport = preview.querySelector('.live-viewport');
+                if (!viewport) {
+                    viewport = document.createElement('div');
+                    viewport.className = 'live-viewport';
+                    viewport.style.cssText = `
+                        width: ${previewWidth}px;
+                        overflow: hidden;
+                        border-radius: 6px;
+                        background: #000;
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                    `;
+                    preview.insertBefore(viewport, canvas);
+                }
+
+                // Scale and position the viewport
+                const sourceWidth = source.offsetWidth || 800;
+                const sourceHeight = source.offsetHeight || 600;
+                const scale = previewWidth / sourceWidth;
+                const scaledHeight = sourceHeight * scale;
+                
+                viewport.style.height = scaledHeight + 'px';
+
+                // Clone the source structure
                 const clone = source.cloneNode(true);
                 clone.querySelectorAll('script').forEach(s => s.remove());
                 clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
@@ -5711,32 +5754,54 @@ win.addEventListener('pointerdown', () => {
                 clone.style.userSelect = 'none';
                 clone.style.position = 'relative';
                 clone.style.margin = '0';
-
-                const sourceWidth = source.offsetWidth || 800;
-                const sourceHeight = source.offsetHeight || 600;
-                const scale = previewWidth / sourceWidth;
-                const scaledHeight = sourceHeight * scale;
-
-                const viewport = document.createElement('div');
-                viewport.style.cssText = `
-                    width: ${previewWidth}px;
-                    height: ${scaledHeight}px;
-                    overflow: hidden;
-                    border-radius: 6px;
-                    background: #000;
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                `;
-
                 clone.style.transform = `scale(${scale})`;
                 clone.style.transformOrigin = 'top left';
                 clone.style.width = sourceWidth + 'px';
                 clone.style.height = sourceHeight + 'px';
 
+                // Replace content of viewport with new clone
+                viewport.innerHTML = '';
                 viewport.appendChild(clone);
-                preview.insertBefore(viewport, canvas);
-                
+
+                // Store a reference so we can update it later
+                if (!preview.dataset.liveAppId) {
+                    preview.dataset.liveAppId = appId;
+                    // Set up a refresh interval for live updates
+                    if (window._livePreviewInterval) {
+                        clearInterval(window._livePreviewInterval);
+                    }
+                    window._livePreviewInterval = setInterval(() => {
+                        const currentId = preview.dataset.liveAppId;
+                        if (currentId && runningApps[currentId] && preview.classList.contains('visible')) {
+                            const app = runningApps[currentId];
+                            if (app && app.app.type === 'native') {
+                                const source = app.contentNode;
+                                if (source) {
+                                    const viewport = preview.querySelector('.live-viewport');
+                                    if (viewport) {
+                                        const clone = source.cloneNode(true);
+                                        clone.querySelectorAll('script').forEach(s => s.remove());
+                                        clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+                                        clone.style.pointerEvents = 'none';
+                                        clone.style.userSelect = 'none';
+                                        clone.style.position = 'relative';
+                                        clone.style.margin = '0';
+                                        const sourceWidth = source.offsetWidth || 800;
+                                        const sourceHeight = source.offsetHeight || 600;
+                                        const scale = previewWidth / sourceWidth;
+                                        clone.style.transform = `scale(${scale})`;
+                                        clone.style.transformOrigin = 'top left';
+                                        clone.style.width = sourceWidth + 'px';
+                                        clone.style.height = sourceHeight + 'px';
+                                        viewport.innerHTML = '';
+                                        viewport.appendChild(clone);
+                                    }
+                                }
+                            }
+                        }
+                    }, 500);
+                }
+
                 const labelHeight = 20;
                 const totalHeight = scaledHeight + labelHeight + 20;
                 const maxPreviewHeight = window.innerHeight - 100;
@@ -6513,18 +6578,22 @@ homeBtn.onclick = () => {
         // ═══════════════════════════════════════════════════════════════════
         function init() {
             updateLockIcon();
-            recalcPagination();
-            renderGrid();
-            renderDots();
-            renderStartMenu();
-            renderRecentsDrawer();
-            handleResize();
-            if (!localStorage.getItem('notifShown')) {
-                setTimeout(() => {
-                    addNotification('🚀 Unified OS v6.0 ready — All your apps, all your data', 'rocket');
-                    localStorage.setItem('notifShown', 'true');
-                }, 500);
-            }
+            // Load persistent file system
+            loadFileSystem().then(fs => {
+                fileSystem = fs;
+                recalcPagination();
+                renderGrid();
+                renderDots();
+                renderStartMenu();
+                renderRecentsDrawer();
+                handleResize();
+                if (!localStorage.getItem('notifShown')) {
+                    setTimeout(() => {
+                        addNotification('🚀 Unified OS v6.0 ready — All your apps, all your data', 'rocket');
+                        localStorage.setItem('notifShown', 'true');
+                    }, 500);
+                }
+            });
         }
         // ─── VIRTUAL DESKTOP SYSTEM ───
         let virtualDesktops = { '0': [] }; // { id: [windowIds] }
@@ -7115,42 +7184,136 @@ homeBtn.onclick = () => {
         let historyStack = ['home'];
         let historyIndex = 0;
 
-        // Virtual file system data
-        const fileSystem = {
-            'home': [
-                { name: 'Documents', type: 'folder', icon: 'fa-folder' },
-                { name: 'Downloads', type: 'folder', icon: 'fa-folder' },
-                { name: 'Pictures', type: 'folder', icon: 'fa-folder' },
-                { name: 'Music', type: 'folder', icon: 'fa-folder' },
-                { name: 'Videos', type: 'folder', icon: 'fa-folder' },
-                { name: 'Notes.txt', type: 'file', icon: 'fa-file-alt', size: '2 KB' },
-                { name: 'Welcome.md', type: 'file', icon: 'fa-file-code', size: '1 KB' }
-            ],
-            'documents': [
-                { name: 'Resume.pdf', type: 'file', icon: 'fa-file-pdf', size: '45 KB' },
-                { name: 'Project Plan.txt', type: 'file', icon: 'fa-file-alt', size: '8 KB' },
-                { name: 'Meeting Notes.md', type: 'file', icon: 'fa-file-code', size: '12 KB' },
-                { name: 'Budget.xlsx', type: 'file', icon: 'fa-file-excel', size: '34 KB' }
-            ],
-            'downloads': [
-                { name: 'update-1.0.zip', type: 'file', icon: 'fa-file-archive', size: '2.4 MB' },
-                { name: 'wallpaper.jpg', type: 'file', icon: 'fa-file-image', size: '1.8 MB' }
-            ],
-            'pictures': [
-                { name: 'Vacation', type: 'folder', icon: 'fa-folder' },
-                { name: 'Screenshots', type: 'folder', icon: 'fa-folder' },
-                { name: 'Profile.jpg', type: 'file', icon: 'fa-file-image', size: '250 KB' },
-                { name: 'Banner.png', type: 'file', icon: 'fa-file-image', size: '512 KB' }
-            ],
-            'music': [
-                { name: 'Playlist.m3u', type: 'file', icon: 'fa-file-music', size: '4 KB' },
-                { name: 'Song.mp3', type: 'file', icon: 'fa-file-music', size: '3.2 MB' }
-            ],
-            'videos': [
-                { name: 'Tutorial.mp4', type: 'file', icon: 'fa-file-video', size: '14 MB' },
-                { name: 'Recording.mov', type: 'file', icon: 'fa-file-video', size: '28 MB' }
-            ]
+        // ─── PERSISTENT FILE SYSTEM (IndexedDB) ───
+        let fileSystem = {};
+
+                // ─── FILE ASSOCIATIONS ───
+        const fileAssociations = {
+            'txt': 'text-editor',
+            'md': 'text-editor',
+            'js': 'text-editor',
+            'html': 'text-editor',
+            'css': 'text-editor',
+            'json': 'text-editor',
+            'xml': 'text-editor',
+            'png': 'paint',
+            'jpg': 'paint',
+            'jpeg': 'paint',
+            'gif': 'paint',
+            'svg': 'paint',
+            'webp': 'paint',
+            'bmp': 'paint',
+            'mp3': 'media-player',
+            'wav': 'media-player',
+            'ogg': 'media-player',
+            'flac': 'media-player',
+            'm4a': 'media-player',
+            'mp4': 'media-player',
+            'webm': 'media-player',
+            'mov': 'media-player',
+            'avi': 'media-player'
         };
+
+        function openFSDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('UnifiedOSFileSystem', 1);
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains('fileSystem')) {
+                        db.createObjectStore('fileSystem', { keyPath: 'path' });
+                    }
+                };
+                request.onsuccess = (e) => resolve(e.target.result);
+                request.onerror = (e) => reject(e.target.error);
+            });
+        }
+
+        function loadFileSystem() {
+            return openFSDB().then(db => {
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction('fileSystem', 'readonly');
+                    const store = tx.objectStore('fileSystem');
+                    const request = store.get('root');
+                    request.onsuccess = () => {
+                        const data = request.result?.data;
+                        if (data) {
+                            resolve(data);
+                        } else {
+                            // Default file system on first run
+                            const defaultFS = {
+                                'home': [
+                                    { name: 'Documents', type: 'folder', icon: 'fa-folder' },
+                                    { name: 'Downloads', type: 'folder', icon: 'fa-folder' },
+                                    { name: 'Pictures', type: 'folder', icon: 'fa-folder' },
+                                    { name: 'Music', type: 'folder', icon: 'fa-folder' },
+                                    { name: 'Videos', type: 'folder', icon: 'fa-folder' },
+                                    { name: 'Notes.txt', type: 'file', icon: 'fa-file-alt', size: '2 KB' },
+                                    { name: 'Welcome.md', type: 'file', icon: 'fa-file-code', size: '1 KB' }
+                                ],
+                                'documents': [
+                                    { name: 'Resume.pdf', type: 'file', icon: 'fa-file-pdf', size: '45 KB' },
+                                    { name: 'Project Plan.txt', type: 'file', icon: 'fa-file-alt', size: '8 KB' },
+                                    { name: 'Meeting Notes.md', type: 'file', icon: 'fa-file-code', size: '12 KB' },
+                                    { name: 'Budget.xlsx', type: 'file', icon: 'fa-file-excel', size: '34 KB' }
+                                ],
+                                'downloads': [
+                                    { name: 'update-1.0.zip', type: 'file', icon: 'fa-file-archive', size: '2.4 MB' },
+                                    { name: 'wallpaper.jpg', type: 'file', icon: 'fa-file-image', size: '1.8 MB' }
+                                ],
+                                'pictures': [
+                                    { name: 'Vacation', type: 'folder', icon: 'fa-folder' },
+                                    { name: 'Screenshots', type: 'folder', icon: 'fa-folder' },
+                                    { name: 'Profile.jpg', type: 'file', icon: 'fa-file-image', size: '250 KB' },
+                                    { name: 'Banner.png', type: 'file', icon: 'fa-file-image', size: '512 KB' }
+                                ],
+                                'music': [
+                                    { name: 'Playlist.m3u', type: 'file', icon: 'fa-file-music', size: '4 KB' },
+                                    { name: 'Song.mp3', type: 'file', icon: 'fa-file-music', size: '3.2 MB' }
+                                ],
+                                'videos': [
+                                    { name: 'Tutorial.mp4', type: 'file', icon: 'fa-file-video', size: '14 MB' },
+                                    { name: 'Recording.mov', type: 'file', icon: 'fa-file-video', size: '28 MB' }
+                                ]
+                            };
+                            // Save defaults to DB
+                            const tx2 = db.transaction('fileSystem', 'readwrite');
+                            const store2 = tx2.objectStore('fileSystem');
+                            store2.put({ path: 'root', data: defaultFS });
+                            return new Promise((resolve2, reject2) => {
+                                tx2.oncomplete = () => resolve2(defaultFS);
+                                tx2.onerror = (e) => reject2(e.target.error);
+                            });
+                        }
+                    };
+                    request.onerror = () => reject(request.error);
+                });
+            }).catch(() => {
+                // Fallback if database fails
+                return {
+                    'home': [
+                        { name: 'Documents', type: 'folder', icon: 'fa-folder' },
+                        { name: 'Downloads', type: 'folder', icon: 'fa-folder' },
+                        { name: 'Pictures', type: 'folder', icon: 'fa-folder' },
+                        { name: 'Music', type: 'folder', icon: 'fa-folder' },
+                        { name: 'Videos', type: 'folder', icon: 'fa-folder' },
+                        { name: 'Notes.txt', type: 'file', icon: 'fa-file-alt', size: '2 KB' },
+                        { name: 'Welcome.md', type: 'file', icon: 'fa-file-code', size: '1 KB' }
+                    ]
+                };
+            });
+        }
+
+        function saveFileSystem() {
+            return openFSDB().then(db => {
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction('fileSystem', 'readwrite');
+                    const store = tx.objectStore('fileSystem');
+                    store.put({ path: 'root', data: fileSystem });
+                    tx.oncomplete = () => resolve();
+                    tx.onerror = (e) => reject(e.target.error);
+                });
+            }).catch(() => {});
+        }
 
         function renderFolder(folder) {
             const items = fileSystem[folder] || [];
@@ -7181,12 +7344,34 @@ homeBtn.onclick = () => {
                 });
             });
 
-            // Item click (for files)
+            // Double-click to open files
+            explorerGrid.querySelectorAll('.file-item[data-type="file"]').forEach(el => {
+                el.addEventListener('dblclick', () => {
+                    const name = el.dataset.name;
+                    const ext = name.split('.').pop().toLowerCase();
+                    const appId = fileAssociations[ext];
+                    if (appId) {
+                        const app = findAppById(appId);
+                        if (app) {
+                            launchApp(appId);
+                            toast(`Opening ${name} with ${app.name}`);
+                        } else {
+                            toast(`No app found for .${ext} files`);
+                        }
+                    } else {
+                        toast(`No association for .${ext} files`);
+                    }
+                });
+            });
+            
+            // Single click to show file info
             explorerGrid.querySelectorAll('.file-item[data-type="file"]').forEach(el => {
                 el.addEventListener('click', () => {
                     const name = el.dataset.name;
-                    toast(`Opening: ${name}`);
-                    // Simulate file open action
+                    const ext = name.split('.').pop().toLowerCase();
+                    const appId = fileAssociations[ext];
+                    const appName = appId ? (findAppById(appId)?.name || 'Unknown') : 'None';
+                    toast(`${name} (${ext} → ${appName})`);
                 });
             });
         }
@@ -7651,6 +7836,17 @@ homeBtn.onclick = () => {
             if (e.target === clipboardOverlay) closeClipboardHistory();
         });
 
+        document.getElementById('clipboardClearAll').addEventListener('click', () => {
+            if (clipboardHistory.length === 0) {
+                toast('Clipboard is already empty');
+                return;
+            }
+            clipboardHistory = [];
+            saveClipboardHistory();
+            renderClipboardHistory();
+            toast('Clipboard cleared');
+        });
+
         // Keyboard shortcut: Ctrl+Shift+V
         document.addEventListener('keydown', (e) => {
             if (e.ctrlKey && e.shiftKey && e.key === 'V') {
@@ -8108,7 +8304,9 @@ homeBtn.onclick = () => {
                             size: `${Math.floor(items.length * 2 + 10)} KB`
                         });
                     }
-                    renderFolder(currentFolder || 'home');
+                            saveFileSystem().then(() => {
+                                renderFolder(currentFolder || 'home');
+                            });
                 }, 800);
             } else if (mode === 'unzip') {
                 // Extract a ZIP archive (simulated)
@@ -8135,7 +8333,9 @@ homeBtn.onclick = () => {
                         fileSystem[currentFolder || 'home'].push(item);
                     });
                     toast(`✅ Extracted "${archiveName}" successfully`);
-                    renderFolder(currentFolder || 'home');
+                            saveFileSystem().then(() => {
+                                renderFolder(currentFolder || 'home');
+                            });
                 }, 800);
             }
 
@@ -8854,35 +9054,77 @@ homeBtn.onclick = () => {
                         renderGrid();
                         toast('Desktop refreshed');
                         break;
-                    case 'new-folder':
-                        const folderName = prompt('Enter folder name:');
-                        if (folderName && folderName.trim()) {
-                            const currentFolder = currentFolder || 'home';
-                            if (!fileSystem[currentFolder]) fileSystem[currentFolder] = [];
-                            fileSystem[currentFolder].push({
-                                name: folderName.trim(),
-                                type: 'folder',
-                                icon: 'fa-folder'
-                            });
-                            toast('Folder created');
-                            renderGrid();
-                        }
-                        break;
-                    case 'new-file':
-                        const fileName = prompt('Enter file name:');
-                        if (fileName && fileName.trim()) {
-                            const currentFolder = currentFolder || 'home';
-                            if (!fileSystem[currentFolder]) fileSystem[currentFolder] = [];
-                            fileSystem[currentFolder].push({
-                                name: fileName.trim(),
-                                type: 'file',
-                                icon: 'fa-file-alt',
-                                size: '0 KB'
-                            });
-                            toast('File created');
-                            renderGrid();
-                        }
-                        break;
+            case 'new-folder':
+                const folderName = prompt('Enter folder name:');
+                if (folderName && folderName.trim()) {
+                    const cur = currentFolder || 'home';
+                    if (!fileSystem[cur]) fileSystem[cur] = [];
+                    fileSystem[cur].push({
+                        name: folderName.trim(),
+                        type: 'folder',
+                        icon: 'fa-folder'
+                    });
+                    saveFileSystem().then(() => {
+                        renderFolder(cur);
+                        toast('Folder created');
+                    });
+                }
+                break;
+            case 'new-file':
+                const fileName = prompt('Enter file name:');
+                if (fileName && fileName.trim()) {
+                    // Ensure file has an extension
+                    let finalName = fileName.trim();
+                    if (!finalName.includes('.')) {
+                        finalName += '.txt';
+                    }
+                    const cur = currentFolder || 'home';
+                    if (!fileSystem[cur]) fileSystem[cur] = [];
+                    const ext = finalName.split('.').pop().toLowerCase();
+                    const iconMap = {
+                        'txt': 'fa-file-alt',
+                        'md': 'fa-file-code',
+                        'js': 'fa-file-code',
+                        'html': 'fa-file-code',
+                        'css': 'fa-file-code',
+                        'json': 'fa-file-code',
+                        'xml': 'fa-file-code',
+                        'png': 'fa-file-image',
+                        'jpg': 'fa-file-image',
+                        'jpeg': 'fa-file-image',
+                        'gif': 'fa-file-image',
+                        'svg': 'fa-file-image',
+                        'webp': 'fa-file-image',
+                        'bmp': 'fa-file-image',
+                        'mp3': 'fa-file-music',
+                        'wav': 'fa-file-music',
+                        'ogg': 'fa-file-music',
+                        'flac': 'fa-file-music',
+                        'm4a': 'fa-file-music',
+                        'mp4': 'fa-file-video',
+                        'webm': 'fa-file-video',
+                        'mov': 'fa-file-video',
+                        'avi': 'fa-file-video',
+                        'zip': 'fa-file-archive',
+                        'rar': 'fa-file-archive',
+                        '7z': 'fa-file-archive',
+                        'tar': 'fa-file-archive',
+                        'gz': 'fa-file-archive'
+                    };
+                    const icon = iconMap[ext] || 'fa-file';
+                    const size = ext === 'zip' || ext === 'rar' ? '1.2 MB' : '0 KB';
+                    fileSystem[cur].push({
+                        name: finalName,
+                        type: 'file',
+                        icon: icon,
+                        size: size
+                    });
+                    saveFileSystem().then(() => {
+                        renderFolder(cur);
+                        toast(`Created ${finalName}`);
+                    });
+                }
+                break;
                     case 'wallpaper':
                         document.getElementById('settingsWallpaperInput').click();
                         break;
