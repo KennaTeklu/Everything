@@ -603,13 +603,23 @@
         }
 
         // Load messages for current user
+           // Load messages for current user
         function loadMessages() {
             if (!currentUser) return;
             fetch(`${API_BASE}?action=getMessages&deviceId=${deviceId}&since=${lastMessageTime}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.success && data.data.length > 0) {
-                        const newMessages = data.data.filter(m => !messages.some(ex => ex.id === m.id));
+                        // STRICT FILTER: only messages between me and the selected user
+                        const conversationMessages = data.data.filter(m => {
+                            const sentToMeFromThem = m.from === currentUser.deviceId && m.to === deviceId;
+                            const sentFromMeToThem = m.from === deviceId && m.to === currentUser.deviceId;
+                            // Fallback for older messages without 'to' field
+                            const fallbackJustFromThem = m.from === currentUser.deviceId;
+                            return sentToMeFromThem || sentFromMeToThem || fallbackJustFromThem;
+                        });
+                        // Prevent duplicates
+                        const newMessages = conversationMessages.filter(m => !messages.some(ex => ex.id === m.id));
                         if (newMessages.length) {
                             messages = [...messages, ...newMessages];
                             appendMessages(newMessages);
@@ -625,13 +635,13 @@
                                 });
                             }
                         }
+                        // Update timestamp using the latest message from the entire batch
                         const latest = data.data[data.data.length - 1].timestamp;
                         if (latest > lastMessageTime) lastMessageTime = latest;
                     }
                 })
                 .catch(() => {});
         }
-
         // Append messages to container
         function appendMessages(messagesToAdd) {
             messagesToAdd.forEach(msg => {
@@ -843,6 +853,7 @@
                         const tempMsg = {
                             id: data.data.messageId || 'temp-' + Date.now(),
                             from: deviceId,
+                            to: currentUser.deviceId,
                             text: msg,
                             timestamp: data.data.timestamp || new Date().toISOString()
                         };
