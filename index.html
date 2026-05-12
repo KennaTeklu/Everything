@@ -4731,6 +4731,11 @@
                         );
                     iframe.style.flex = '1';
                     iframe.style.width = '100%';
+                    // Allow the map to capture its own gestures (optional)
+                    if (app.url && app.url.includes('map.html')) {
+                        iframe.style.pointerEvents = 'auto';
+                        iframe.style.touchAction = 'auto';
+                    }
                 }
 
                 // Loading spinner (only show if creating a new iframe)
@@ -6145,6 +6150,10 @@ win.addEventListener('pointerdown', () => {
         let touchStartX = 0,
             touchEndX = 0;
         pageViewport.addEventListener('touchstart', (e) => {
+            // Ignore if touch is inside map iframe
+            if (e.target.closest('iframe[src*="map.html"]')) {
+                return;
+            }
             touchStartX = e.changedTouches[0].screenX;
         }, { passive: true });
         pageViewport.addEventListener('touchend', (e) => {
@@ -6162,36 +6171,40 @@ win.addEventListener('pointerdown', () => {
         let isEdgeSwiping = false;
         let edgeStartX = 0;
 
-        function initEdgeSwipeZone() {
-            const edgeZone = document.getElementById('edgeSwipeZone');
-            if (!edgeZone) {
-                console.warn('Edge swipe zone not found, retrying...');
-                setTimeout(initEdgeSwipeZone, 100);
-                return;
-            }
+function initEdgeSwipeZone() {
+    const edgeZone = document.getElementById('edgeSwipeZone');
+    if (!edgeZone) {
+        console.warn('Edge swipe zone not found, retrying...');
+        setTimeout(initEdgeSwipeZone, 100);
+        return;
+    }
 
-            edgeZone.addEventListener('touchstart', (e) => {
-                edgeStartX = e.touches[0].clientX;
-                isEdgeSwiping = true;
-            }, { passive: true });
-
-            edgeZone.addEventListener('touchmove', (e) => {
-                if (!isEdgeSwiping) return;
-                const dx = e.touches[0].clientX - edgeStartX;
-                
-                if (dx > 40) {
-                    isEdgeSwiping = false;
-                    haptic();
-                    if (modal.classList.contains('open')) {
-                        backBtn.click();
-                    } else {
-                        goToPage(currentPage - 1);
-                    }
-                }
-            }, { passive: false });
-
-            edgeZone.addEventListener('touchend', () => { isEdgeSwiping = false; }, { passive: true });
+    edgeZone.addEventListener('touchstart', (e) => {
+        // If the touch target is inside a map iframe, ignore the gesture
+        if (e.target.closest('iframe[src*="map.html"]')) {
+            return;
         }
+        edgeStartX = e.touches[0].clientX;
+        isEdgeSwiping = true;
+    }, { passive: true });
+
+    edgeZone.addEventListener('touchmove', (e) => {
+        if (!isEdgeSwiping) return;
+        const dx = e.touches[0].clientX - edgeStartX;
+        
+        if (dx > 40) {
+            isEdgeSwiping = false;
+            haptic();
+            if (modal.classList.contains('open')) {
+                backBtn.click();
+            } else {
+                goToPage(currentPage - 1);
+            }
+        }
+    }, { passive: false });
+
+    edgeZone.addEventListener('touchend', () => { isEdgeSwiping = false; }, { passive: true });
+}
 
         // Call this inside the init() function
         // OR call it immediately after the DOM is ready
@@ -6208,34 +6221,34 @@ win.addEventListener('pointerdown', () => {
         let isDraggingNotif = false;
 
         pageViewport.addEventListener('touchstart', (e) => {
-            // 👇 ADDED: Ignore if the touch is inside an iframe
-            const target = e.target;
-            if (target.closest('iframe') || target.closest('.app-iframe')) {
+            // Ignore if touch is inside map iframe
+            if (e.target.closest('iframe[src*="map.html"]')) {
                 return;
             }
-            if (e.touches[0].clientY < 40) { touchStartYNotif = e.touches[0].clientY;
-                isDraggingNotif = true; }
+            if (e.touches[0].clientY < 40) { 
+                touchStartYNotif = e.touches[0].clientY;
+                isDraggingNotif = true; 
+            }
         }, { passive: true });
 
-          pageViewport.addEventListener('touchmove', (e) => {
-            // 👇 ADDED: Ignore if the touch is inside an iframe
-            const target = e.target;
-            if (target.closest('iframe') || target.closest('.app-iframe')) {
-                return;
-            }
-            if (!isDraggingNotif) return;
-            let delta = e.touches[0].clientY - touchStartYNotif;
-            if (delta > 30) {
-                notifDrawer.classList.add('open');
-                isDraggingNotif = false;
-                setTimeout(() => {
-                    document.addEventListener('click', function closeDrawer(e) {
-                        if (!notifDrawer.contains(e.target)) notifDrawer.classList.remove('open');
-                        document.removeEventListener('click', closeDrawer);
-                    });
-                }, 100);
-            }
-        }, { passive: true });
+pageViewport.addEventListener('touchmove', (e) => {
+    // Ignore if touch is inside map iframe
+    if (e.target.closest('iframe[src*="map.html"]')) {
+        return;
+    }
+    if (!isDraggingNotif) return;
+    let delta = e.touches[0].clientY - touchStartYNotif;
+    if (delta > 30) {
+        notifDrawer.classList.add('open');
+        isDraggingNotif = false;
+        setTimeout(() => {
+            document.addEventListener('click', function closeDrawer(e) {
+                if (!notifDrawer.contains(e.target)) notifDrawer.classList.remove('open');
+                document.removeEventListener('click', closeDrawer);
+            });
+        }, 100);
+    }
+}, { passive: true });
 
         pageViewport.addEventListener('touchend', () => { isDraggingNotif = false; }, { passive: true });
 
