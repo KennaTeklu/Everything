@@ -3362,6 +3362,11 @@
         body:not(.desktop-mode) .edge-swipe-zone {
             display: block;
         }
+        iframe[src*="map.html"] {
+            pointer-events: auto !important;
+            touch-action: auto !important;
+            isolation: isolate;
+        }
     </style>
 </head>
 <body>
